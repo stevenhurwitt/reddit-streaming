@@ -3,6 +3,7 @@
 .metals
 .bloop
 .ipynb_checkpoints
-creds.json
+redditStreaming/creds.json
 target/
 redditStreaming/src/main/python/reddit/__pycache__
+local

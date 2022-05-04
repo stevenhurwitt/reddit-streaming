@@ -50,30 +50,33 @@ def get_bearer():
     headers = {**headers, **{'Authorization': f"bearer {token}"}}
     return(headers)
 
-def get_subreddit(subreddit, limit, after, headers):
+def get_subreddit(subreddit, limit, post_type, before, headers):
     """
     gets data for a given subreddit.
 
-    params: subreddit (str)
-            limit (int)
-            header (dict)
+    params: subreddit (str) - name of subreddit
+            limit (int) - number of results to return
+            post_type (str) - type of posts (hot, new, controversial, top, etc)
+            header (dict) - request header w/ bearer token
 
-    returns: response (json)
+    returns: response (json) - body of api response
     """
-    request_url = "https://oauth.reddit.com/r/{}/hot".format(subreddit)
-    options = {"limit":str(limit), "after":str(after)}
-    response = requests.get(request_url, 
+    request_url = "https://oauth.reddit.com/r/{}/{}".format(subreddit, post_type)
+    options = {"limit":str(limit), "before":str(before)}
+    try:
+        response = requests.get(request_url, 
                             headers = headers,
                             params = options)
 
-    try:
         response_json = response.json()
         return(response_json)
     
     except Exception as e:
         pp.pprint(e)
 
-def serializer(message):
+def my_serializer(message):
+            # lambda v: bytes(json.dumps(v, default=str).encode('utf-8'))
+            #  json.dumps(message).encode('utf-8')
             return json.dumps(message).encode('utf-8')
 
 def push_kafka(topic, subreddit):
@@ -85,13 +88,13 @@ def push_kafka(topic, subreddit):
         after_token = response["data"]["after"]
         # pp.pprint(response["data"]["children"])
 
-        broker = ["host.docker.internal:9092"]
-        local_broker = ["localhost:9092"]
+        broker = ["kafka:9092"]
+        # local_broker = ["localhost:9092"]
         # public_brokers = ["xanaxprincess.asuscomm.com:9091", "xanaxprincess.asuscomm.com:9092", "xanaxprincess.asuscomm.com:9093"]
 
         producer = KafkaProducer(
             bootstrap_servers=broker,
-            value_serializer=serializer
+            value_serializer=my_serializer
         )
 
         producer.send(topic, response.json())
@@ -122,6 +125,14 @@ def parse_data_from_kafka_message(df, schema):
     """ take a Spark Streaming df and parse value col based on <schema>, return streaming df cols in schema """
     assert df.isStreaming == True, "DataFrame doesn't receive streaming data"
 
+    #split attributes to nested array in one Column
+    col = split(df['value'], ',') 
+
+    # expand col to multiple top-level columns
+    for idx, field in enumerate(schema): 
+        df = df.withColumn(field.name, col.getItem(idx).cast(field.dataType))
+    return df.select([field.name for field in schema])
+
 def read_spark(subreddit):
 
     # kafka consumer code here...
@@ -148,7 +159,7 @@ def read_spark(subreddit):
         df_kafka = spark \
             .readStream \
             .format("kafka") \
-            .option("kafka.bootstrap.servers", "host.docker.internal:9092") \
+            .option("kafka.bootstrap.servers", "kafka:9092") \
             .option("subscribe", KAFKA_TOPIC) \
             .option("startingOffsets", "earliest") \
             .load() \
@@ -199,4 +210,4 @@ def main(subreddit):
 
 if __name__ == "__main__":
     print("running main function reddit to kafka...")
-    main("AsiansGoneWild")
+    main("technology")

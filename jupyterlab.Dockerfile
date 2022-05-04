@@ -5,13 +5,14 @@ FROM cluster-base
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.4.0
 
+COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
+COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
+
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     pip3 install --upgrade pip && \
-	pip3 install pypandoc && \
     pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-	pip3 install wget && \
-    pip3 install numpy && pip3 install pandas && pip3 install matplotlib &&\
+    pip3 install -r /opt/workspace/requirements.txt && \
     rm -rf /var/lib/apt/lists/* && \
     pip3 install jupyter && \
     ln -s /usr/local/bin/python3 /usr/bin/python
