@@ -1,0 +1,5 @@
+.github
+.vscode
+.metals
+.ipynb_checkpoints
+creds.json
