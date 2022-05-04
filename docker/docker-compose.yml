@@ -13,7 +13,7 @@ services:
       - 8899:8888
     volumes:
       - shared-workspace:/opt/workspace
-      - ./local/notebooks:/opt/workspace/notebooks
+      - ./redditStreaming:/opt/workspace/redditStreaming
   spark-master:
     image: spark-master
     container_name: spark-master

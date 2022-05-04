@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "redditStreaming"
+		},
+		{
+			"path": "docker"
+		}
+	],
+	"settings": {
+		"files.watcherExclude": {
+			"**/target": true
+		},
+		"java.configuration.updateBuildConfiguration": "automatic",
+		"jupyter.jupyterServerType": "remote"
+	}
+}

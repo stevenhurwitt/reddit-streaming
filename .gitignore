@@ -1,5 +1,7 @@
 .github
 .vscode
 .metals
+.bloop
 .ipynb_checkpoints
 creds.json
+target/
