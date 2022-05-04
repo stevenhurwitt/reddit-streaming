@@ -12,17 +12,12 @@ import os
 
 # base = os.path.join("home", "ubuntu", "reddit-streaming")
 base = os.getcwd()
-creds_path = os.path.join(base, "creds.json")
+creds_dir = "/".join(base.split("/")[:-4])
+creds_path = os.path.join(creds_dir, "creds.json")
 # creds_path = os.path.join(base, "creds.json")
 # db_creds_path = os.path.join(base, "db_creds.json")
 # db_crfeds_path = os.path.join(base, "reddit-streaming", "db_creds.json")
 pp = pprint.PrettyPrinter(indent = 1)
-
-with open("creds.json", "r") as f:
-    creds = json.load(f)
-    print("creds: ")
-    pp.pprint(creds)
-    f.close()
 
 def get_bearer():
     """
@@ -30,8 +25,15 @@ def get_bearer():
 
     returns: header for request
     """
-    # with open(creds_path, "r") as f:
-    #     creds = json.load(f)
+    try:
+        with open(creds_path, "r") as f:
+            creds = json.load(f)
+            f.close()
+
+    except Exception as e:
+        print(e)
+        print("file not found... can't get bearer token.")
+        sys.exit()
 
     auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
     data = {

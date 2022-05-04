@@ -9,6 +9,8 @@ Go to docker directory and run build script.
 
 `docker-compose up -d`
 
+# Kafka test
+
 ## Create Kafka topic
 
 Attach a shell of `wurstmeister/kafka` container in VSCode.
@@ -156,82 +158,3 @@ Batch: 8
 +--------+---------------+
 ```
 
-### Python wheel
-
-`python setup.py bdist_wheel --universal`
-
-## Kafka Producer
-
-### Python wheel
-
-`python3 setup.py bdist_wheel --universal`
-
-## Kafka Producer
-
-`python3 ./src/main/python/main.py`
-
-## Build jar
-
-`cd redditStreaming && mvn clean package`
-
-## Put into hdfs
-
-`hdfs dfs -put -f ./target/uber-redditStreaming-1.0-SNAPSHOT.jar hdfs:///user/ubuntu/jars/`
-
-## Restart cluster
-
-`cd ~/ && ./cluster-stop.sh`
-`cd ~/ && ./cluster-start.sh`
-
-## Hadoop & Yarn clusters
-
-`stop-dfs.sh && stop-yarn.sh`
-`start-dfs.sh && start-yarn.sh`
-
-## Spark Shell
-
-`spark-shell`
-
-`pyspark`
-
-## Spark Submit
-
-```
-spark-submit --deploy-mode client \
---class com.steven.redditStreaming.writeJDBC \
-hdfs:///user/ubuntu/jars/uber-redditStreaming-1.0-SNAPSHOT.jar
-```
-
-### spark session test
-
-```
-spark-submit --deploy-mode client \
---class com.steven.redditStreaming.SparkSessionTest \
-hdfs:///user/ubuntu/jars/uber-redditStreaming-1.0-SNAPSHOT.jar
-```
-
-### dataframe from csv
-
-```
-spark-submit --deploy-mode client \
---class com.steven.redditStreaming.dataFrameFromCSVFile \
-hdfs:///user/ubuntu/jars/uber-redditStreaming-1.0-SNAPSHOT.jar
-```
-
-### spark kafka
-
-```
-spark-submit --deploy-mode cluster \
---packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 \
---class com.steven.redditStreaming.sparkKafka \
-hdfs:///user/ubuntu/jars/uber-redditStreaming-1.0-SNAPSHOT.jar
-```
-
-## spark-submit python
-
-`spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 ./src/main/python/kafka-example.py`
-
-## Build docker
-
-`cd reddit-streaming/redditStreaming`
-`docker build -t stevenhurwitt/reddit-streaming:latest .`

@@ -5,3 +5,4 @@
 .ipynb_checkpoints
 creds.json
 target/
+redditStreaming/src/main/python/reddit/__pycache__

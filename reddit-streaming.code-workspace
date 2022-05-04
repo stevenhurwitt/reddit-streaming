@@ -12,6 +12,6 @@
 			"**/target": true
 		},
 		"java.configuration.updateBuildConfiguration": "automatic",
-		"jupyter.jupyterServerType": "remote"
+		"jupyter.jupyterServerType": "local"
 	}
 }

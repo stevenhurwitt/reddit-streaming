@@ -17,7 +17,7 @@ import spark.implicits._
 
 val kafka_df = spark.readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", "192.168.50.7:9092, 192.168.50.19:9092, 192.168.50.31:9092")
+        .option("kafka.bootstrap.servers", "kafka:9092")
         .option("subscribe", "reddit")
         .option("includeHeaders", "true")
         .load()
@@ -53,8 +53,6 @@ val kafka_df = spark.readStream
 
       // var eventDF = payload.select(explode(payload("data")).alias("d"))
 
-
-    //   var df = eventDF.select("d.data.url").withColumn("url", regexp_replace($"url", "https://zneudl1p33lakesstor.blob.core.windows.net/udl-container/", "abfss://udl-container@zneudl1p33lakesstor.dfs.core.windows.net/")).withColumn("region", split($"url", "/").getItem(5)).withColumn("WellName", split($"url", "/").getItem(6)).withColumn("WellBore", split($"url", "/").getItem(7)).withColumn("LogName", split($"url", "/").getItem(8)).withColumn("logID", split($"url", "/").getItem(10)).toDF()
 
     }
 }
