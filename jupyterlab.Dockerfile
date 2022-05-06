@@ -12,9 +12,9 @@ RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     python3 -m pip install --upgrade pip && \
     python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-    python3 -m pip install -r /opt/workspace/requirements.txt && \
-    rm -rf /var/lib/apt/lists/* && \
-    ln -s /usr/local/bin/python3 /usr/bin/python
+    python3 -m pip install -r /opt/workspace/requirements.txt --ignore-installed && \
+    rm -rf /var/lib/apt/lists/*
+    # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # moved pip3 install jupyter below rm -rf /var/lib/apt/lists/* b/c of error
 
