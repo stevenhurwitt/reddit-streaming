@@ -5,18 +5,11 @@ from pyspark.sql.functions import *
 import datetime as dt
 import requests
 import pprint
+import time
 import json
 import sys
 import os
 
-
-# base = os.path.join("home", "ubuntu", "reddit-streaming")
-base = os.getcwd()
-creds_dir = "/".join(base.split("/")[:-4])
-creds_path = os.path.join(creds_dir, "creds.json")
-# creds_path = os.path.join(base, "creds.json")
-# db_creds_path = os.path.join(base, "db_creds.json")
-# db_crfeds_path = os.path.join(base, "reddit-streaming", "db_creds.json")
 pp = pprint.PrettyPrinter(indent = 1)
 
 def get_bearer():
@@ -25,15 +18,25 @@ def get_bearer():
 
     returns: header for request
     """
+    base = os.getcwd()
+
+    creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
+
+    creds_dir = "/".join(base.split("/")[:-4])
+    creds_path = os.path.join(creds_dir, "creds.json")
+
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
             f.close()
 
-    except Exception as e:
-        print(e)
-        print("file not found... can't get bearer token.")
-        sys.exit()
+    except FileNotFoundError:
+        with open(creds_path_container, "r") as f:
+            creds = json.load(f)
+            f.close()
+
+    except:
+        print("credentials file not found.")
 
     auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
     data = {
@@ -79,134 +82,75 @@ def my_serializer(message):
             #  json.dumps(message).encode('utf-8')
             return json.dumps(message).encode('utf-8')
 
-def push_kafka(topic, subreddit):
+def poll_subreddit(subreddit, post_type, header, debug):
+    """
+    infinite loop to poll api & push new responses to kafka
 
-    try:
-        # print("pulling api data...")
-        headers = get_bearer()
-        response = get_subreddit(subreddit, 1, "", headers)
-        after_token = response["data"]["after"]
-        # pp.pprint(response["data"]["children"])
+    params:
+        subreddit (str) - name of subreddit
+        post_type (str) - type of posts (new, hot, controversial, etc)
+        header (dict) - request header w/ bearer token
+        debug (bool) - debug mode (True/False)
 
-        broker = ["kafka:9092"]
-        # local_broker = ["localhost:9092"]
-        # public_brokers = ["xanaxprincess.asuscomm.com:9091", "xanaxprincess.asuscomm.com:9092", "xanaxprincess.asuscomm.com:9093"]
+    """
+    broker = ["kafka:9092"]
+    topic = "reddit_" + subreddit
 
-        producer = KafkaProducer(
-            bootstrap_servers=broker,
-            value_serializer=my_serializer
-        )
+    producer = KafkaProducer(
+                bootstrap_servers=broker,
+                value_serializer=my_serializer
+            )
 
-        producer.send(topic, response.json())
+    my_response = get_subreddit(subreddit, 1, post_type, "", header)
+    my_data = my_response["data"]["children"][0]["data"] #subset for just the post data
+    my_data.pop("preview") #exclude image preview for schema simplicity
+    after_token = my_response["data"]["after"]
+    producer.send(topic, my_data)
 
-    except Exception as e:
-        pp.pprint(e)
-        print("reauthenticating...")
-        headers = get_bearer()
-        response = get_subreddit(subreddit, 1, "", headers)
-        after_token = response["data"]["after"]
-        # pp.pprint(response)
+    if debug:
+         print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
 
-    try:
-        # final = serializer(response)
-        producer.send(topic, response)
-        # print("wrote api to kafka.")
-        # pp.pprint(response)
 
-    except Exception as f:
-        pp.pprint(f)
+    while True:
+        try:
+            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
+            my_data = next_response["data"]["children"][0]["data"] #subset for just the post data
+            my_data.pop("preview") #exclude image preview for schema simplicity
+            after_token = next_response["data"]["after"]
+            producer.send(topic, my_data)
 
-        # fname = "/home/ubuntu/reddit-streaming/redditStreaming/src/main/resources/reddit-agw-100.json"
-        # with open(fname, "w") as g:
-        #     json.dump(g)
-        #     print("wrote json.")
+            if debug:
+                print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+            time.sleep(10)
 
-def parse_data_from_kafka_message(df, schema):
-    """ take a Spark Streaming df and parse value col based on <schema>, return streaming df cols in schema """
-    assert df.isStreaming == True, "DataFrame doesn't receive streaming data"
+        except json.decoder.JSONDecodeError:
+            print("bearer token expired, reauthenticating...")
+            header = get_bearer()
+            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
+            my_data = next_response["data"]["children"][0]["data"] #subset for just the post data
+            my_data.pop("preview") #exclude image preview for schema simplicity
+            after_token = next_response["data"]["after"]
 
-    #split attributes to nested array in one Column
-    col = split(df['value'], ',') 
+            if debug:
+                print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
 
-    # expand col to multiple top-level columns
-    for idx, field in enumerate(schema): 
-        df = df.withColumn(field.name, col.getItem(idx).cast(field.dataType))
-    return df.select([field.name for field in schema])
-
-def read_spark(subreddit):
-
-    # kafka consumer code here...
-
-    # spark kafka
-    spark = SparkSession.builder.appName(subreddit)\
-            .master("spark://spark-master:7077")\
-            .config("spark.eventLog.enabled", "true")\
-            .getOrCreate()
-            # .config("spark.eventLog.dir", "file:///opt/workspace/events")\
-
-    try:
-        KAFKA_TOPIC = "reddit"
-
-        # Set log-level to WARN to avoid very verbose output
-        spark.sparkContext.setLogLevel('WARN')
-
-        # schema for parsing value string passed from Kafka
-        testSchema = StructType([ \
-                StructField("test_key", StringType()), \
-                StructField("test_value", FloatType())])
-
-        # Spark Streaming DataFrame, connect to Kafka topic served at host in bootrap.servers option
-        df_kafka = spark \
-            .readStream \
-            .format("kafka") \
-            .option("kafka.bootstrap.servers", "kafka:9092") \
-            .option("subscribe", KAFKA_TOPIC) \
-            .option("startingOffsets", "earliest") \
-            .load() \
-            .selectExpr("CAST(value AS STRING)")
-
-        # parse streaming data and apply a schema
-        df_kafka = parse_data_from_kafka_message(df_kafka, testSchema)
-
-        # query the spark streaming data-frame that has columns applied to it as defined in the schema
-        # query = df_kafka.groupBy("test_key").sum("test_value")
-
-        # df_kafka.write.format("jdbc")
-
-        # write the output out to the console for debugging / testing
-        df_kafka.writeStream \
-        .outputMode("complete") \
-        .format("console") \
-        .option("truncate", False) \
-        .start() \
-        .awaitTermination()
-
-    except Exception as e:
-        pp.pprint(e)
+        except IndexError:
+            time.sleep(60)
     
 
 def main(subreddit):
+    """
+    authenticate and poll subreddit api
 
-    try:
-        push_kafka("reddit", subreddit)
-        # read_spark(subreddit)
+    params:
+        subreddit (str) - subreddit to read posts from
+    
+    """
 
-    except Exception as e:
-        pp.pprint(e)
-
-    while True:
-
-        try:
-            push_kafka("reddit", subreddit)
-            # read_spark(subreddit)
-
-        except Exception as e:
-            pp.pprint(e)
-        
-        except:
-            print("reauthenticating...")
-            push_kafka("reddit", subreddit)
-            # read_spark(subreddit)
+    pp = pprint.PrettyPrinter(indent = 1)
+    post_type = "new"
+    my_header = get_bearer()
+    poll_subreddit(subreddit, post_type, my_header, True)
 
 if __name__ == "__main__":
     print("running main function reddit to kafka...")
