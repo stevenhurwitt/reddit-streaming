@@ -82,6 +82,35 @@ def my_serializer(message):
             #  json.dumps(message).encode('utf-8')
             return json.dumps(message).encode('utf-8')
 
+def subset_response(response):
+    """
+    remove nested data structures from response data
+
+    params:
+        response (json)
+
+    return:
+        data (dict)
+        after_token (str)
+    """
+    data = response["data"]["children"][0]["data"] #subset for just the post data
+    
+    #exclude nested data for schema simplicity
+    data.pop("preview")
+    data.pop("link_flair_richtext")
+    data.pop("media_embed")
+    data.pop("user_reports")
+    data.pop("secure_media_embed")
+    data.pop("author_flair_richtext")
+    data.pop("gildings")
+    data.pop("all_awardings")
+    data.pop("awarders")
+    data.pop("treatment_tags")
+    data.pop("mod_reports")
+    
+    after_token = response["data"]["after"] #save "after" token to get posts after this one
+    return(data, after_token)
+
 def poll_subreddit(subreddit, post_type, header, debug):
     """
     infinite loop to poll api & push new responses to kafka
@@ -102,40 +131,50 @@ def poll_subreddit(subreddit, post_type, header, debug):
             )
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
-    my_data = my_response["data"]["children"][0]["data"] #subset for just the post data
-    my_data.pop("preview") #exclude image preview for schema simplicity
-    after_token = my_response["data"]["after"]
-    producer.send(topic, my_data)
+    my_data, test_token = subset_response(my_response)
+    
+    if test_token is not None:
+        producer.send(topic, my_data)
+        after_token = test_token
 
-    if debug:
-         print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+        if debug:
+            print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+        
+    time.sleep(10)
 
-
-    while True:
+    while True: 
         try:
             next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data = next_response["data"]["children"][0]["data"] #subset for just the post data
-            my_data.pop("preview") #exclude image preview for schema simplicity
-            after_token = next_response["data"]["after"]
-            producer.send(topic, my_data)
+            my_data, test_token = subset_response(next_response)
+            
+            if test_token is not None:
+                producer.send(topic, my_data)
+                after_token = test_token
 
-            if debug:
-                print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                if debug:
+                    print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
             time.sleep(10)
 
         except json.decoder.JSONDecodeError:
             print("bearer token expired, reauthenticating...")
             header = get_bearer()
-            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data = next_response["data"]["children"][0]["data"] #subset for just the post data
-            my_data.pop("preview") #exclude image preview for schema simplicity
-            after_token = next_response["data"]["after"]
 
-            if debug:
-                print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
+            my_data, test_token = subset_response(next_response)
+            
+            if test_token is not None:
+                producer.send(topic, my_data)
+                after_token = test_token
+
+                if debug:
+                    print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+            time.sleep(10)
 
         except IndexError:
             time.sleep(60)
+
+        except Exception as e:
+            print(e)
     
 
 def main(subreddit):
@@ -147,11 +186,10 @@ def main(subreddit):
     
     """
 
-    pp = pprint.PrettyPrinter(indent = 1)
     post_type = "new"
     my_header = get_bearer()
     poll_subreddit(subreddit, post_type, my_header, True)
 
 if __name__ == "__main__":
-    print("running main function reddit to kafka...")
+    
     main("technology")
