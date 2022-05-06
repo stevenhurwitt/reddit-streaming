@@ -1,7 +1,4 @@
 from kafka import KafkaProducer
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
 import datetime as dt
 import requests
 import pprint
@@ -37,6 +34,7 @@ def get_bearer():
 
     except:
         print("credentials file not found.")
+        sys.exit()
 
     auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
     data = {
@@ -64,6 +62,7 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
 
     returns: response (json) - body of api response
     """
+
     request_url = "https://oauth.reddit.com/r/{}/{}".format(subreddit, post_type)
     options = {"limit":str(limit), "before":str(before)}
     try:
@@ -78,8 +77,6 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
         pp.pprint(e)
 
 def my_serializer(message):
-            # lambda v: bytes(json.dumps(v, default=str).encode('utf-8'))
-            #  json.dumps(message).encode('utf-8')
             return json.dumps(message).encode('utf-8')
 
 def subset_response(response):
@@ -94,21 +91,36 @@ def subset_response(response):
         after_token (str)
     """
     data = response["data"]["children"][0]["data"] #subset for just the post data
-    
-    #exclude nested data for schema simplicity
-    data.pop("preview")
-    data.pop("link_flair_richtext")
-    data.pop("media_embed")
-    data.pop("user_reports")
-    data.pop("secure_media_embed")
-    data.pop("author_flair_richtext")
-    data.pop("gildings")
-    data.pop("all_awardings")
-    data.pop("awarders")
-    data.pop("treatment_tags")
-    data.pop("mod_reports")
-    
     after_token = response["data"]["after"] #save "after" token to get posts after this one
+    i = 0
+
+    ## this looks really hacky, think of a better way to do this...
+    try:
+        #exclude nested data for schema simplicity
+        data.pop("preview")
+        data.pop("link_flair_richtext")
+        data.pop("media_embed")
+        data.pop("user_reports")
+        data.pop("secure_media_embed")
+        data.pop("author_flair_richtext")
+        data.pop("gildings")
+        data.pop("all_awardings")
+        data.pop("awarders")
+        data.pop("treatment_tags")
+        data.pop("mod_reports")
+
+    except:
+        data.pop("link_flair_richtext")
+        data.pop("media_embed")
+        data.pop("user_reports")
+        data.pop("secure_media_embed")
+        data.pop("author_flair_richtext")
+        data.pop("gildings")
+        data.pop("all_awardings")
+        data.pop("awarders")
+        data.pop("treatment_tags")
+        data.pop("mod_reports")
+
     return(data, after_token)
 
 def poll_subreddit(subreddit, post_type, header, debug):
@@ -131,49 +143,52 @@ def poll_subreddit(subreddit, post_type, header, debug):
             )
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
-    my_data, test_token = subset_response(my_response)
-    
-    if test_token is not None:
+    my_data, after_token = subset_response(my_response)
+    print(after_token)
+    if after_token is not None:
         producer.send(topic, my_data)
-        after_token = test_token
 
-        if debug:
-            print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+    if debug:
+        print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
         
-    time.sleep(10)
+    time.sleep(1)
 
-    while True: 
+    while True:
         try:
             next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data, test_token = subset_response(next_response)
-            
-            if test_token is not None:
+            my_data, after_token = subset_response(next_response)
+
+            ## weird bug where it hits the api too fast(?) and no after token is returned
+            ## this passes None, which gives the current post & correct access token
+            if after_token is not None:
                 producer.send(topic, my_data)
-                after_token = test_token
 
                 if debug:
                     print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                
             time.sleep(10)
 
         except json.decoder.JSONDecodeError:
+            # when the bearer token expires (after 24 hrs), we do not receive a response
             print("bearer token expired, reauthenticating...")
             header = get_bearer()
 
             next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data, test_token = subset_response(next_response)
-            
-            if test_token is not None:
+            my_data, after_token = subset_response(next_response)
+            if after_token is not None:
                 producer.send(topic, my_data)
-                after_token = test_token
 
                 if debug:
                     print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-            time.sleep(10)
+
+            time.sleep(1)
 
         except IndexError:
+            # this means empty response is returned, take a nap
             time.sleep(60)
 
         except Exception as e:
+            # catch all for api exceptions (SSL errors, etc)
             print(e)
     
 
@@ -191,5 +206,5 @@ def main(subreddit):
     poll_subreddit(subreddit, post_type, my_header, True)
 
 if __name__ == "__main__":
-    
+    print("starting kafka producer...")
     main("technology")
