@@ -22,9 +22,9 @@ fonttools==4.33.3
 idna==3.3
 importlib-metadata==4.11.3
 ipykernel==6.13.0
-ipython==8.3.0
-ipython-genutils==0.2.0
-ipywidgets==7.7.0
+ipython
+ipython-genutils
+ipywidgets
 jedi==0.18.1
 Jinja2==3.1.2
 json5==0.9.6
@@ -51,9 +51,9 @@ nbformat==5.4.0
 nest-asyncio==1.5.5
 notebook==6.4.11
 notebook-shim==0.1.0
-numpy==1.22.3
+numpy
 packaging==21.3
-pandas==1.4.2
+pandas
 pandocfilters==1.5.0
 parso==0.8.3
 pexpect==4.8.0
@@ -70,7 +70,7 @@ Pygments==2.12.0
 pypandoc==1.7.5
 pyparsing==3.0.8
 pyrsistent==0.18.1
-pyspark==3.2.0
+pyspark==3.2.0 # make sure this matches version in dockerfiles
 python-dateutil==2.8.2
 pytz==2022.1
 pyzmq==22.3.0

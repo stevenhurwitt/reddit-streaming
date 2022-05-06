@@ -10,11 +10,10 @@ COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
 
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
-    pip3 install --upgrade pip && \
-    pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-    pip3 install -r /opt/workspace/requirements.txt && \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
+    python3 -m pip install -r /opt/workspace/requirements.txt && \
     rm -rf /var/lib/apt/lists/* && \
-    pip3 install jupyter && \
     ln -s /usr/local/bin/python3 /usr/bin/python
 
 # moved pip3 install jupyter below rm -rf /var/lib/apt/lists/* b/c of error
