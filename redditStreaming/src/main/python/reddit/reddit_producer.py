@@ -2,6 +2,7 @@ from kafka import KafkaProducer
 import datetime as dt
 import requests
 import pprint
+import yaml
 import time
 import json
 import sys
@@ -144,7 +145,7 @@ def poll_subreddit(subreddit, post_type, header, debug):
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
     my_data, after_token = subset_response(my_response)
-    print(after_token)
+
     if after_token is not None:
         producer.send(topic, my_data)
 
@@ -206,5 +207,15 @@ def main(subreddit):
     poll_subreddit(subreddit, post_type, my_header, True)
 
 if __name__ == "__main__":
-    print("starting kafka producer...")
-    main("technology")
+
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            subreddit = config["subreddit"]
+    
+    except:
+        print("failed to find config.yaml")
+        sys.exit()
+
+    print("reading from api to kafka...")
+    main(subreddit)
