@@ -1,0 +1,12 @@
+name: mvn-install
+on: [push]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-scala@v10
+        with:
+          scala-version: '2.12'
+      - run: cd ./redditStreaming/
+      - run: mvn clean install

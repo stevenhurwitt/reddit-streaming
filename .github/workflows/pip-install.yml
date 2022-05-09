@@ -1,0 +1,11 @@
+name: pip-install
+on: [push]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+      - run: pip3 install -r ./redditStreaming/src/main/python/requirements.txt
