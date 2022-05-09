@@ -1,7 +1,7 @@
 name: pip-install
 on: [push]
 jobs:
-  check-bats-version:
+  pip-install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

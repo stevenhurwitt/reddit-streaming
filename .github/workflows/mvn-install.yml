@@ -1,12 +1,16 @@
 name: mvn-install
 on: [push]
 jobs:
-  check-bats-version:
+  mvn-install:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-scala@v10
+      - uses: s4u/setup-maven-action@1.3
+        with:
+          java-version: 8
+          maven-version: 3.8.5
+      - uses: olafurpg/setup-scala@v11
         with:
           scala-version: '2.12'
-      - run: cd ./redditStreaming/
+      - run: cd ./redditStreaming
       - run: mvn clean install
