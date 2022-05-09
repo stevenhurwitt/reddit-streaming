@@ -7,7 +7,7 @@ Go to docker directory and run build script.
 
 `./build.sh`
 
-`docker-compose up -d`
+`docker-compose up -d --no-recreate`
 
 ## Start streaming data
 
@@ -19,6 +19,10 @@ Go to docker directory and run build script.
 
 `python3 -m reddit_producer.py`
 
+### Remove untagged docker images
 
+`docker rmi $(docker images | grep "^<none>" | awk "{print $3}")`
 
+### Kafka/zookeeper broker id mismatch
 
+https://github.com/wurstmeister/kafka-docker/issues/409

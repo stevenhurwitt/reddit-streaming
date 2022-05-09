@@ -9,7 +9,7 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN mkdir -p ${shared_workspace} && \
     apt-get update -y && \
-	apt install -y curl gcc zip unzip &&\ 
+	apt install -y curl gcc zip unzip telnet &&\ 
 	apt install -y build-essential zlib1g-dev libncurses5-dev && \
 	apt install -y libsqlite3-dev && \
 	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget libjpeg-dev && \
