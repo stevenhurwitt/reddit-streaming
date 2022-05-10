@@ -26,3 +26,5 @@ Go to docker directory and run build script.
 ### Kafka/zookeeper broker id mismatch
 
 https://github.com/wurstmeister/kafka-docker/issues/409
+
+If there are kafka errors, run `docker-compose down`, delete `cluster_config/kafka/logs` and `cluster_config/zookeeper/data/version-2` directories, run `docker-compose up -d`.
