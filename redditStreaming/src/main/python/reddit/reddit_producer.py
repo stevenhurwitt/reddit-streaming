@@ -145,6 +145,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
     my_data, after_token = subset_response(my_response)
+    # with open("sample_response.json", "w") as f:
+    #     json.dump(my_data, f, indent =1)
 
     if after_token is not None:
         producer.send(topic, my_data)
@@ -186,7 +188,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
         except IndexError:
             # this means empty response is returned, take a nap
-            time.sleep(60)
+            time.sleep(120)
 
         except Exception as e:
             # catch all for api exceptions (SSL errors, etc)
@@ -206,7 +208,7 @@ def main():
             config = yaml.safe_load(f)
             subreddit = config["subreddit"]
             post_type = config["post_type"]
-            host = config["host"]
+            kafka_host = config["kafka_host"]
             debug = config["debug"]
     
     except:
@@ -214,7 +216,7 @@ def main():
         sys.exit()
 
     my_header = get_bearer()
-    poll_subreddit(subreddit, post_type, my_header, host, debug)
+    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
 

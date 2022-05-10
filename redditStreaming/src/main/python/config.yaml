@@ -1,4 +1,5 @@
 subreddit: technology
 post_type: new
-host: localhost
+kafka_host: kafka #kafka
+spark_host: spark-master #spark-master
 debug: True
