@@ -1,4 +1,4 @@
 subreddit: technology
 post_type: new
-host: kafka
+host: localhost
 debug: True
