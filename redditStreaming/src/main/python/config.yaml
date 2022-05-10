@@ -1,0 +1,4 @@
+subreddit: technology
+post_type: new
+host: kafka
+debug: True

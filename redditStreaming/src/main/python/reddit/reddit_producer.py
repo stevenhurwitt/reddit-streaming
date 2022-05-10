@@ -20,7 +20,7 @@ def get_bearer():
 
     creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
-    creds_dir = "/".join(base.split("/")[:-4])
+    creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(creds_dir, "creds.json")
 
     try:
@@ -124,7 +124,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, debug):
+def poll_subreddit(subreddit, post_type, header, host, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -135,7 +135,7 @@ def poll_subreddit(subreddit, post_type, header, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    broker = ["kafka:9092"]
+    broker = ["{}:9092".format(host)]
     topic = "reddit_" + subreddit
 
     producer = KafkaProducer(
@@ -193,29 +193,30 @@ def poll_subreddit(subreddit, post_type, header, debug):
             print(e)
     
 
-def main(subreddit):
+def main():
     """
     authenticate and poll subreddit api
-
-    params:
-        subreddit (str) - subreddit to read posts from
-    
     """
-
-    post_type = "new"
-    my_header = get_bearer()
-    poll_subreddit(subreddit, post_type, my_header, True)
-
-if __name__ == "__main__":
-
     try:
+        # base = os.getcwd()
+        # config_path = "/".join(base.split("/")[:-1])
+        # config_file = os.path.join(base, "config.yaml")
+        
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
             subreddit = config["subreddit"]
+            post_type = config["post_type"]
+            host = config["host"]
+            debug = config["debug"]
     
     except:
         print("failed to find config.yaml")
         sys.exit()
 
+    my_header = get_bearer()
+    poll_subreddit(subreddit, post_type, my_header, host, debug)
+
+if __name__ == "__main__":
+
     print("reading from api to kafka...")
-    main(subreddit)
+    main()

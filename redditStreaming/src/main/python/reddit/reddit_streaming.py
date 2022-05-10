@@ -4,7 +4,7 @@ from pyspark.sql.functions import *
 import yaml
 import sys
 
-def main(subreddit):
+def main(subreddit, host):
 
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
@@ -24,7 +24,7 @@ def main(subreddit):
     test_df = spark \
                 .readStream \
                 .format("kafka") \
-                .option("kafka.bootstrap.servers", "kafka:9092") \
+                .option("kafka.bootstrap.servers", "{}:9092".format(host)) \
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "earliest") \
                 .load() \
@@ -41,13 +41,19 @@ def main(subreddit):
 if __name__ == "__main__":
 
     try:
+        # base = os.getcwd()
+        # config_path = "/".join(base.split("/")[:-1])
+        # config_file = os.path.join(config_path, "config.yaml")
+        
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
             subreddit = config["subreddit"]
+            post_type = config["post_type"]
+            host = config["host"]
     
     except:
         print("failed to find config.yaml")
         sys.exit()
 
     print("starting spark streaming...")
-    main(subreddit)
+    main(subreddit, host)
