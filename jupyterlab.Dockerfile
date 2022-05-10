@@ -3,7 +3,7 @@ FROM cluster-base
 # -- Layer: JupyterLab
 
 ARG spark_version=3.2.0
-ARG jupyterlab_version=3.4.0
+ARG jupyterlab_version=3.2.5
 
 COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
 COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
