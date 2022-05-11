@@ -150,7 +150,6 @@ def read_kafka_stream(spark, sc):
         StructField("author_flair_type", StringType(), True),
         StructField("domain", StringType(), True),
         StructField("allow_live_comments", BooleanType(), False),
-        StructField("link_flair_css_class", StringType(), False),
         StructField("selftext_html", StringType(), True),
         StructField("likes", IntegerType(), True),
         StructField("suggested_sort", StringType(), True),
@@ -194,7 +193,6 @@ def read_kafka_stream(spark, sc):
         StructField("stickied", BooleanType(), False),
         StructField("url", StringType(), False),
         StructField("subreddit_subscribers", IntegerType(), False),
-        StructField("pinned", BooleanType(), False),
         StructField("created_utc", FloatType(), False),
         StructField("num_crossposts", IntegerType(), False),
         StructField("media", StringType(), True),
@@ -210,8 +208,8 @@ def read_kafka_stream(spark, sc):
                 .option("startingOffsets", "latest") \
                 .load() \
                 .selectExpr("CAST(value AS STRING) as json") \
-                .select(from_json(col("json"), payload_schema).alias("d")) \
-                .select("d.*") 
+                .select(from_json(col("json"), payload_schema).alias("data")) \
+                .select("data.*") 
 
     return(df)
 
@@ -229,8 +227,7 @@ def write_stream(df):
     aws_secret = creds["aws-secret"]
 
     # write to console
-
-    # stage_df.writeStream \
+    # df.writeStream \
     #     .trigger(processingTime='6 seconds') \
     #     .outputMode("update") \
     #     .format("console") \
