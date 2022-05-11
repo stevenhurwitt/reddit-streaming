@@ -19,9 +19,15 @@ Go to docker directory and run build script.
 
 `python3 -m reddit_producer.py`
 
+## Etc.
+
 ### Remove untagged docker images
 
 `docker rmi $(docker images | grep "^<none>" | awk "{print $3}")`
+
+### Note on versions
+
+When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `pom.xml`, `requirements.txt` and `reddit_streaming.py`.
 
 ### Kafka/zookeeper broker id mismatch
 

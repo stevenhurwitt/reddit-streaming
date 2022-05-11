@@ -76,7 +76,7 @@ services:
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
-      KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
+      KAFKA_BROKER_ID: 999 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
     restart: always
     depends_on:
