@@ -16,8 +16,10 @@ RUN apt-get update -y && \
     rm -rf /var/lib/apt/lists/*
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
-# moved pip3 install jupyter below rm -rf /var/lib/apt/lists/* b/c of error
-
+# deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
+RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
+    mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
+    wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
 # -- Runtime
 
 EXPOSE 8888
