@@ -29,6 +29,10 @@ Go to docker directory and run build script.
 
 When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `pom.xml`, `requirements.txt` and `reddit_streaming.py`.
 
+### pyspark write stream to s3 error
+
+Likely caused by guava jar mismatch, follow steps here: https://kontext.tech/article/689/pyspark-read-file-in-google-cloud-storage
+
 ### Kafka/zookeeper broker id mismatch
 
 https://github.com/wurstmeister/kafka-docker/issues/409

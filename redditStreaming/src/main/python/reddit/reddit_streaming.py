@@ -41,13 +41,12 @@ def read_files():
 
     return(creds, config)
 
-    
-
-def main():
+def init_spark():
     """
-    initialize spark, read stream from kafka, write stream to s3 parquet
-    """
+    initialize spark given config and credential's files
 
+    returns: spark, sparkContext (sc)
+    """
     creds, config = read_files()
     subreddit = config["subreddit"]
     kafka_host = config["kafka_host"]
@@ -61,11 +60,14 @@ def main():
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
-                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.0,org.apache.hadoop:hadoop-aws:3.3.0") \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
                     .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
+                    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+                    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+                    .enableHiveSupport() \
                     .getOrCreate()
         sc = spark.sparkContext
 
@@ -77,6 +79,22 @@ def main():
 
     except Exception as e:
         print(e)
+
+    return(spark, sc)
+    
+def read_kafka_stream(spark, sc):
+    """
+    reads streaming data from kafka producer
+
+    params: spark, sc
+    returns: df
+    """
+    creds, config = read_files()
+    subreddit = config["subreddit"]
+    kafka_host = config["kafka_host"]
+    spark_host = config["spark_host"]
+    aws_client = creds["aws-client"]
+    aws_secret = creds["aws-secret"]
 
     # define schema for payload data
     payload_schema = StructType([
@@ -184,7 +202,7 @@ def main():
     ])
 
     # read json from kafka and select all columns
-    stage_df = spark \
+    df = spark \
             .readStream \
                 .format("kafka") \
                 .option("kafka.bootstrap.servers", "{}:9092".format(kafka_host)) \
@@ -194,6 +212,21 @@ def main():
                 .selectExpr("CAST(value AS STRING) as json") \
                 .select(from_json(col("json"), payload_schema).alias("d")) \
                 .select("d.*") 
+
+    return(df)
+
+def write_stream(df):
+    """
+    writes streaming data to s3 data lake
+
+    params: df
+    """
+    creds, config = read_files()
+    subreddit = config["subreddit"]
+    kafka_host = config["kafka_host"]
+    spark_host = config["spark_host"]
+    aws_client = creds["aws-client"]
+    aws_secret = creds["aws-secret"]
 
     # write to console
 
@@ -205,15 +238,38 @@ def main():
     #     .start() \
     #     .awaitTermination()   
 
-    # write to s3 parquet
-    stage_df.writeStream \
+    # write to s3 delta
+    df.writeStream \
         .trigger(processingTime="6 seconds") \
-        .format("parquet") \
+        .format("delta") \
         .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+        .option("header", True) \
         .outputMode("append") \
         .start() \
         .awaitTermination()
+
+    # test writing to csv
+    # df.writeStream \
+    #     .trigger(processingTime="6 seconds") \
+    #     .format("csv") \
+    #     .option("path", "s3a://reddit-stevenhurwitt/test_technology") \
+    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+    #     .option("header", True) \
+    #     .outputMode("append") \
+    #     .start() \
+    #     .awaitTermination()
+
+def main():
+    """
+    initialize spark, read stream from kafka, write stream to s3 parquet
+    """
+
+    spark, sc = init_spark()
+
+    stage_df = read_kafka_stream(spark, sc)
+
+    write_stream(stage_df)
 
 if __name__ == "__main__":
 
