@@ -228,7 +228,7 @@ def write_stream(df):
 
     # write to console
     # df.writeStream \
-    #     .trigger(processingTime='6 seconds') \
+    #     .trigger(processingTime='30 seconds') \
     #     .outputMode("update") \
     #     .format("console") \
     #     .option("truncate", "true") \
@@ -237,7 +237,7 @@ def write_stream(df):
 
     # write to s3 delta
     df.writeStream \
-        .trigger(processingTime="6 seconds") \
+        .trigger(processingTime="30 seconds") \
         .format("delta") \
         .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
@@ -248,7 +248,7 @@ def write_stream(df):
 
     # test writing to csv
     # df.writeStream \
-    #     .trigger(processingTime="6 seconds") \
+    #     .trigger(processingTime="30 seconds") \
     #     .format("csv") \
     #     .option("path", "s3a://reddit-stevenhurwitt/test_technology") \
     #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \

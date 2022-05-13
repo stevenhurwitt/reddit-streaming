@@ -1,0 +1,5 @@
+subreddit: technology
+post_type: new
+kafka_host: kafka #kafka
+spark_host: spark-master #spark-master
+debug: True
