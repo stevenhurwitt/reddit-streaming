@@ -1,4 +1,5 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable
 import datetime as dt
 import requests
 import pprint
@@ -141,10 +142,11 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
         producer = KafkaProducer(
                     bootstrap_servers=broker,
-                    value_serializer=my_serializer
+                    value_serializer=my_serializer,
+                    api_version = (0, 10, 2)
                 )
     
-    except kafka.errors.NoBrokerAvailable:
+    except NoBrokersAvailable:
         print("no kafka broker available (error likely to repeat infinitely until resolved)")
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
