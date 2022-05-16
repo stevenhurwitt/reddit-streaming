@@ -266,7 +266,12 @@ def main():
 
     stage_df = read_kafka_stream(spark, sc)
 
-    write_stream(stage_df)
+    try:
+        write_stream(stage_df)
+    
+    except KeyboardInterrupt:
+        spark.stop
+        sys.exit()
 
 if __name__ == "__main__":
 
