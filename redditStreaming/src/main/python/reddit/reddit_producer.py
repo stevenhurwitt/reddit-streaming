@@ -135,13 +135,17 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    broker = ["{}:9092".format(host)]
-    topic = "reddit_" + subreddit
+    try:
+        broker = ["{}:9092".format(host)]
+        topic = "reddit_" + subreddit
 
-    producer = KafkaProducer(
-                bootstrap_servers=broker,
-                value_serializer=my_serializer
-            )
+        producer = KafkaProducer(
+                    bootstrap_servers=broker,
+                    value_serializer=my_serializer
+                )
+    
+    except kafka.errors.NoBrokerAvailable:
+        print("no kafka broker available (error likely to repeat infinitely until resolved)")
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
     my_data, after_token = subset_response(my_response)
