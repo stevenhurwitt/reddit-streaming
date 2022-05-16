@@ -1,4 +1,5 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable
 import datetime as dt
 import requests
 import kafka
@@ -148,7 +149,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         broker = ["{}:9092".format(host)]
         producer = KafkaProducer(
                     bootstrap_servers=broker,
-                    value_serializer=my_serializer
+                    value_serializer=my_serializer,
+                    api_version = (0, 10, 2)
                 )
     
     except kafka.errors.NoBrokersAvailable:
