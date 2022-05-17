@@ -1,5 +1,5 @@
 from kafka import KafkaProducer
-from kafka.errors import NoBrokersAvailable
+from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import pprint
@@ -142,12 +142,13 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
         producer = KafkaProducer(
                     bootstrap_servers=broker,
-                    value_serializer=my_serializer,
-                    api_version = (0, 10, 2)
+                    value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
                 )
     
     except NoBrokersAvailable:
-        print("no kafka broker available (error likely to repeat infinitely until resolved)")
+        print("no kafka broker available.")
+        sys.exit()
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
     my_data, after_token = subset_response(my_response)
@@ -155,7 +156,12 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
     #     json.dump(my_data, f, indent =1)
 
     if after_token is not None:
-        producer.send(topic, my_data)
+        try:
+            producer.send(topic, my_data)
+
+        except KafkaTimeoutError:
+            print("kafka timed out sending first message, exiting now.")
+            sys.exit()
 
     if debug:
         print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
