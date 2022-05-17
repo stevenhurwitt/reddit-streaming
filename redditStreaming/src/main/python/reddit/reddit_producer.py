@@ -162,6 +162,13 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
+    if after_token is not None:
+        try:
+            producer.send(topic, my_data)
+
+        except KafkaTimeoutError:
+            print("kafka timed out sending first message, exiting now.")
+            sys.exit()
 
     token_list = []
 
