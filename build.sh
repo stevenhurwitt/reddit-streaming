@@ -6,25 +6,25 @@ JUPYTERLAB_VERSION="3.2.5"
 
 docker build \
   -f cluster-base.Dockerfile \
-  -t cluster-base .
+  -t stevenhurwitt/cluster-base .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg hadoop_version="${HADOOP_VERSION}" \
   -f spark-base.Dockerfile \
-  -t spark-base .
+  -t stevenhurwitt/spark-base .
 
 docker build \
   -f spark-master.Dockerfile \
-  -t spark-master .
+  -t stevenhurwitt/spark-master .
 
 docker build \
   -f spark-worker.Dockerfile \
-  -t spark-worker .
+  -t stevenhurwitt/spark-worker .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" \
   -f jupyterlab.Dockerfile \
-  -t jupyterlab .
+  -t stevenhurwitt/jupyterlab .
 
