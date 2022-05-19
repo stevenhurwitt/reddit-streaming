@@ -92,6 +92,7 @@ def read_kafka_stream(spark, sc):
     creds, config = read_files()
     subreddit = config["subreddit"]
     kafka_host = config["kafka_host"]
+    kafka_port = config["kafka_port"]
     spark_host = config["spark_host"]
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
@@ -203,7 +204,7 @@ def read_kafka_stream(spark, sc):
     df = spark \
             .readStream \
                 .format("kafka") \
-                .option("kafka.bootstrap.servers", "{}:9092".format(kafka_host)) \
+                .option("kafka.bootstrap.servers", "{}:{}".format(kafka_host, kafka_port)) \
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "latest") \
                 .load() \
@@ -227,24 +228,24 @@ def write_stream(df):
     aws_secret = creds["aws-secret"]
 
     # write to console
-    # df.writeStream \
-    #     .trigger(processingTime='30 seconds') \
-    #     .outputMode("update") \
-    #     .format("console") \
-    #     .option("truncate", "true") \
-    #     .start() \
-    #     .awaitTermination()   
+    df.writeStream \
+        .trigger(processingTime='30 seconds') \
+        .outputMode("update") \
+        .format("console") \
+        .option("truncate", "true") \
+        .start() \
+        .awaitTermination()   
 
     # write to s3 delta
-    df.writeStream \
-        .trigger(processingTime="30 seconds") \
-        .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-        .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
-        .option("header", True) \
-        .outputMode("append") \
-        .start() \
-        .awaitTermination()
+    # df.writeStream \
+    #     .trigger(processingTime="30 seconds") \
+    #     .format("delta") \
+    #     .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
+    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+    #     .option("header", True) \
+    #     .outputMode("append") \
+    #     .start() \
+    #     .awaitTermination()
 
     # test writing to csv
     # df.writeStream \
