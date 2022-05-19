@@ -1,5 +1,6 @@
 subreddit: technology
 post_type: new
 kafka_host: kafka #kafka
+kafka_port: 9092
 spark_host: spark-master #spark-master
 debug: True
