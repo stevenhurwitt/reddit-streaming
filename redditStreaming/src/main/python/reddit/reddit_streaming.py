@@ -103,6 +103,10 @@ def read_kafka_stream(spark, sc, subreddit):
     """
     creds, config = read_files()
     kafka_host = config["kafka_host"]
+    kafka_port = config["kafka_port"]
+    spark_host = config["spark_host"]
+    aws_client = creds["aws-client"]
+    aws_secret = creds["aws-secret"]
 
     # define schema for payload data
     payload_schema = StructType([
@@ -211,7 +215,7 @@ def read_kafka_stream(spark, sc, subreddit):
     df = spark \
             .readStream \
                 .format("kafka") \
-                .option("kafka.bootstrap.servers", "{}:9092".format(kafka_host)) \
+                .option("kafka.bootstrap.servers", "{}:{}".format(kafka_host, kafka_port)) \
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "latest") \
                 .option("failOnDataLoss", "false") \
