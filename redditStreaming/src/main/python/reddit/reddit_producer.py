@@ -134,7 +134,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, host, debug):
+def poll_subreddit(subreddit, post_type, header, host, port, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -142,11 +142,15 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         subreddit (str) - name of subreddit
         post_type (str) - type of posts (new, hot, controversial, etc)
         header (dict) - request header w/ bearer token
+        host (str) - kafka host name
+        port (int) - kafka port num
         debug (bool) - debug mode (True/False)
 
     """
     try:
-        broker = ["{}:9092".format(host)]
+        broker = ["{}:{}".format(host, port)]
+        topic = "reddit_" + subreddit
+
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
@@ -267,6 +271,7 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
+            kafka_port = config["kafka_port"]
             debug = config["debug"]
     
     except:
