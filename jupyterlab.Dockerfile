@@ -11,8 +11,8 @@ COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-    python3 -m pip install -r /opt/workspace/requirements.txt --ignore-installed && \
+    python3 -m pip install --no-cache-dir pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
+    python3 -m pip install --no-cache-dir -r /opt/workspace/requirements.txt --ignore-installed && \
     rm -rf /var/lib/apt/lists/*
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
