@@ -94,7 +94,6 @@ def read_kafka_stream(spark, sc):
     creds, config = read_files()
     subreddit = config["subreddit"]
     kafka_host = config["kafka_host"]
-    kafka_port = config["kafka_port"]
     spark_host = config["spark_host"]
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
