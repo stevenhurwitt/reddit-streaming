@@ -134,7 +134,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, host, port, debug):
+def poll_subreddit(subreddit, post_type, header, host, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -271,7 +271,6 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            kafka_port = config["kafka_port"]
             debug = config["debug"]
     
     except:
