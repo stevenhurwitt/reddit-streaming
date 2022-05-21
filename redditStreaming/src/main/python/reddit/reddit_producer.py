@@ -148,7 +148,7 @@ def poll_subreddit(subreddit, post_type, header, host, port, debug):
 
     """
     try:
-        broker = ["{}:{}".format(host, port)]
+        broker = ["{}:9092".format(host)]
         topic = "reddit_" + subreddit
 
         producer = KafkaProducer(
