@@ -215,7 +215,7 @@ def read_kafka_stream(spark, sc, subreddit):
     df = spark \
             .readStream \
                 .format("kafka") \
-                .option("kafka.bootstrap.servers", "{}:{}".format(kafka_host, kafka_port)) \
+                .option("kafka.bootstrap.servers", "{}:9092".format(kafka_host)) \
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "latest") \
                 .option("failOnDataLoss", "false") \
