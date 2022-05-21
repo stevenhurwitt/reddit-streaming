@@ -10,11 +10,12 @@ def read_files():
     """
     initializes spark session using config.yaml and creds.json files.
     """
-    base = os.getcwd()
 
     creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
-    creds_dir = "/".join(base.split("/")[:-3])
+    base = os.getcwd()
+    # creds_dir = "/".join(base.split("/")[:-3])
+    creds_dir = os.path.join("/Users", "stevenhurwitt", "Documents", "reddit-streaming", "redditStreaming")
     creds_path = os.path.join(creds_dir, "creds.json")
 
     try:
@@ -23,6 +24,7 @@ def read_files():
             f.close()
 
     except FileNotFoundError:
+        print("couldn't find: {}.".format(creds_path))
         with open(creds_path_container, "r") as f:
             creds = json.load(f)
             f.close()
@@ -227,24 +229,24 @@ def write_stream(df):
     aws_secret = creds["aws-secret"]
 
     # write to console
-    # df.writeStream \
-    #     .trigger(processingTime='30 seconds') \
-    #     .outputMode("update") \
-    #     .format("console") \
-    #     .option("truncate", "true") \
-    #     .start() \
-    #     .awaitTermination()   
+    df.writeStream \
+        .trigger(processingTime='30 seconds') \
+        .outputMode("update") \
+        .format("console") \
+        .option("truncate", "true") \
+        .start() \
+        .awaitTermination()   
 
     # write to s3 delta
-    df.writeStream \
-        .trigger(processingTime="30 seconds") \
-        .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-        .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
-        .option("header", True) \
-        .outputMode("append") \
-        .start() \
-        .awaitTermination()
+    # df.writeStream \
+    #     .trigger(processingTime="30 seconds") \
+    #     .format("delta") \
+    #     .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
+    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+    #     .option("header", True) \
+    #     .outputMode("append") \
+    #     .start() \
+    #     .awaitTermination()
 
     # test writing to csv
     # df.writeStream \
