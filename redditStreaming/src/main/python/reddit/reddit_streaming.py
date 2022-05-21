@@ -11,12 +11,11 @@ def read_files():
     initializes spark session using config.yaml and creds.json files.
     """
 
-    # creds_path_container = os.path.join(base, "creds.json")
-
     base = os.getcwd()
-    # creds_dir = "/".join(base.split("/")[:-3])
-    creds_dir = os.path.join("/Users", "stevenhurwitt", "Documents", "reddit-streaming", "redditStreaming")
-    creds_path = os.path.join(creds_dir, "creds.json")
+    creds_path_container = os.path.join(base, "creds.json")
+
+    creds_dir = "/".join(base.split("/")[:-3])
+    creds_path = os.path.join(base, "creds.json")
 
     try:
         with open(creds_path, "r") as f:
@@ -25,16 +24,10 @@ def read_files():
             f.close()
 
     except FileNotFoundError:
-        # print("couldn't find: {}.".format(creds_path))
-        try:
-            with open(creds_path_container, "r") as f:
-                creds = json.load(f)
-                f.close()
-
-        except FileNotFoundError:
-            with open("/home/pi/Documents/reddit-streaming/redditStreaming/creds.json", "r") as f:
-                creds = json.load(f)
-                f.close()
+        print("couldn't find: {}.".format(creds_path))
+        with open(creds_path_container, "r") as f:
+            creds = json.load(f)
+            f.close()
 
     except:
         print("failed to find creds.json.")
