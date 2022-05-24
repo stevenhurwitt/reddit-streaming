@@ -1,7 +1,7 @@
 FROM stevenhurwitt/spark-base
 
 # -- Runtime
-ARG spark_master_web_ui=8080
+ARG spark_master_web_ui=8008
 
 EXPOSE ${spark_master_web_ui} ${SPARK_MASTER_PORT}
 
