@@ -52,7 +52,7 @@ services:
     container_name: spark-master
     hostname: spark-master
     ports:
-      - 8080:8080
+      - 8008:8080
       - 7077:7077
       - 4040:4040
     volumes:
@@ -149,7 +149,7 @@ services:
     <<: *airflow-common
     command: webserver
     ports:
-      - 8088:8080
+      - 8080:8080
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
