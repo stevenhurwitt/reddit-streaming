@@ -11,3 +11,4 @@ redditStreaming/.DS_Store
 cluster_config
 .env
 logs/
+redditStreaming/reddit/
