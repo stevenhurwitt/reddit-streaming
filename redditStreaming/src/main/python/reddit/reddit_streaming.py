@@ -24,10 +24,16 @@ def read_files():
             f.close()
 
     except FileNotFoundError:
-        print("couldn't find: {}.".format(creds_path))
-        with open(creds_path_container, "r") as f:
-            creds = json.load(f)
-            f.close()
+        # print("couldn't find: {}.".format(creds_path))
+        try:
+            with open(creds_path_container, "r") as f:
+                creds = json.load(f)
+                f.close()
+
+        except FileNotFoundError:
+            with open("/home/pi/Documents/reddit-streaming/redditStreaming/creds.json", "r") as f:
+                creds = json.load(f)
+                f.close()
 
     except:
         print("failed to find creds.json.")

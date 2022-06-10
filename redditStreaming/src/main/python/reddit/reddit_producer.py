@@ -79,7 +79,7 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
         pp.pprint(e)
 
 def my_serializer(message):
-            return json.dumps(message).encode('utf-8')
+    return json.dumps(message).encode('utf-8')
 
 def subset_response(response):
     """
