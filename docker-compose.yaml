@@ -115,6 +115,8 @@ services:
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_BROKER_ID: 997 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     restart: always
     depends_on:
       - zookeeper

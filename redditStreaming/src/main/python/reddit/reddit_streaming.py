@@ -213,7 +213,7 @@ def read_kafka_stream(spark, sc):
                 .format("kafka") \
                 .option("kafka.bootstrap.servers", "{}:9092".format(kafka_host)) \
                 .option("subscribe", "reddit_" + subreddit) \
-                .option("startingOffsets", "latest") \
+                .option("startingOffsets", "earliest") \
                 .load() \
                 .selectExpr("CAST(value AS STRING) as json") \
                 .select(from_json(col("json"), payload_schema).alias("data")) \
