@@ -236,24 +236,24 @@ def write_stream(df):
     aws_secret = creds["aws-secret"]
 
     # write to console
-    df.writeStream \
-        .trigger(processingTime='30 seconds') \
-        .outputMode("update") \
-        .format("console") \
-        .option("truncate", "true") \
-        .start() \
-        .awaitTermination()   
+    # df.writeStream \
+    #     .trigger(processingTime='30 seconds') \
+    #     .outputMode("update") \
+    #     .format("console") \
+    #     .option("truncate", "true") \
+    #     .start() \
+    #     .awaitTermination()   
 
     # write to s3 delta
-    # df.writeStream \
-    #     .trigger(processingTime="30 seconds") \
-    #     .format("delta") \
-    #     .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
-    #     .option("header", True) \
-    #     .outputMode("append") \
-    #     .start() \
-    #     .awaitTermination()
+    df.writeStream \
+        .trigger(processingTime="30 seconds") \
+        .format("delta") \
+        .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+        .option("header", True) \
+        .outputMode("append") \
+        .start() \
+        .awaitTermination()
 
     # test writing to csv
     # df.writeStream \
