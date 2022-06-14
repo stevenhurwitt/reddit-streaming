@@ -279,5 +279,10 @@ def main():
 
 if __name__ == "__main__":
 
-    print("starting spark streaming...")
-    main()
+    try:
+        print("starting spark streaming...")
+        main()
+
+    except Exception as e:
+        print(e)
+        sys.exit()
