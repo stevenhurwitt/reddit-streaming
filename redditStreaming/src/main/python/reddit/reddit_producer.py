@@ -219,8 +219,16 @@ def main():
         print("failed to find config.yaml")
         sys.exit()
 
-    my_header = get_bearer()
-    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+    try:
+        my_header = get_bearer()
+        poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+
+    except Exception as e:
+        print(e)
+        print("sleeping 5 min then resume.")
+        time.sleep(3600*5)
+        my_header = get_bearer()
+        poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
 
