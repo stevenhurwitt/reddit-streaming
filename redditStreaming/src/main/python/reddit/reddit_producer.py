@@ -156,7 +156,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         producer.send(topic, my_data)
 
     if debug:
-        print("post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+        print("subreddit: {}, post datetime: {}, post title: {}".format(dt.datetime.fromtimestamp(subreddit, my_data["created"]), my_data["title"]))
         
     time.sleep(1)
 

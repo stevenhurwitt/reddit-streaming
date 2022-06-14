@@ -58,6 +58,8 @@ def init_spark():
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
                     .master("spark://{}:7077".format(spark_host)) \
+                    .config("spark.driver.memory", "1g") \
+                    .config("spark.executor.memory", "1g") \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
