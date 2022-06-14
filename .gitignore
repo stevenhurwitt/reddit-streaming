@@ -12,3 +12,4 @@ cluster_config
 .env
 logs/
 redditStreaming/reddit/
+docker-compose-2.yaml

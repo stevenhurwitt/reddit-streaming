@@ -110,7 +110,7 @@ services:
       # KAFKA_ADVERTISED_HOST_NAME: 172.16.100.35  #ip of local machine
       KAFKA_ADVERTISED_HOST_NAME: 10.0.0.26
       # KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_BROKER_ID: 999 # comment out if using multiple brokers
