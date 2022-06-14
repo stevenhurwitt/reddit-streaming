@@ -8,4 +8,5 @@ redditStreaming/src/main/python/reddit/__pycache__
 local
 .DS_Store
 redditStreaming/.DS_Store
+redditStreaming/reddit
 cluster_config
