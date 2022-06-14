@@ -207,6 +207,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         except Exception as e:
             # catch all for api exceptions (SSL errors, etc)
             print(e)
+            time.sleep(300)
     
 
 def main():
@@ -229,16 +230,8 @@ def main():
         print("failed to find config.yaml")
         sys.exit()
 
-    try:
-        my_header = get_bearer()
-        poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
-
-    except Exception as e:
-        print(e)
-        print("sleeping 5 min then resume.")
-        time.sleep(3600*5)
-        my_header = get_bearer()
-        poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+    my_header = get_bearer()
+    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
 
