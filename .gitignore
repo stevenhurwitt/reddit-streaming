@@ -10,3 +10,7 @@ local
 redditStreaming/.DS_Store
 redditStreaming/reddit
 cluster_config
+dags
+logs
+plugins
+.env
