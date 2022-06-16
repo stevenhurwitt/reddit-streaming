@@ -109,10 +109,8 @@ services:
       - "8081:8081"
       - "29092:29092"
     environment:
-      # KAFKA_ADVERTISED_HOST_NAME: 172.16.100.35  #ip of local machine
-      KAFKA_ADVERTISED_HOST_NAME: 10.0.0.26
-      # KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ADVERTISED_HOST_NAME: 10.0.0.123 #ip of local machine
+      KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_BROKER_ID: 999 # comment out if using multiple brokers
@@ -129,6 +127,18 @@ services:
       # - ./entrypoint.sh:/tmp/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
 
-networks:
-  reddit_streaming:
-    driver: "bridge"
+  kowl:
+    image: docker.redpanda.com/vectorized/console:master-217260f
+    container_name: redpanda_console
+    restart: on-failure
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["10.0.0.123:9092"]
+    ports:
+      - "8085:8080"
+    depends_on:
+      - kafka
