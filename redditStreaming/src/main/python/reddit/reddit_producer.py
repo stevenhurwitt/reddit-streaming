@@ -2,6 +2,7 @@ from kafka import KafkaProducer
 from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
+import kafka
 import pprint
 import yaml
 import time

@@ -94,6 +94,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
       - ./cluster_config/zookeeper/data:/opt/zookeeper-3.4.13/data
 
