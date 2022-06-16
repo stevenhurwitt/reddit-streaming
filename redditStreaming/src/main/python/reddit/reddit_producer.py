@@ -144,7 +144,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 )
     
     except kafka.errors.NoBrokerAvailable:
-        print("no kafka broker available (error likely to repeat infinitely until resolved)")
+        print("no kafka broker available.")
+        sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
