@@ -198,7 +198,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         except Exception as e:
             # catch all for api exceptions (SSL errors, etc)
             print(e)
-            time.sleep(300)
+            time.sleep(150)
     
 
 def main():
