@@ -147,7 +147,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     # api_version = (0, 10, 2)
                 )
     
-    except NoBrokersAvailable:
+    except kafka.errors.NoBrokerAvailable:
         print("no kafka broker available.")
         sys.exit()
 
