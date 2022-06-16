@@ -1,6 +1,7 @@
 from kafka import KafkaProducer
 import datetime as dt
 import requests
+import kafka
 import pprint
 import yaml
 import time

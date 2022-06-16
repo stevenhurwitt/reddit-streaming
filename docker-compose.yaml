@@ -58,12 +58,15 @@ services:
     environment: 
       - POSTGRES_PASSWORD=secret!1234
   zookeeper:
-    image: wurstmeister/zookeeper
+    # image: wurstmeister/zookeeper
+    image: ghcr.io/arm64-compat/confluentinc/cp-zookeeper:7.1.1
     container_name: zookeeper
     hostname: zookeeper
     ports:
       - "2181:2181"
     restart: always
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
       - ./cluster_config/zookeeper/data:/opt/zookeeper-3.4.13/data
   kafka:
