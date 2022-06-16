@@ -59,6 +59,7 @@ def init_spark(subreddit):
                     .config("spark.driver.memory", "128m") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
+                    .config("spark.streaming.concurrentJobs", "4") \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
