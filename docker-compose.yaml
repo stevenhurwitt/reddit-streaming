@@ -94,8 +94,6 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     restart: always
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
       - ./cluster_config/zookeeper/data:/opt/zookeeper-3.4.13/data
 
@@ -108,6 +106,8 @@ services:
       - reddit_streaming
     ports:
       - "9092:9092"
+      - "8081:8081"
+      - "29092:29092"
     environment:
       # KAFKA_ADVERTISED_HOST_NAME: 172.16.100.35  #ip of local machine
       KAFKA_ADVERTISED_HOST_NAME: 10.0.0.26
