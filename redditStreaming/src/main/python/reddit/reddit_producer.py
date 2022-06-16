@@ -146,7 +146,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 )
     
     except kafka.errors.NoBrokerAvailable:
-        print("no kafka broker available (error likely to repeat infinitely until resolved)")
+        print("no kafka broker available.")
+        sys.exit()
 
     my_response = get_subreddit(subreddit, 1, post_type, "", header)
     my_data, after_token = subset_response(my_response)
