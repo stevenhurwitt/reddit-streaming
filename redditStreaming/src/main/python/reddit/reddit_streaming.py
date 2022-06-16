@@ -41,15 +41,13 @@ def read_files():
 
     return(creds, config)
 
-def init_spark():
+def init_spark(subreddit):
     """
     initialize spark given config and credential's files
 
     returns: spark, sparkContext (sc)
     """
     creds, config = read_files()
-    subreddit = config["subreddit"]
-    kafka_host = config["kafka_host"]
     spark_host = config["spark_host"]
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
@@ -58,8 +56,9 @@ def init_spark():
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
                     .master("spark://{}:7077".format(spark_host)) \
-                    .config("spark.driver.memory", "1g") \
-                    .config("spark.executor.memory", "1g") \
+                    .config("spark.driver.memory", "128m") \
+                    .config("spark.executor.memory", "512m") \
+                    .config("spark.executor.cores", "1") \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
@@ -85,7 +84,7 @@ def init_spark():
 
     return(spark, sc)
     
-def read_kafka_stream(spark, sc):
+def read_kafka_stream(spark, sc, subreddit):
     """
     reads streaming data from kafka producer
 
@@ -93,11 +92,7 @@ def read_kafka_stream(spark, sc):
     returns: df
     """
     creds, config = read_files()
-    subreddit = config["subreddit"]
     kafka_host = config["kafka_host"]
-    spark_host = config["spark_host"]
-    aws_client = creds["aws-client"]
-    aws_secret = creds["aws-secret"]
 
     # define schema for payload data
     payload_schema = StructType([
@@ -217,18 +212,12 @@ def read_kafka_stream(spark, sc):
 
     return(df)
 
-def write_stream(df):
+def write_stream(df, subreddit):
     """
     writes streaming data to s3 data lake
 
     params: df
     """
-    creds, config = read_files()
-    subreddit = config["subreddit"]
-    kafka_host = config["kafka_host"]
-    spark_host = config["spark_host"]
-    aws_client = creds["aws-client"]
-    aws_secret = creds["aws-secret"]
 
     # write to console
     # df.writeStream \
@@ -247,8 +236,7 @@ def write_stream(df):
         .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
         .option("header", True) \
         .outputMode("append") \
-        .start() \
-        .awaitTermination()
+        .start()
 
     # test writing to csv
     # df.writeStream \
@@ -265,17 +253,23 @@ def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
+    creds, config = read_files()
+    subreddit_list = config["subreddit"]
+    for s in subreddit_list:
+        spark, sc = init_spark(s)
 
-    spark, sc = init_spark()
+        stage_df = read_kafka_stream(spark, sc, s)
 
-    stage_df = read_kafka_stream(spark, sc)
+        try:
+            write_stream(stage_df, s)
+        
+        except KeyboardInterrupt:
+            spark.stop
+            sys.exit()
 
-    try:
-        write_stream(stage_df)
+    SparkSession.streams.awaitAnyTermination()
+
     
-    except KeyboardInterrupt:
-        spark.stop
-        sys.exit()
 
 if __name__ == "__main__":
 
