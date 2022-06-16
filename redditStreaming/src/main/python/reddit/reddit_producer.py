@@ -141,8 +141,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
     """
     try:
         broker = ["{}:9092".format(host)]
-        topic = "reddit_" + subreddit
-
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
@@ -153,62 +151,82 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         print("no kafka broker available.")
         sys.exit()
 
-    my_response = get_subreddit(subreddit, 1, post_type, "", header)
-    my_data, after_token = subset_response(my_response)
-    # with open("sample_response.json", "w") as f:
-    #     json.dump(my_data, f, indent =1)
+    params = {}
+    params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
-    if after_token is not None:
-        try:
-            producer.send(topic, my_data)
+    token_list = []
 
-        except KafkaTimeoutError:
-            print("kafka timed out sending first message, exiting now.")
-            sys.exit()
+    for i, s in enumerate(subreddit):
+        my_response = get_subreddit(s, 1, post_type, "", header)
+        my_data, after_token = subset_response(my_response)
+        token_list.append(after_token)
+        # with open("sample_response.json", "w") as f:
+        #     json.dump(my_data, f, indent = 1)
 
-    if debug:
-        print("subreddit: {}, post datetime: {}, post title: {}".format(subreddit, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-        
+        if after_token is not None:
+            producer.send(params["topic"][i], my_data)
+
+        if debug:
+            print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+
+    params["token"] = token_list
+    print("-------------------------------------------")
     time.sleep(1)
 
     while True:
-        try:
-            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data, after_token = subset_response(next_response)
+        token_list = []
+        for i, s in enumerate(subreddit):
+            after_token = params["token"][i]
+            try:
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
+                my_data, after_token = subset_response(next_response)
+                token_list.append(after_token)
 
-            ## weird bug where it hits the api too fast(?) and no after token is returned
-            ## this passes None, which gives the current post & correct access token
-            if after_token is not None:
-                producer.send(topic, my_data)
+                ## weird bug where it hits the api too fast(?) and no after token is returned
+                ## this passes None, which gives the current post & correct access token
+                if after_token is not None:
+                    producer.send(params["topic"][i], my_data)
 
-                if debug:
-                    print("subreddit: {}, post datetime: {}, post title: {}".format(subreddit, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-                
-            time.sleep(10)
+                    if debug:
+                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                    
+                time.sleep(1)
 
-        except json.decoder.JSONDecodeError:
-            # when the bearer token expires (after 24 hrs), we do not receive a response
-            print("bearer token expired, reauthenticating...")
-            header = get_bearer()
+            except json.decoder.JSONDecodeError:
+                # when the bearer token expires (after 24 hrs), we do not receive a response
+                print("bearer token expired, reauthenticating...")
+                header = get_bearer()
 
-            next_response = get_subreddit(subreddit, 1, post_type, after_token, header)
-            my_data, after_token = subset_response(next_response)
-            if after_token is not None:
-                producer.send(topic, my_data)
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
+                my_data, after_token = subset_response(next_response)
+                token_list.append(after_token)
 
-                if debug:
-                    print("subreddit: {}, post datetime: {}, post title: {}".format(subreddit, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                if after_token is not None:
+                    producer.send(params["topic"][i], my_data)
 
-            time.sleep(1)
+                    if debug:
+                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
 
-        except IndexError:
-            # this means empty response is returned, take a nap
-            time.sleep(120)
+                time.sleep(1)
+                pass
 
-        except Exception as e:
-            # catch all for api exceptions (SSL errors, etc)
-            print(e)
-            time.sleep(150)
+            except IndexError:
+                # this means empty response is returned, take a nap
+                # time.sleep(120)
+                print("no more data for subreddit: {}.".format(s))
+                token_list.append(params["token"][i])
+                pass
+
+            except Exception as e:
+                # catch all for api exceptions (SSL errors, ConnectionError, etc)
+                print(e)
+                token_list.append(params["token"][i])
+                pass
+                # time.sleep(150)
+
+        params["token"] = token_list
+        print("-------------------------------------------")
+        time.sleep(120)
     
 
 def main():
