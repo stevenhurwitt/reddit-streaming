@@ -5,15 +5,21 @@ FROM cluster-base
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
 
-COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
-COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
-COPY ./redditStreaming/fairscheduler.xml ${SHARED_WORKSPACE}
+COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
+# COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
+# COPY ./redditStreaming/fairscheduler.xml ${SHARED_WORKSPACE}
+# COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
+# COPY ./redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl ${SHARED_WORKSPACE}/redditStreaming/src/main/python/reddit/dist/
+
+# RUN ls -l ${SHARED_WORKSPACE}/redditStreaming/
+# RUN ls -l ${SHARED_WORKSPACE}/redditStreaming/src/main/python/reddit/dist/
 
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     python3 -m pip install --upgrade pip && \
     python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-    python3 -m pip install -r /opt/workspace/requirements.txt --ignore-installed && \
+    python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl && \
+    python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
     rm -rf /var/lib/apt/lists/*
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
