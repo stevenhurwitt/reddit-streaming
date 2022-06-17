@@ -143,7 +143,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     value_serializer=my_serializer
                 )
     
-    except kafka.errors.NoBrokerAvailable:
+    except kafka.errors.NoBrokersAvailable:
         print("no kafka broker available.")
         sys.exit()
 
@@ -166,8 +166,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
 
     params["token"] = token_list
-    print("-------------------------------------------")
-    time.sleep(1)
+    print("------------------------------------------------------------------------------")
+    time.sleep(60)
 
     while True:
         token_list = []
@@ -209,7 +209,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             except IndexError:
                 # this means empty response is returned, take a nap
                 # time.sleep(120)
-                print("no more data for subreddit: {}.".format(s))
+                # print("no more data for subreddit: {}.".format(s))
                 token_list.append(params["token"][i])
                 pass
 
@@ -221,7 +221,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # time.sleep(150)
 
         params["token"] = token_list
-        print("-------------------------------------------")
+        print("------------------------------------------------------------------------------")
         time.sleep(120)
     
 

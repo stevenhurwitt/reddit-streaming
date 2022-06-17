@@ -28,9 +28,10 @@ services:
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2048m
+      - SPARK_WORKER_MEMORY=4096m
     ports:
       - 4041:4040
+      - 8083:8081
       - 18081:18080
     volumes:
       - shared-workspace:/opt/workspace
@@ -41,9 +42,10 @@ services:
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2048m
+      - SPARK_WORKER_MEMORY=4096m
     ports:
       - 4042:4040
+      - 8082:8082
       - 18082:18080
     volumes:
       - shared-workspace:/opt/workspace
