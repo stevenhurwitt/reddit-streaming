@@ -41,7 +41,7 @@ def read_files():
 
     return(creds, config)
 
-def init_spark(subreddit):
+def init_spark(subreddit, index):
     """
     initialize spark given config and credential's files
 
@@ -54,14 +54,15 @@ def init_spark(subreddit):
 
     # initialize spark session
     try:
-        spark = SparkSession.builder.appName("reddit_" + subreddit) \
+        spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
+                    .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
                     .config("spark.streaming.concurrentJobs", "4") \
                     .config("spark.eventLog.enabled", "true") \
-                    .config("spark.eventLog.dir", "file:///opt/workspace/events") \
+                    .config("spark.eventLog.dir", "file:///opt/workspace/events/{}".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
                     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
@@ -75,6 +76,7 @@ def init_spark(subreddit):
         sc = spark.sparkContext
 
         sc.setLogLevel('WARN')
+        sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
@@ -233,8 +235,8 @@ def write_stream(df, subreddit):
     df.writeStream \
         .trigger(processingTime="30 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-        .option("checkpointLocation", "file:///opt/workspace/checkpoints/" + subreddit) \
+        .option("path", "s3a://reddit-stevenhurwitt/{}".format(subreddit)) \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
         .start()
@@ -256,8 +258,8 @@ def main():
     """
     creds, config = read_files()
     subreddit_list = config["subreddit"]
-    for s in subreddit_list:
-        spark, sc = init_spark(s)
+    for i, s in enumerate(subreddit_list):
+        spark, sc = init_spark(s, i)
 
         stage_df = read_kafka_stream(spark, sc, s)
 
