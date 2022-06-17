@@ -56,6 +56,7 @@ def init_spark(subreddit):
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
                     .master("spark://{}:7077".format(spark_host)) \
+                    .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
                     .config("spark.streaming.concurrentJobs", "4") \
@@ -233,7 +234,7 @@ def write_stream(df, subreddit):
         .trigger(processingTime="30 seconds") \
         .format("delta") \
         .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-        .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints/" + subreddit) \
         .option("header", True) \
         .outputMode("append") \
         .start()
@@ -267,7 +268,7 @@ def main():
             spark.stop
             sys.exit()
 
-    SparkSession.streams.awaitAnyTermination()
+    spark.streams.awaitAnyTermination()
 
     
 
