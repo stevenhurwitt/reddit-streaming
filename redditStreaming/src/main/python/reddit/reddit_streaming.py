@@ -235,7 +235,7 @@ def write_stream(df, subreddit):
 
     # write to s3 delta
     df.writeStream \
-        .trigger(processingTime="30 seconds") \
+        .trigger(processingTime="60 seconds") \
         .format("delta") \
         .option("path", "s3a://reddit-stevenhurwitt/{}".format(subreddit)) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
