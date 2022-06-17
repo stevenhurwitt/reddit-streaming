@@ -253,6 +253,6 @@ def main():
     poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
-    time.sleep(600)
+    # time.sleep(600)
     print("reading from api to kafka...")
     main()
