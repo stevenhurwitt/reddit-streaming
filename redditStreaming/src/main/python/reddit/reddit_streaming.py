@@ -62,11 +62,10 @@ def init_spark(subreddit, index):
 
     # initialize spark session
     try:
-        spark = SparkSession.builder.appName("reddit_" + subreddit) \
+        spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
-                    .config("spark.scheduler.allocation.file", "file:///path/to/file") \
-                    .config("spark.driver.memory", "128m") \
+                    .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
                     .config("spark.streaming.concurrentJobs", "4") \
@@ -85,7 +84,7 @@ def init_spark(subreddit, index):
         sc = spark.sparkContext
 
         sc.setLogLevel('WARN')
-        sc.setLocalProperty("spark.scheduler.pool", "pool" + str(index))
+        sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
@@ -244,8 +243,8 @@ def write_stream(df, subreddit):
     df.writeStream \
         .trigger(processingTime="30 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/" + subreddit) \
-        .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
+        .option("path", "s3a://reddit-stevenhurwitt/{}".format(subreddit)) \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
         .start()
@@ -267,8 +266,8 @@ def main():
     """
     creds, config = read_files()
     subreddit_list = config["subreddit"]
-    for s in subreddit_list:
-        spark, sc = init_spark(s)
+    for i, s in enumerate(subreddit_list):
+        spark, sc = init_spark(s, i)
 
         stage_df = read_kafka_stream(spark, sc, s)
 
@@ -279,7 +278,7 @@ def main():
             spark.stop
             sys.exit()
 
-    SparkSession.streams.awaitAnyTermination()
+    spark.streams.awaitAnyTermination()
 
     
 

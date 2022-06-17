@@ -35,8 +35,8 @@ services:
     image: stevenhurwitt/spark-worker
     container_name: spark-worker-1
     environment:
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=2048m
     ports:
       - 4041:4040
       - 18081:18080
@@ -51,8 +51,8 @@ services:
     image: stevenhurwitt/spark-worker
     container_name: spark-worker-2
     environment:
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=2048m
     ports:
       - 4042:4040
       - 18082:18080

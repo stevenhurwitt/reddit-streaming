@@ -7,7 +7,7 @@ ARG jupyterlab_version=3.2.5
 
 COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
 COPY ./redditStreaming/src/main/python/requirements.txt ${SHARED_WORKSPACE}
-COPY ./fairscheduler.xml ${SHARED_WORKSPACE}
+COPY ./redditStreaming/fairscheduler.xml ${SHARED_WORKSPACE}
 
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
