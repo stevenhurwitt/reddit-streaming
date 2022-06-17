@@ -170,7 +170,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
 
     params["token"] = token_list
-    print("------------------------------------------------------------------------------")
+    # print("------------------------------------------------------------------------------")
     time.sleep(60)
 
     while True:
@@ -225,7 +225,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # time.sleep(150)
 
         params["token"] = token_list
-        print("------------------------------------------------------------------------------")
+        # print("------------------------------------------------------------------------------")
         time.sleep(120)
     
 
