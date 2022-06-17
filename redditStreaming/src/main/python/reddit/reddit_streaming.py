@@ -56,7 +56,6 @@ def init_spark(subreddit):
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
                     .master("spark://{}:7077".format(spark_host)) \
-                    .config("spark.driver.memory", "128m") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
                     .config("spark.streaming.concurrentJobs", "4") \
