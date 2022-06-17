@@ -41,7 +41,7 @@ def read_files():
 
     return(creds, config)
 
-def init_spark(subreddit):
+def init_spark(subreddit, index):
     """
     initialize spark given config and credential's files
 
@@ -56,6 +56,8 @@ def init_spark(subreddit):
     try:
         spark = SparkSession.builder.appName("reddit_" + subreddit) \
                     .master("spark://{}:7077".format(spark_host)) \
+                    .config("spark.scheduler.mode", "FAIR") \
+                    .config("spark.scheduler.allocation.file", "file:///path/to/file") \
                     .config("spark.driver.memory", "128m") \
                     .config("spark.executor.memory", "512m") \
                     .config("spark.executor.cores", "1") \
@@ -75,6 +77,7 @@ def init_spark(subreddit):
         sc = spark.sparkContext
 
         sc.setLogLevel('WARN')
+        sc.setLocalProperty("spark.scheduler.pool", "pool" + str(index))
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
