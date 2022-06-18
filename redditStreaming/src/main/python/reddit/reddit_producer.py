@@ -166,8 +166,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         if after_token is not None:
             producer.send(params["topic"][i], my_data)
 
-        if debug:
-            print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+            if debug:
+                print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
     # print("------------------------------------------------------------------------------")
@@ -178,7 +178,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         for i, s in enumerate(subreddit):
             after_token = params["token"][i]
             try:
-                next_response = get_subreddit(s, 1, post_type, after_token, header)
+                next_response = get_subreddit(s, 5, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -188,7 +188,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                     
                 time.sleep(1)
 
@@ -198,7 +198,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 header = get_bearer()
                 after_token = params["token"][i]
 
-                next_response = get_subreddit(s, 1, post_type, after_token, header)
+                next_response = get_subreddit(s, 5, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -206,7 +206,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
                 time.sleep(1)
                 pass
