@@ -31,10 +31,11 @@ df = spark.read.format("delta").option("header", True).load("s3a://reddit-steven
 df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
                 .withColumn("created_utc", col("created_utc").cast("timestamp")) \
-                .withColumn("created", col("created").cast("timestamp"))
+                .withColumn("created", col("created").cast("timestamp")) \
+                .withColumn("post_date", to_date(col("created_utc"), "MM-dd-yyyy"))
                 
 filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_clean/"
-df.write.format("delta").mode("overwrite").option("header", True).save(filepath)
+df.write.format("delta").partitionBy("post_date").mode("overwrite").option("header", True).save(filepath)
         
 # deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
 # deltaTable.generate("symlink_format_manifest")
