@@ -196,6 +196,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # when the bearer token expires (after 24 hrs), we do not receive a response
                 print("bearer token expired, reauthenticating...")
                 header = get_bearer()
+                after_token = params["token"][i]
 
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
@@ -206,7 +207,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-
+                
                 time.sleep(1)
                 pass
 
