@@ -174,7 +174,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         for i, s in enumerate(subreddit):
             after_token = params["token"][i]
             try:
-                next_response = get_subreddit(s, 5, post_type, after_token, header)
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -194,7 +194,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 header = get_bearer()
                 after_token = params["token"][i]
 
-                next_response = get_subreddit(s, 5, post_type, after_token, header)
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -218,8 +218,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # catch all for api exceptions (SSL errors, ConnectionError, etc)
                 print(e)
                 token_list.append(params["token"][i])
-                pass
-                # time.sleep(150)
+                # pass
+                time.sleep(60)
 
         params["token"] = token_list
         # print("------------------------------------------------------------------------------")
