@@ -35,8 +35,8 @@ services:
     image: stevenhurwitt/spark-worker
     container_name: spark-worker-1
     environment:
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2048m
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=8192m
     ports:
       - 4041:4040
       - 8083:8081
@@ -52,8 +52,8 @@ services:
     image: stevenhurwitt/spark-worker
     container_name: spark-worker-2
     environment:
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2048m
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=8192m
     ports:
       - 4042:4040
       - 8082:8082
@@ -111,7 +111,7 @@ services:
       - "8081:8081"
       - "29092:29092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 10.0.0.26 #ip of local machine
+      KAFKA_ADVERTISED_HOST_NAME: 10.0.0.230 #ip of local machine
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
@@ -139,8 +139,20 @@ services:
       CONFIG_FILEPATH: /tmp/config.yml
       CONSOLE_CONFIG_FILE: |
         kafka:
-          brokers: ["10.0.0.26:9092"]
+          brokers: ["10.0.0.230:9092"]
     ports:
       - "8085:8080"
     depends_on:
       - kafka
+
+  # ganglia:
+  #   image: kurthuwig/ganglia:latest
+  #   container_name: ganglia
+  #   restart: on-failure
+  #   ports:
+  #   - "127.0.0.1:80:80"
+  #   - "8649:8649"
+  #   - "8649:8649/udp"
+  #   volumes:
+  #   - ./cluster_config/ganglia/etc:/etc/ganglia
+  #   - ./cluster_config/ganglia/data:/var/lib/ganglia
