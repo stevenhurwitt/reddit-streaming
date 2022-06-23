@@ -234,7 +234,8 @@ def write_stream(df, subreddit):
     """
 
     # write subset of df to console
-    df.select("subreddit", "title", "score", "created_utc") \
+    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+        .select("subreddit", "title", "score", "created_utc") \
         .writeStream \
         .trigger(processingTime='60 seconds') \
         .outputMode("update") \
