@@ -58,8 +58,8 @@ def init_spark(subreddit, index):
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "512m") \
-                    .config("spark.executor.cores", "1") \
+                    .config("spark.executor.memory", "2048m") \
+                    .config("spark.executor.cores", "2") \
                     .config("spark.streaming.concurrentJobs", "4") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
@@ -225,14 +225,16 @@ def write_stream(df, subreddit):
     params: df
     """
 
-    # write to console
-    # df.writeStream \
-    #     .trigger(processingTime='30 seconds') \
-    #     .outputMode("update") \
-    #     .format("console") \
-    #     .option("truncate", "true") \
-    #     .start() \
-    #     .awaitTermination()   
+    # write subset of df to console
+    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+        .select("subreddit", "title", "score", "created_utc") \
+        .writeStream \
+        .trigger(processingTime='60 seconds') \
+        .outputMode("update") \
+        .format("console") \
+        .option("truncate", "true") \
+        .queryName(subreddit + "_console") \
+        .start()
 
     # write to s3 delta
     df.writeStream \
@@ -242,18 +244,8 @@ def write_stream(df, subreddit):
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
+        .queryName(subreddit + "_delta") \
         .start()
-
-    # test writing to csv
-    # df.writeStream \
-    #     .trigger(processingTime="30 seconds") \
-    #     .format("csv") \
-    #     .option("path", "s3a://reddit-stevenhurwitt/test_technology") \
-    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
-    #     .option("header", True) \
-    #     .outputMode("append") \
-    #     .start() \
-    #     .awaitTermination()
 
 def main():
     """

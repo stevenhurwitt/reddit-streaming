@@ -160,7 +160,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         #     json.dump(my_data, f, indent = 1)
 
         if after_token is not None:
-            producer.send(params["topic"][i], my_data)
+            producer.send(params["topic"][i], my_data)                          
 
             if debug:
                 print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
@@ -174,7 +174,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         for i, s in enumerate(subreddit):
             after_token = params["token"][i]
             try:
-                next_response = get_subreddit(s, 5, post_type, after_token, header)
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -186,7 +186,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                     
-                time.sleep(1)
+                time.sleep(5)
 
             except json.decoder.JSONDecodeError:
                 # when the bearer token expires (after 24 hrs), we do not receive a response
@@ -194,7 +194,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 header = get_bearer()
                 after_token = params["token"][i]
 
-                next_response = get_subreddit(s, 5, post_type, after_token, header)
+                next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
                 token_list.append(after_token)
 
@@ -204,7 +204,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
-                time.sleep(1)
+                time.sleep(5)
                 pass
 
             except IndexError:
@@ -212,18 +212,20 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # time.sleep(120)
                 # print("no more data for subreddit: {}.".format(s))
                 token_list.append(params["token"][i])
+                time.sleep(3)
                 pass
 
             except Exception as e:
                 # catch all for api exceptions (SSL errors, ConnectionError, etc)
                 print(e)
                 token_list.append(params["token"][i])
-                pass
-                # time.sleep(150)
+                # pass
+                time.sleep(60)
 
         params["token"] = token_list
+        # pp.pprint(params["token"])
         # print("------------------------------------------------------------------------------")
-        time.sleep(120)
+        time.sleep(110)
     
 
 def main():
