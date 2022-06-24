@@ -233,6 +233,7 @@ def write_stream(df, subreddit):
         .outputMode("update") \
         .format("console") \
         .option("truncate", "true") \
+        .queryName(subreddit + "_console") \
         .start()
 
     # write to s3 delta
@@ -243,6 +244,7 @@ def write_stream(df, subreddit):
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
+        .queryName(subreddit + "_delta") \
         .start()
 
 def main():
