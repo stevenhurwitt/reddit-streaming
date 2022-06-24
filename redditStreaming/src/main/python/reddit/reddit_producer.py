@@ -176,7 +176,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             try:
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
@@ -185,7 +184,9 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-                    
+                
+                token_list.append(after_token) 
+                
                 time.sleep(5)
 
             except json.decoder.JSONDecodeError:
@@ -196,7 +197,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 if after_token is not None:
                     producer.send(params["topic"][i], my_data)
@@ -204,6 +204,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
+                token_list.append(after_token)
                 time.sleep(5)
                 pass
 
