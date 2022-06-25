@@ -154,6 +154,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
+
     token_list = []
 
     for i, s in enumerate(subreddit):
@@ -167,7 +168,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             producer.send(params["topic"][i], my_data)                          
 
             if debug:
-                print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
     if None in token_list:
@@ -190,7 +191,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
                 token_list.append(after_token) 
                 
