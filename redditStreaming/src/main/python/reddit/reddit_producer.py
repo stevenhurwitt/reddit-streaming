@@ -166,8 +166,11 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
-    # print("------------------------------------------------------------------------------")
-    time.sleep(60)
+    if None in token_list:
+            time.sleep(5)
+
+    else:
+        time.sleep(30)
 
     while True:
         token_list = []
@@ -224,9 +227,11 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 time.sleep(60)
 
         params["token"] = token_list
-        # pp.pprint(params["token"])
-        # print("------------------------------------------------------------------------------")
-        time.sleep(110)
+        if None in token_list:
+            time.sleep(5)
+
+        else:
+            time.sleep(110)
     
 
 def main():
