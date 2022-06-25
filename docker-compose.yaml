@@ -21,6 +21,7 @@ services:
     ports:
       - 8080:8080
       - 7077:7077
+      - 4040:4040
     volumes:
       - shared-workspace:/opt/workspace
   spark-worker-1:
@@ -85,7 +86,7 @@ services:
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
-      KAFKA_BROKER_ID: 999 # comment out if using multiple brokers
+      KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
