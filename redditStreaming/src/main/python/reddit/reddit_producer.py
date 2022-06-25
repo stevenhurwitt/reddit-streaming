@@ -167,7 +167,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
     params["token"] = token_list
     if None in token_list:
-            time.sleep(5)
+        time.sleep(5)
 
     else:
         time.sleep(30)
