@@ -33,19 +33,22 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
                 .withColumn("created_utc", col("created_utc").cast("timestamp")) \
                 .withColumn("created", col("created").cast("timestamp")) \
-                .withColumn("post_date", to_date(col("created_utc"), "MM-dd-yyyy")) \
+                .withColumn("year", year(col("date"))) \
+                .withColumn("month", month(col("date"))) \
+                .withColumn("day", dayofmonth(col("date"))) \
+                .withColumn("date", to_date(col("created_utc"), "MM-dd-yyyy")) \
                 .dropDuplicates(subset = ["title"])
                 
 filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_clean/"
 df.write.format("delta") \
-    .partitionBy("post_date") \
+    .partitionBy("year", "month", "day") \
     .mode("overwrite") \
-    .option("mergeSchema", True) \
     .option("overwriteSchema", True) \
     .option("header", True) \
     .save(filepath)
         
 deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
+# deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
 job.commit()
