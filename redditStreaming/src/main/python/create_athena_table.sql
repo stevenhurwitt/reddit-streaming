@@ -1,4 +1,4 @@
-CREATE EXTERNAL TABLE `technology`(
+CREATE EXTERNAL TABLE `reddit`.`technology`(
   `approved_at_utc` timestamp COMMENT '', 
   `subreddit` string COMMENT '', 
   `selftext` string COMMENT '',
@@ -98,7 +98,11 @@ CREATE EXTERNAL TABLE `technology`(
   `num_crossposts` int COMMENT '',
   `media` string COMMENT '',
   `is_video` boolean COMMENT '',
-  `post_date` date COMMENT '')
+  `date` date COMMENT '')
+PARTITIONED BY (
+  year int, 
+  month int, 
+  day int)
 ROW FORMAT SERDE 'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
