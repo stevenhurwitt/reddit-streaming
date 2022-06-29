@@ -34,6 +34,9 @@ volumes:
   shared-workspace:
     name: "hadoop-distributed-file-system"
     driver: local
+  postgres-db-volume:
+    name: "postgres-db-volume"
+    driver: local
 services:
   jupyterlab:
     image: jupyterlab
@@ -252,7 +255,7 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
-        
+
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
