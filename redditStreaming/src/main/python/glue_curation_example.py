@@ -8,6 +8,7 @@ from pyspark.sql.session import SparkSession
 from pyspark.sql.functions import *
 from delta import *
 from delta.tables import *
+import boto3
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
@@ -48,7 +49,14 @@ df.write.format("delta") \
     .save(filepath)
         
 deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
-# deltaTable.vacuum(168)
+deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
+
+athena = boto3.client('athena')
+athena.start_query_execution(
+         QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
+         ResultConfiguration = {
+             'OutputLocation': "s3://reddit-stevenhurwitt/_athena_results"
+         })
 
 job.commit()
