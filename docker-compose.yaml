@@ -83,7 +83,6 @@ services:
       - reddit_streaming
     ports: 
       - "5432:5432"
-
   zookeeper:
     # image: wurstmeister/zookeeper
     image: ghcr.io/arm64-compat/confluentinc/cp-zookeeper:7.1.1
