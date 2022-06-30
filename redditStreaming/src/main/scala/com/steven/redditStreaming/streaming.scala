@@ -9,10 +9,7 @@ object streaming {
 
 def main(args:Array[String]):Unit= {
 
-  val aws_client = "AKIA6BTEPFALPAPNQ3D4"
-  val aws_secret = ""
-
-  val spark: SparkSession = SparkSession.builder()
+val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
@@ -51,7 +48,7 @@ import spark.implicits._
 val kafka_df = spark.readStream
         .format("kafka")
         .option("kafka.bootstrap.servers", "xanaxprincess.asuscomm.com:9092")
-        .option("subscribe", "reddit")
+        .option("subscribe", "twitter")
         .option("includeHeaders", "true")
         .load()
 
@@ -164,29 +161,25 @@ println("streaming...")
     //         .add("metadataVersion", StringType)
     //       , true)
 
-    // val json_schema = 
-    //     new ArrayType(
-    //       new StructType()
-    //         .add("", StringType)
-    //         .add("", StringType)
-    //         //   .add("struct", new StructType()
-    //         //     .add("batchId", StringType)
-    //         //     , true)
-    //         // , true)
-    //         // .add("metadataVersion", StringType)
-    //     )
+    val json_schema = 
+        new ArrayType(
+          new StructType()
+            .add("", StringType)
+            .add("", StringType)
+            //   .add("struct", new StructType()
+            //     .add("batchId", StringType)
+            //     , true)
+            // , true)
+            // .add("metadataVersion", StringType)
+        )
 
 
-      // val payload = kafka_df.selectExpr("CAST(body AS STRING) as json", "enqueuedTime", "properties").select(from_json($"json", json_schema).as("data"), col("enqueuedTime"), col("properties"))
+      val payload = kafka_df.selectExpr("CAST(body AS STRING) as json", "enqueuedTime", "properties").select(from_json($"json", json_schema).as("data"), col("enqueuedTime"), col("properties"))
 
-      // var eventDF = payload.select(explode(payload("data")).alias("d"))
-      
-      // eventDF = eventDF.withColumn("dt_now", )
+      var eventDF = payload.select(explode(payload("data")).alias("d"))
 
-      // eventDf.writeStream.format("console").queryName("twitter").start()
+      eventDf.writeStream.format("console").queryName("twitter").start()
 
-      // eventDf.write.format("delta").option("header", "true").partitionBy("").save("s3://twitter-stevenhurwitt/tweets/data/raw/twitter")
-
-      // spark.streaming.awaitAnyTermination
+      spark.streaming.awaitAnyTermination
     }
 }
