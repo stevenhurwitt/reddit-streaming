@@ -210,6 +210,24 @@
             <version>2.15.0</version>
         </dependency>
 
+        <!-- <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-aws</artifactId>
+            <version>3.3.1</version>
+        </dependency> -->
+
+        <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-core_2.12</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
+        <!-- <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-core_2.12</artifactId>
+            <version>1.2.1</version>
+        </dependency> -->
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-aws</artifactId>
