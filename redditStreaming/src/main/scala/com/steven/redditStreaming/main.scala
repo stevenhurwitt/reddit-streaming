@@ -5,7 +5,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._ 
 import org.apache.spark.sql.types._ 
 
-object streaming {
+object twitter {
 
 def main(args:Array[String]):Unit= {
 
@@ -180,6 +180,8 @@ println("streaming...")
 
       eventDf.writeStream.format("console").queryName("twitter").start()
 
-      spark.streaming.awaitAnyTermination
+      eventDf.write.format("delta").save("s3://twitter-stevenhurwitt/tweets/data/raw/twitter")
+
+      // spark.streaming.awaitAnyTermination
     }
 }
