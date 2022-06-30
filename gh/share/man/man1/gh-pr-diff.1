@@ -1,0 +1,41 @@
+.nh
+.TH "GH-PR-DIFF" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-pr-diff - View changes in a pull request
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh pr diff [<number> | <url> | <branch>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+View changes in a pull request.
+
+.PP
+Without an argument, the pull request that belongs to the current branch
+is selected.			
+
+
+.SH OPTIONS
+.TP
+\fB\fC--color\fR \fB\fC<string>\fR
+Use color in diff output: {always|never|auto}
+
+.TP
+\fB\fC--patch\fR
+Display diff in patch format
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-pr(1)\fR

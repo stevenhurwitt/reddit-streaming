@@ -1,0 +1,204 @@
+.nh
+.TH "GH-SEARCH-ISSUES" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-search-issues - Search for issues
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh search issues [<query>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Search for issues on GitHub.
+
+.PP
+The command supports constructing queries using the GitHub search syntax,
+using the parameter and qualifier flags, or a combination of the two.
+
+.PP
+GitHub search syntax is documented at:
+https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests
+\[la]https://docs.github.com/search-github/searching-on-github/searching-issues-and-pull-requests\[ra]
+
+
+.SH OPTIONS
+.TP
+\fB\fC--app\fR \fB\fC<string>\fR
+Filter by GitHub App author
+
+.TP
+\fB\fC--archived\fR
+Restrict search to archived repositories
+
+.TP
+\fB\fC--assignee\fR \fB\fC<string>\fR
+Filter by assignee
+
+.TP
+\fB\fC--author\fR \fB\fC<string>\fR
+Filter by author
+
+.TP
+\fB\fC--closed\fR \fB\fC<date>\fR
+Filter on closed at date
+
+.TP
+\fB\fC--commenter\fR \fB\fC<user>\fR
+Filter based on comments by user
+
+.TP
+\fB\fC--comments\fR \fB\fC<number>\fR
+Filter on number of comments
+
+.TP
+\fB\fC--created\fR \fB\fC<date>\fR
+Filter based on created at date
+
+.TP
+\fB\fC--include-prs\fR
+Include pull requests in results
+
+.TP
+\fB\fC--interactions\fR \fB\fC<number>\fR
+Filter on number of reactions and comments
+
+.TP
+\fB\fC--involves\fR \fB\fC<user>\fR
+Filter based on involvement of user
+
+.TP
+\fB\fC-q\fR, \fB\fC--jq\fR \fB\fC<expression>\fR
+Filter JSON output using a jq expression
+
+.TP
+\fB\fC--json\fR \fB\fC<fields>\fR
+Output JSON with the specified fields
+
+.TP
+\fB\fC--label\fR \fB\fC<strings>\fR
+Filter on label
+
+.TP
+\fB\fC--language\fR \fB\fC<string>\fR
+Filter based on the coding language
+
+.TP
+\fB\fC-L\fR, \fB\fC--limit\fR \fB\fC<int>\fR
+Maximum number of results to fetch
+
+.TP
+\fB\fC--locked\fR
+Filter on locked conversation status
+
+.TP
+\fB\fC--match\fR \fB\fC<strings>\fR
+Restrict search to specific field of issue: {title|body|comments}
+
+.TP
+\fB\fC--mentions\fR \fB\fC<user>\fR
+Filter based on user mentions
+
+.TP
+\fB\fC--milestone\fR \fB\fC<title>\fR
+Filter by milestone title
+
+.TP
+\fB\fC--no-assignee\fR
+Filter on missing assignee
+
+.TP
+\fB\fC--no-label\fR
+Filter on missing label
+
+.TP
+\fB\fC--no-milestone\fR
+Filter on missing milestone
+
+.TP
+\fB\fC--no-project\fR
+Filter on missing project
+
+.TP
+\fB\fC--order\fR \fB\fC<string>\fR
+Order of results returned, ignored unless '--sort' flag is specified: {asc|desc}
+
+.TP
+\fB\fC--owner\fR \fB\fC<string>\fR
+Filter on repository owner
+
+.TP
+\fB\fC--project\fR \fB\fC<number>\fR
+Filter on project board number
+
+.TP
+\fB\fC--reactions\fR \fB\fC<number>\fR
+Filter on number of reactions
+
+.TP
+\fB\fC--repo\fR \fB\fC<strings>\fR
+Filter on repository
+
+.TP
+\fB\fC--sort\fR \fB\fC<string>\fR
+Sort fetched results: {comments|created|interactions|reactions|reactions-+1|reactions--1|reactions-heart|reactions-smile|reactions-tada|reactions-thinking_face|updated}
+
+.TP
+\fB\fC--state\fR \fB\fC<string>\fR
+Filter based on state: {open|closed}
+
+.TP
+\fB\fC--team-mentions\fR \fB\fC<string>\fR
+Filter based on team mentions
+
+.TP
+\fB\fC-t\fR, \fB\fC--template\fR \fB\fC<string>\fR
+Format JSON output using a Go template
+
+.TP
+\fB\fC--updated\fR \fB\fC<date>\fR
+Filter on last updated at date
+
+.TP
+\fB\fC--visibility\fR \fB\fC<strings>\fR
+Filter based on repository visibility: {public|private|internal}
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open the search query in the web browser
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# search issues matching set of keywords "readme" and "typo"
+$ gh search issues readme typo
+
+# search issues matching phrase "broken feature"
+$ gh search issues "broken feature"
+
+# search issues and pull requests in cli organization
+$ gh search issues --include-prs --owner=cli
+
+# search open issues assigned to yourself
+$ gh search issues --assignee=@me --state=open
+
+# search issues with numerous comments
+$ gh search issues --comments=">100"
+
+# search issues without label "bug"
+$ gh search issues -- -label:bug
+ 
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-search(1)\fR

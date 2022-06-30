@@ -1,0 +1,75 @@
+.nh
+.TH "GH-CODESPACE-CP" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-codespace-cp - Copy files between local and remote file systems
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh codespace cp [-e] [-r] [-- [<scp flags>...]] <sources>... <dest>\fR
+
+
+.SH DESCRIPTION
+.PP
+The cp command copies files between the local and remote file systems.
+
+.PP
+As with the UNIX \fB\fCcp\fR command, the first argument specifies the source and the last
+specifies the destination; additional sources may be specified after the first,
+if the destination is a directory.
+
+.PP
+The \fB\fC--recursive\fR flag is required if any source is a directory.
+
+.PP
+A "remote:" prefix on any file name argument indicates that it refers to
+the file system of the remote (Codespace) machine. It is resolved relative
+to the home directory of the remote user.
+
+.PP
+By default, remote file names are interpreted literally. With the \fB\fC--expand\fR flag,
+each such argument is treated in the manner of \fB\fCscp\fR, as a Bash expression to
+be evaluated on the remote machine, subject to expansion of tildes, braces, globs,
+environment variables, and backticks. For security, do not use this flag with arguments
+provided by untrusted users; see https://lwn.net/Articles/835962/
+\[la]https://lwn.net/Articles/835962/\[ra] for discussion.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-c\fR, \fB\fC--codespace\fR \fB\fC<string>\fR
+Name of the codespace
+
+.TP
+\fB\fC-e\fR, \fB\fC--expand\fR
+Expand remote file names on remote shell
+
+.TP
+\fB\fC-p\fR, \fB\fC--profile\fR \fB\fC<string>\fR
+Name of the SSH profile to use
+
+.TP
+\fB\fC-r\fR, \fB\fC--recursive\fR
+Recursively copy directories
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+$ gh codespace cp -e README.md 'remote:/workspaces/$RepositoryName/'
+$ gh codespace cp -e 'remote:~/*.go' ./gofiles/
+$ gh codespace cp -e 'remote:/workspaces/myproj/go.{mod,sum}' ./gofiles/
+$ gh codespace cp -e -- -F ~/.ssh/codespaces_config 'remote:~/*.go' ./gofiles/
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-codespace(1)\fR
