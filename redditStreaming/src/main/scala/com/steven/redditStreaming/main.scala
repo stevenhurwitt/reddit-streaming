@@ -1,8 +1,8 @@
-package com.steven.redditStreaming
+package com.steven.twitter
 
 import org.apache.spark.sql._
 
-object streaming {
+object twitter {
 
 def main(args:Array[String]):Unit= {
 
@@ -67,6 +67,8 @@ val kafka_df = spark.readStream
 
       eventDf.writeStream.format("console").queryName("twitter").start()
 
-      spark.streaming.awaitAnyTermination
+      eventDf.write.format("delta").save("s3://twitter-stevenhurwitt/tweets/data/raw/twitter")
+
+      // spark.streaming.awaitAnyTermination
     }
 }
