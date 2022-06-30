@@ -4,6 +4,7 @@ import datetime as dt
 import requests
 import kafka
 import pprint
+import boto3
 import yaml
 import time
 import json
@@ -11,6 +12,12 @@ import sys
 import os
 
 pp = pprint.PrettyPrinter(indent = 1)
+
+def aws():
+    s3_client = boto3.client("s3")
+    athena_client = boto3.client("athena")
+    secret_client = boto3.client("secrets")
+    return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """
@@ -260,7 +267,14 @@ def main():
         print("failed to find config.yaml")
         sys.exit()
 
+    s3, athena, secrets = aws()
+
+    print("s3: {}".format(s3))
+    print("athena: {}".format(athena))
+    print("secrets: {}".format(secrets))
+
     my_header = get_bearer()
+    print("authenticated w/ bearer token good for 24 hrs.")
     poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
