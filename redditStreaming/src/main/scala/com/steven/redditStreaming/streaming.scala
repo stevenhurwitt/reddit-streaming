@@ -7,7 +7,7 @@ import org.apache.spark.sql.types._
 
 object reddit {
 
-def main(args:Array[String]):Unit= {
+def streaming(args:Array[String]):Unit= {
 
   val aws_client = "AKIA6BTEPFALPAPNQ3D4"
   val aws_secret = ""
@@ -16,7 +16,7 @@ def main(args:Array[String]):Unit= {
       .master("spark://xanaxprincess.asuscomm.com:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
-      .appName("kafkaProducer")
+      .appName("streaming")
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file", "file:///opt/workspace/twitter-ingestion/fairscheduler.xml")
       .config("spark.executor.memory", "2048m")
