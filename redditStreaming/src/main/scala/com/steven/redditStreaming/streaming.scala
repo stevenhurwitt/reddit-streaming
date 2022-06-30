@@ -5,9 +5,9 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._ 
 import org.apache.spark.sql.types._ 
 
-object reddit {
+object streaming {
 
-def streaming(args:Array[String]):Unit= {
+def main(args:Array[String]):Unit= {
 
   val aws_client = "AKIA6BTEPFALPAPNQ3D4"
   val aws_secret = ""

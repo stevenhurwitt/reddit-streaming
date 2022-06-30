@@ -28,6 +28,7 @@ target/maven-status
 /*/*.json
 */*/*.json
 */*/*/*.json
+redditStreaming/*.json
 terraform
 redditStreaming/src/test/python/creds.json
 redditStreaming/src/main/python/s3/creds.json
