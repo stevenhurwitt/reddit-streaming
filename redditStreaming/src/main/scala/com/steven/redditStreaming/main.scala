@@ -1,20 +1,49 @@
-package com.steven.twitter
+package com.steven.reddit
 
 import org.apache.spark._
 import org.apache.spark.sql._
 import org.apache.spark.sql.functions._ 
 import org.apache.spark.sql.types._ 
 
-object twitter {
+object reddit {
 
 def main(args:Array[String]):Unit= {
 
-val spark: SparkSession = SparkSession.builder()
+  val aws_client = "AKIA6BTEPFALPAPNQ3D4"
+  val aws_secret = ""
+
+  val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
-      .appName("streaming")
+      .appName("kafkaProducer")
+      .config("spark.scheduler.mode", "FAIR")
+      .config("spark.scheduler.allocation.file", "file:///opt/workspace/twitter-ingestion/fairscheduler.xml")
+      .config("spark.executor.memory", "2048m")
+      .config("spark.executor.cores", "1")
+      .config("spark.streaming.concurrentJobs", "4")
+      .config("spark.local.dir", "/opt/workspace/tmp/driver/twitter/")
+      .config("spark.worker.dir", "/opt/workspace/tmp/executor/twitter/")
+      .config("spark.eventLog.enabled", "true")
+      .config("spark.eventLog.dir", "file:///opt/workspace/events/twitter/")
+      .config("spark.sql.debug.maxToStringFields", 1000)
+      .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1")
+      .config("spark.hadoop.fs.s3a.access.key", aws_client)
+      .config("spark.hadoop.fs.s3a.secret.key", aws_secret)
+      .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+      .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider")
+      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+      .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore")
+      .enableHiveSupport()
       .getOrCreate()
+
+  val sc = spark.sparkContext
+  // val sqlContext = SQLContext(sc)
+
+  val index = 0
+  sc.setLogLevel("WARN")
+  sc.setLocalProperty("spark.scheduler.pool", "pool" + index.toString)
 
 import spark.implicits._
 // println("started spark.")
@@ -35,26 +64,76 @@ val kafka_df = spark.readStream
 //       .add("body", StringType)
 //   )
 
-val json_schema = new ArrayType(new StructType().add("topic", StringType))
+// val json_schema = new ArrayType(new StructType().add("topic", StringType))
 
 // println("created schema.")
 
+// val json_schema = new ArrayType( new StructType().add("json", StringType))
+
 val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-            .select(from_json(col("json"), json_schema).alias("data"))
-            .select("data.*")
+// df.show()
+
+// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
+//             .select(from_json(col("json"), json_schema)
+//             .alias("data"))
+//             .select("data.*")
+
+// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
+//             .select(from_json(col("json"), json_schema).alias("data"))
+//             .select("data.*")
 
 // println("created df.")
-df.show()
+// df.show()
+
+// write to console.
 
 // df.write.format("console").option("header", "true").option("truncate", "true").load()
-df.writeStream.format("console").queryName("twitter-console").start()
+// df.writeStream.format("console").queryName("twitter-console").start()
+
+// write to spark delta table.
 
 val target_dir = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
-// df.write.format("delta").queryName("twitter-delta").option("header", "true").save(target_dir)
+df.write.format("delta").option("header", "true").save(target_dir)
 print("wrote df to delta table.")
 
+// write to jdbc (postgresql)
+
+val database = "twitter"
+val src_table = "dbo.twitter"
+val user = "postgres"
+val password  = "Secret!12345"
+
+val connection_str = ""
+val jdbcUrl = f"jdbc:postgresql://xanaxprincess.asuscomm.com:1433;databaseName={database}"
+val jdbcDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+
+var jdbcDF = spark.read.format("jdbc")
+    .option("url", jdbcUrl)
+    .option("dbtable", "twitter")
+    .option("user", user)
+    .option("password", password)
+    .option("driver", jdbcDriver)
+    .load()
+
+jdbcDF.show()
+// jdbcDF.write.format("delta").option("header", "true")
+
+jdbcDF.select("*").write.format("jdbc")
+  .mode("overwrite")
+  .option("url", jdbcUrl)
+  .option("dbtable", "dbo.twitter_clean")
+  .option("user", user)
+  .option("password", password)
+  .save()
+
+// df.write.format("jdbc").option("header", "true)").
+
+// allow continuous parallel streaming applications...
+
 // spark.streaming.awaitAnyTermination
-print("streaming...")
+
+// print
+println("streaming...")
 
 // return(df)
 
