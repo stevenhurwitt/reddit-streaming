@@ -14,7 +14,7 @@ provider "aws" {
 }
 
 resource "aws_instance" "app_server" {
-  ami           = "ami-0ff596d41505819fd"
+  ami           = "ami-070650c005cce4203"
   instance_type = "t4g.xlarge"
 
   tags = {
