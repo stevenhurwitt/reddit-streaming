@@ -26,6 +26,7 @@ local
 .DS_Store
 redditStreaming/.DS_Store
 redditStreaming/reddit
+redditStreaming/src/main/python/reddit/creds.json
 cluster_config
 dags
 logs
