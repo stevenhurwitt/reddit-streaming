@@ -18,3 +18,4 @@ plugins
 src/test/python/__pycache__
 src/test/python/.pytest_cache
 redditStreaming/.pom.xml.swp
+redditStreaming/pat.json
