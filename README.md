@@ -38,3 +38,8 @@ Likely caused by guava jar mismatch, follow steps here: https://kontext.tech/art
 https://github.com/wurstmeister/kafka-docker/issues/409
 
 If there are kafka errors, run `docker-compose down`, delete `cluster_config/kafka/logs` and `cluster_config/zookeeper/data/version-2` directories, run `docker-compose up -d`.
+
+
+## S3
+
+`s3://aws-glue-assets-965504608278-us-east-2/scripts/`
