@@ -1,0 +1,60 @@
+.nh
+.TH "GH-LABEL-CLONE" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-label-clone - Clones labels from one repository to another
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh label clone <source-repository> [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Clones labels from a source repository to a destination repository on GitHub.
+By default, the destination repository is the current repository.
+
+.PP
+All labels from the source repository will be copied to the destination
+repository. Labels in the destination repository that are not in the source
+repository will not be deleted or modified.
+
+.PP
+Labels from the source repository that already exist in the destination
+repository will be skipped. You can overwrite existing labels in the
+destination repository using the --force flag.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-f\fR, \fB\fC--force\fR
+Overwrite labels in the destination repository
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# clone and overwrite labels from cli/cli repository into the current repository
+$ gh label clone cli/cli --force
+
+# clone labels from cli/cli repository into a octocat/cli repository
+$ gh label clone cli/cli --repo octocat/cli
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-label(1)\fR
