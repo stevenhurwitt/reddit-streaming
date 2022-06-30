@@ -116,7 +116,8 @@ var jdbcDF = spark.read.format("jdbc")
     .load()
 
 jdbcDF.show()
-// jdbcDF.write.format("delta").option("header", "true")
+val path = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
+jdbcDF.write.format("delta").option("header", "true").partitionBy("").save(path)
 
 jdbcDF.select("*").write.format("jdbc")
   .mode("overwrite")
