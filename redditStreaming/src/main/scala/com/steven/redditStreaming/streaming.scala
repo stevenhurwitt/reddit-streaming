@@ -55,15 +55,25 @@ val json_schema =
     //         .add("metadataVersion", StringType)
     //       , true)
 
+    val json_schema = 
+        new ArrayType(
+          new StructType()
+            .add("", StringType)
+            .add("", StringType)
+            //   .add("struct", new StructType()
+            //     .add("batchId", StringType)
+            //     , true)
+            // , true)
+            // .add("metadataVersion", StringType)
+        )
 
-  val payload = kafka_df.selectExpr("CAST(body AS STRING) as json", "enqueuedTime", "properties").select(from_json($"json", json_schema).as("data"), col("enqueuedTime"), col("properties"))
 
-  var eventDF = payload.select(explode(payload("data")).alias("d"))
+      val payload = kafka_df.selectExpr("CAST(body AS STRING) as json", "enqueuedTime", "properties").select(from_json($"json", json_schema).as("data"), col("enqueuedTime"), col("properties"))
 
-  eventDF.writeStream.format("console").queryName("twitter_console").start()
+      var eventDF = payload.select(explode(payload("data")).alias("d"))
 
-  eventDf.write.format("delta").path("s3://twitter-stevenhurwitt/tweets/jars")
+      eventDf.writeStream.format("console").queryName("twitter").start()
 
-
+      spark.streaming.awaitAnyTermination
     }
 }
