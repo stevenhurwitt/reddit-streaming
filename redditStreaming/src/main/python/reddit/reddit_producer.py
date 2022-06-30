@@ -226,6 +226,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 token_list.append(params["token"][i])
                 # pass
                 time.sleep(60)
+                pass
 
         params["token"] = token_list
         if None in token_list:
