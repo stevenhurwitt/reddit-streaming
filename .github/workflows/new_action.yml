@@ -1,0 +1,30 @@
+name: new-action
+on: [push]
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: 'redditStreaming/'
+      - name: build dockerfiles
+        run: ./build.sh
+
+  mvn-install:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: s4u/setup-maven-action@1.3.0
+          with:
+            java-version: 8
+            maven-version: 3.8.2
+        - uses: olafurpg/setup-scala@v11
+          # with:
+          #   scala-version: '2.12.15'
+        - run: cd redditStreaming && mvn clean install
