@@ -9,7 +9,10 @@ object twitter {
 
 def main(args:Array[String]):Unit= {
 
-val spark: SparkSession = SparkSession.builder()
+  val aws_client = "AKIA6BTEPFALPAPNQ3D4"
+  val aws_secret = "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"
+
+  val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")

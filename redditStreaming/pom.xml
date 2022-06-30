@@ -222,6 +222,14 @@
             <version>1.2.1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.4.0</version>
+        </dependency>
+
+
         <!-- <dependency>
             <groupId>io.delta</groupId>
             <artifactId>delta-core_2.12</artifactId>
