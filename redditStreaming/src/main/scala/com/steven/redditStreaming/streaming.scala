@@ -5,7 +5,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._ 
 import org.apache.spark.sql.types._ 
 
-object twitter {
+object streaming {
 
 def streaming(args:Array[String]):Unit= {
 
