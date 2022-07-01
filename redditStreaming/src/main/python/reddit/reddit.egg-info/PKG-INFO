@@ -2,7 +2,6 @@ Metadata-Version: 2.1
 Name: reddit
 Version: 0.1.0
 Summary: Reddit API Kafka & Spark
-Home-page: UNKNOWN
 Author: Steven Hurwitt
 Author-email: stevenhurwitt@gmail.com
 License: UNKNOWN
