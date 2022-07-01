@@ -6,6 +6,7 @@ from pyspark.sql.session import SparkSession
 from pyspark.context import SparkContext
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from delta.table import *
 from delta import *
 import datetime as dt
 import pandas as pd
@@ -16,19 +17,48 @@ import time
 import sys
 import os
 
+start_time = time.time()
 args = sys.argv
 subreddit = os.environ["subreddit"]
 client = boto3.client("s3")
 base = os.getcwd()
 
-builder = SparkSession \
+subreddit = os.environ["subreddit"]
+aws_client = os.environ["AWS_ACCESS_KEY_ID"]
+aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+spark = SparkSession \
   .builder \
-  .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+  .master("spark-master:7077") \
   .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
   .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-  .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore")
+  .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+  .config("spark.scheduler.mode", "FAIR") \
+  .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
+  .config("spark.executor.memory", "2048m") \
+  .config("spark.executor.cores", "2") \
+  .config("spark.streaming.concurrentJobs", "4") \
+  .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
+  .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
+  .config("spark.eventLog.enabled", "true") \
+  .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
+  .config("spark.sql.debug.maxToStringFields", 1000) \
+  .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+  .config("spark.hadoop.fs.s3a.access.key", aws_client) \
+  .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
+  .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+  .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
+  .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+  .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+  .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+  .enableHiveSupport() \
+  .getOrCreate()
 
-spark = configure_spark_with_delta_pip(builder).getOrCreate()
+sc = spark.sparkContext
+sc.setLogLevel("WARN")
+# aws_key = ""
+# aws_secret = ""
+# spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 df = spark.read.format("delta").option("header", True).load("s3a://reddit-stevenhurwitt/" + subreddit)
 
@@ -62,4 +92,4 @@ athena.start_query_execution(
              'OutputLocation': "s3://reddit-stevenhurwitt/_athena_results"
          })
 
-job.commit()
+# job.commit()
