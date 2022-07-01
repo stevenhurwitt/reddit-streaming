@@ -10,7 +10,7 @@ val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
-      .appName("kafkaProducer")
+      .appName("streaming")
       .getOrCreate()
 
 import spark.implicits._
