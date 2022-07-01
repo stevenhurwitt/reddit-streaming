@@ -11,8 +11,8 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 # COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
 # COPY ./redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl ${SHARED_WORKSPACE}/redditStreaming/src/main/python/reddit/dist/
 
-RUN apt-get install awscli && \
-    snap install terraform
+# RUN apt-get install awscli && \
+    # snap install terraform
     
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
