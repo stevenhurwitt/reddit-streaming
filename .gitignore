@@ -14,3 +14,4 @@ dags
 logs
 plugins
 .env
+terraform/.terraform

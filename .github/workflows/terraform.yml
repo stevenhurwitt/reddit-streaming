@@ -1,0 +1,23 @@
+name: terraform
+on: [push]
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: 'terraform/'
+      # - name: build dockerfiles
+      #   run: ./build.sh
+      
+      # - name: run docker-compose
+      #   uses: sudo-bot/action-docker-compose@latest
+      #   with:
+      #       # https://docs.docker.com/compose/reference/overview/
+      #       cli-args: "up -d"
