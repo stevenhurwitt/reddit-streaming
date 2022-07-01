@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
-import yaml
+# import yaml
 import json
 import sys
 import os
@@ -35,17 +35,17 @@ def read_files():
         print("failed to find creds.json.")
         sys.exit()
 
-    try:
-        with open("config.yaml", "r") as f:
-            config = yaml.safe_load(f)
-            print("read config file.")
-            f.close()
+    # try:
+        # with open("config.yaml", "r") as f:
+        #     config = yaml.safe_load(f)
+        #     print("read config file.")
+        #     f.close()
 
-    except:
-        print("failed to find config.yaml, exiting now.")
-        sys.exit()
+    # except:
+    #     print("failed to find config.yaml, exiting now.")
+    #     sys.exit()
 
-    return(creds, config)
+    return(creds)
 
 def init_spark(subreddit, index):
     """
@@ -53,8 +53,9 @@ def init_spark(subreddit, index):
 
     returns: spark, sparkContext (sc)
     """
-    creds, config = read_files()
-    spark_host = config["spark_host"]
+    creds = read_files()
+    # spark_host = config["spark_host"]
+    spark_host = "xanaxprincess.asuscomm.com"
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
 
@@ -103,8 +104,9 @@ def read_kafka_stream(spark, sc, subreddit):
     params: spark, sc
     returns: df
     """
-    creds, config = read_files()
-    kafka_host = config["kafka_host"]
+    creds = read_files()
+    # kafka_host = config["kafka_host"]
+    kafka_host = "xanaxprincess.asuscomm.com"
 
     # define schema for payload data
     payload_schema = StructType([
@@ -257,8 +259,9 @@ def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
-    creds, config = read_files()
-    subreddit_list = config["subreddit"]
+    creds = read_files()
+    subreddit_list = []
+    # subreddit_list = config["subreddit"]
     for i, s in enumerate(subreddit_list):
         spark, sc = init_spark(s, i)
 
