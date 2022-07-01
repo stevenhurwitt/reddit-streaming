@@ -9,8 +9,8 @@ object producer {
 
 def producer(args:Array[String]):Unit= {
 
-  val aws_client = ""
-  val aws_secret = "abc"
+  // val aws_client = ""
+  // val aws_secret = "abc"
 
   val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
