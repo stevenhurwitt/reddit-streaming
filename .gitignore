@@ -9,6 +9,7 @@ local
 .DS_Store
 redditStreaming/.DS_Store
 redditStreaming/reddit
+redditStreaming/src/main/python/reddit/creds.json
 cluster_config
 dags
 logs
@@ -16,3 +17,8 @@ plugins
 .env
 src/test/python/__pycache__
 src/test/python/.pytest_cache
+redditStreaming/.pom.xml.swp
+redditStreaming/pat.json
+gh_2.13.0_linux_arm64.tar.gz
+gh_2.13.0_linux_arm64/share
+gh_2.13.0_linux_arm64/LICENSE
