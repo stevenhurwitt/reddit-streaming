@@ -26,3 +26,4 @@ gh_2.13.0_linux_arm64/share
 gh_2.13.0_linux_arm64/LICENSE
 redditStreaming/src/main/scala/com/steven/redditStreaming/adls.json
 redditStreaming/pat.json
+redditStreaming/src/main/python/reddit/config.yaml
