@@ -31,3 +31,4 @@ redditStreaming/src/main/python/creds.json
 redditStreaming/src/main/python/reddit/build
 redditStreaming/src/main/python/reddit/reddit.egg-info
 redditStreaming/src/main/python/reddit/__init__.py
+redditStreaming/src/main/python/glue/creds.json
