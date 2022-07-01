@@ -11,7 +11,7 @@ def read_files():
     initializes spark session using config.yaml and creds.json files.
     """
 
-    creds_path_container = os.path.join(base, "creds.json")
+    # creds_path_container = os.path.join(base, "creds.json")
 
     base = os.getcwd()
     # creds_dir = "/".join(base.split("/")[:-3])
