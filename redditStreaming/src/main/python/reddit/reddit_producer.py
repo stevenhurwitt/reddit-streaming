@@ -1,11 +1,12 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import kafka
 import reddit
 import pprint
 import boto3
-import yaml
+# import yaml
 import time
 import json
 import sys
@@ -133,7 +134,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, host, debug):
+def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -141,6 +142,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         subreddit (str) - name of subreddit
         post_type (str) - type of posts (new, hot, controversial, etc)
         header (dict) - request header w/ bearer token
+        host (str) - kafka host name
+        port (int) - kafka port num
         debug (bool) - debug mode (True/False)
 
     """
@@ -149,6 +152,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
                 )
     
     except kafka.errors.NoBrokersAvailable:
@@ -157,7 +161,15 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
+    topic = params["topic"][index]
 
+    if after_token is not None:
+        try:
+            producer.send(topic, my_data)
+
+        except KafkaTimeoutError:
+            print("kafka timed out sending first message, exiting now.")
+            sys.exit()
 
     token_list = []
 
@@ -272,7 +284,10 @@ def main():
 
     my_header = get_bearer()
     print("authenticated w/ bearer token good for 24 hrs.")
-    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+
+    print("found {} subreddits...".format(len(subreddit)))
+    print(subreddit)
+    poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, debug)
 
 if __name__ == "__main__":
     # time.sleep(600)
