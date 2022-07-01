@@ -1,5 +1,9 @@
 anyio==3.6.1
 appnope==0.1.3
+<<<<<<< HEAD
+=======
+argcomplete==2.0.0
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
 asttokens==2.0.5
@@ -19,11 +23,19 @@ entrypoints==0.4
 executing==0.8.2
 fastjsonschema==2.15.3
 fonttools==4.33.3
+<<<<<<< HEAD
 glue @ file:///home/steven/Documents/reddit-streaming/redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl
 idna==3.3
 importlib-metadata==4.11.3
 ipykernel==6.6.0
 ipython==8.4.0
+=======
+idna==3.3
+importlib-metadata==4.11.3
+importlib-resources==5.8.0
+ipykernel==6.6.0
+ipython==7.34.0
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 ipython-genutils==0.2.0
 ipywidgets==7.7.1
 jedi==0.18.1
@@ -52,9 +64,15 @@ nbformat==5.4.0
 nest-asyncio==1.5.5
 notebook==6.4.11
 notebook-shim==0.1.0
+<<<<<<< HEAD
 numpy==1.23.0
 packaging==21.3
 pandas==1.4.3
+=======
+numpy==1.21.6
+packaging==21.3
+pandas==1.3.5
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 pandocfilters==1.5.0
 parso==0.8.3
 pexpect==4.8.0
@@ -66,6 +84,10 @@ psutil==5.9.0
 ptyprocess==0.7.0
 pure-eval==0.2.2
 py4j==0.10.9.2
+<<<<<<< HEAD
+=======
+pyarrow==8.0.0
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 pycparser==2.21
 Pygments==2.12.0
 pypandoc==1.7.2
@@ -78,17 +100,29 @@ PyYAML==6.0
 pyzmq==22.3.0
 qtconsole==5.3.0
 QtPy==2.1.0
+<<<<<<< HEAD
 reddit @ file:///home/steven/Documents/reddit-streaming/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl
+=======
+reddit @ file:///opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 requests==2.27.1
 Send2Trash==1.8.0
 six==1.16.0
 sniffio==1.2.0
 soupsieve==2.3.2.post1
+<<<<<<< HEAD
+=======
+sparksql-magic==0.0.3
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 stack-data==0.2.0
 terminado==0.13.3
 tinycss2==1.1.1
 tornado==6.1
 traitlets==5.1.1
+<<<<<<< HEAD
+=======
+typing_extensions==4.2.0
+>>>>>>> 751dc6f5e0032a8f95652b406dafbba073949309
 urllib3==1.26.9
 wcwidth==0.2.5
 webencodings==0.5.1

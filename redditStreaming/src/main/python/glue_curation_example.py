@@ -1,23 +1,25 @@
-import sys
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
-from awsglue.context import GlueContext
-from awsglue.job import Job
+# from awsglue.transforms import *
+# from awsglue.utils import getResolvedOptions
+# from awsglue.context import GlueContext
+# from awsglue.job import Job
 from pyspark.sql.session import SparkSession
+from pyspark.context import SparkContext
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
 from delta import *
-from delta.tables import *
+import datetime as dt
+import pandas as pd
+import numpy as np
 import boto3
+import json
+import time
+import sys
+import os
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
-sc = SparkContext()
-glueContext = GlueContext(sc)
-# spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
-
+args = sys.argv
 subreddit = os.environ["subreddit"]
+client = boto3.client("s3")
+base = os.getcwd()
 
 builder = SparkSession \
   .builder \
@@ -48,9 +50,10 @@ df.write.format("delta") \
     .option("header", True) \
     .save(filepath)
         
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
-deltaTable.vacuum(168)
-deltaTable.generate("symlink_format_manifest")
+# delta table
+# deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
+# deltaTable.vacuum(168)
+# deltaTable.generate("symlink_format_manifest")
 
 athena = boto3.client('athena')
 athena.start_query_execution(

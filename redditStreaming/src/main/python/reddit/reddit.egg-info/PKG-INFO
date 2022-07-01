@@ -2,14 +2,15 @@ Metadata-Version: 2.1
 Name: reddit
 Version: 0.1.0
 Summary: Reddit API Kafka & Spark
-Home-page: UNKNOWN
 Author: Steven Hurwitt
 Author-email: stevenhurwitt@gmail.com
 License: UNKNOWN
-Description: kafka producer and spark streaming application for multiple subreddits
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
+
+kafka producer and spark streaming application for multiple subreddits
+

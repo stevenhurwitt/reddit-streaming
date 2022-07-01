@@ -15,6 +15,8 @@ dags
 logs
 plugins
 .env
+pat.json
+./pat.json
 src/test/python/__pycache__
 src/test/python/.pytest_cache
 redditStreaming/.pom.xml.swp
@@ -24,3 +26,8 @@ gh_2.13.0_linux_arm64/share
 gh_2.13.0_linux_arm64/LICENSE
 redditStreaming/src/main/scala/com/steven/redditStreaming/adls.json
 redditStreaming/pat.json
+redditStreaming/src/main/python/reddit/config.yaml
+redditStreaming/src/main/python/creds.json
+redditStreaming/src/main/python/reddit/build
+redditStreaming/src/main/python/reddit/reddit.egg-info
+redditStreaming/src/main/python/reddit/__init__.py
