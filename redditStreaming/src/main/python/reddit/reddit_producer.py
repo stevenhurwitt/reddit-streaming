@@ -1,4 +1,5 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import kafka
@@ -141,6 +142,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         subreddit (str) - name of subreddit
         post_type (str) - type of posts (new, hot, controversial, etc)
         header (dict) - request header w/ bearer token
+        host (str) - kafka host name
+        port (int) - kafka port num
         debug (bool) - debug mode (True/False)
 
     """
@@ -149,15 +152,30 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
                 )
     
+<<<<<<< HEAD
     except kafka.errors.NoBrokersAvailable:
+=======
+    except NoBrokersAvailable:
+>>>>>>> main
         print("no kafka broker available.")
         sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
+<<<<<<< HEAD
+=======
+    if after_token is not None:
+        try:
+            producer.send(topic, my_data)
+
+        except KafkaTimeoutError:
+            print("kafka timed out sending first message, exiting now.")
+            sys.exit()
+>>>>>>> main
 
     token_list = []
 

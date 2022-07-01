@@ -10,13 +10,23 @@ def read_files():
     """
     initializes spark session using config.yaml and creds.json files.
     """
+<<<<<<< HEAD
     base = os.getcwd()
     print(base)
+=======
+>>>>>>> main
 
     # creds_path_container = os.path.join(base, "creds.json")
 
+<<<<<<< HEAD
     # creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(base, "creds.json")
+=======
+    base = os.getcwd()
+    # creds_dir = "/".join(base.split("/")[:-3])
+    creds_dir = os.path.join("/Users", "stevenhurwitt", "Documents", "reddit-streaming", "redditStreaming")
+    creds_path = os.path.join(creds_dir, "creds.json")
+>>>>>>> main
 
     try:
         with open(creds_path, "r") as f:
@@ -24,12 +34,26 @@ def read_files():
             print("read creds.json.")
             f.close()
 
+<<<<<<< HEAD
     except FileNotFoundError as e:
         # with open(creds_path_container, "r") as f:
         #     creds = json.load(f)
         #     print("file not found, read creds.json.")
         #     f.close()
         print(e)
+=======
+    except FileNotFoundError:
+        # print("couldn't find: {}.".format(creds_path))
+        try:
+            with open(creds_path_container, "r") as f:
+                creds = json.load(f)
+                f.close()
+
+        except FileNotFoundError:
+            with open("/home/pi/Documents/reddit-streaming/redditStreaming/creds.json", "r") as f:
+                creds = json.load(f)
+                f.close()
+>>>>>>> main
 
     except:
         print("failed to find creds.json.")
@@ -63,6 +87,7 @@ def init_spark(subreddit, index):
     try:
         spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
+<<<<<<< HEAD
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "2048m") \
@@ -74,6 +99,13 @@ def init_spark(subreddit, index):
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
                     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+=======
+                    .config("spark.executor.memory", "1536m") \
+                    .config("spark.eventLog.enabled", "true") \
+                    .config("spark.eventLog.dir", "file:///opt/workspace/events") \
+                    .config("spark.sql.debug.maxToStringFields", 1000) \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+>>>>>>> main
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
