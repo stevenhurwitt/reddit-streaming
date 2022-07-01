@@ -12,6 +12,8 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 from delta import *
+# from delta.tables import *
+import pprint
 import boto3
 import json
 import time
