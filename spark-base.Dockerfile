@@ -1,4 +1,4 @@
-FROM stevenhurwitt/cluster-base
+FROM cluster-base
 
 # -- Layer: Apache Spark
 

@@ -1,4 +1,4 @@
-FROM stevenhurwitt/spark-base
+FROM spark-base
 
 # -- Runtime
 
