@@ -37,6 +37,7 @@ terraform/.terraform*
 redditStreaming/src/test/python/creds.json
 redditStreaming/src/main/python/s3/creds.json
 redditStreaming/src/main/python/glue/env/glue
+redditStreaming/src/main/python/glue/__pycache__
 redditStreaming/src/main/python/secrets/__pycache__
 redditStreaming/src/main/python/scripts/__pycache__
 redditStreaming/target/*.jar
