@@ -1,0 +1,37 @@
+.nh
+.TH "GH-CONFIG-SET" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-config-set - Update configuration with a value for the given key
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh config set <key> <value> [flags]\fR
+
+
+.SH OPTIONS
+.TP
+\fB\fC-h\fR, \fB\fC--host\fR \fB\fC<string>\fR
+Set per-host setting
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+$ gh config set editor vim
+$ gh config set editor "code --wait"
+$ gh config set git_protocol ssh --host github.com
+$ gh config set prompt disabled
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-config(1)\fR

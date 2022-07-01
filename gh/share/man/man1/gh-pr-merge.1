@@ -1,0 +1,83 @@
+.nh
+.TH "GH-PR-MERGE" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-pr-merge - Merge a pull request
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh pr merge [<number> | <url> | <branch>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Merge a pull request on GitHub.
+
+.PP
+Without an argument, the pull request that belongs to the current branch
+is selected.
+
+.PP
+When targeting a branch that requires a merge queue, no merge strategy is required.
+If required checks have not yet passed, AutoMerge will be enabled.
+If required checks have passed, the pull request will be added to the merge queue.
+To bypass a merge queue and merge directly, pass the '--admin' flag.
+
+
+.SH OPTIONS
+.TP
+\fB\fC--admin\fR
+Use administrator privileges to merge a pull request that does not meet requirements
+
+.TP
+\fB\fC--auto\fR
+Automatically merge only after necessary requirements are met
+
+.TP
+\fB\fC-b\fR, \fB\fC--body\fR \fB\fC<text>\fR
+Body text for the merge commit
+
+.TP
+\fB\fC-F\fR, \fB\fC--body-file\fR \fB\fC<file>\fR
+Read body text from file (use "-" to read from standard input)
+
+.TP
+\fB\fC-d\fR, \fB\fC--delete-branch\fR
+Delete the local and remote branch after merge
+
+.TP
+\fB\fC--disable-auto\fR
+Disable auto-merge for this pull request
+
+.TP
+\fB\fC--match-head-commit\fR \fB\fC<SHA>\fR
+Commit SHA that the pull request head must match to allow merge
+
+.TP
+\fB\fC-m\fR, \fB\fC--merge\fR
+Merge the commits with the base branch
+
+.TP
+\fB\fC-r\fR, \fB\fC--rebase\fR
+Rebase the commits onto the base branch
+
+.TP
+\fB\fC-s\fR, \fB\fC--squash\fR
+Squash the commits into one commit and merge it into the base branch
+
+.TP
+\fB\fC-t\fR, \fB\fC--subject\fR \fB\fC<text>\fR
+Subject text for the merge commit
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-pr(1)\fR

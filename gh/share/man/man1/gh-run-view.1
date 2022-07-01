@@ -1,0 +1,85 @@
+.nh
+.TH "GH-RUN-VIEW" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-run-view - View a summary of a workflow run
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh run view [<run-id>] [flags]\fR
+
+
+.SH OPTIONS
+.TP
+\fB\fC--exit-status\fR
+Exit with non-zero status if run failed
+
+.TP
+\fB\fC-j\fR, \fB\fC--job\fR \fB\fC<string>\fR
+View a specific job ID from a run
+
+.TP
+\fB\fC-q\fR, \fB\fC--jq\fR \fB\fC<expression>\fR
+Filter JSON output using a jq expression
+
+.TP
+\fB\fC--json\fR \fB\fC<fields>\fR
+Output JSON with the specified fields
+
+.TP
+\fB\fC--log\fR
+View full log for either a run or specific job
+
+.TP
+\fB\fC--log-failed\fR
+View the log for any failed steps in a run or specific job
+
+.TP
+\fB\fC-t\fR, \fB\fC--template\fR \fB\fC<string>\fR
+Format JSON output using a Go template
+
+.TP
+\fB\fC-v\fR, \fB\fC--verbose\fR
+Show job steps
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open run in the browser
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# Interactively select a run to view, optionally selecting a single job
+$ gh run view
+
+# View a specific run
+$ gh run view 12345
+
+# View a specific job within a run
+$ gh run view --job 456789
+
+# View the full log for a specific job
+$ gh run view --log --job 456789
+
+# Exit non-zero if a run failed
+$ gh run view 0451 --exit-status && echo "run pending or passed"
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-run(1)\fR

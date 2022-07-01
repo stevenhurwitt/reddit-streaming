@@ -2,7 +2,9 @@ from kafka import KafkaProducer
 import datetime as dt
 import requests
 import kafka
+import reddit
 import pprint
+import boto3
 import yaml
 import time
 import json
@@ -10,6 +12,12 @@ import sys
 import os
 
 pp = pprint.PrettyPrinter(indent = 1)
+
+def aws():
+    s3_client = boto3.client("s3")
+    athena_client = boto3.client("athena")
+    secret_client = boto3.client("secrets")
+    return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """
@@ -150,6 +158,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
+
     token_list = []
 
     for i, s in enumerate(subreddit):
@@ -160,14 +169,17 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         #     json.dump(my_data, f, indent = 1)
 
         if after_token is not None:
-            producer.send(params["topic"][i], my_data)
+            producer.send(params["topic"][i], my_data)                          
 
             if debug:
-                print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
-    # print("------------------------------------------------------------------------------")
-    time.sleep(60)
+    if None in token_list:
+        time.sleep(5)
+
+    else:
+        time.sleep(30)
 
     while True:
         token_list = []
@@ -176,7 +188,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             try:
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
@@ -184,9 +195,11 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-                    
-                time.sleep(1)
+                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                
+                token_list.append(after_token) 
+                
+                time.sleep(5)
 
             except json.decoder.JSONDecodeError:
                 # when the bearer token expires (after 24 hrs), we do not receive a response
@@ -196,7 +209,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 if after_token is not None:
                     producer.send(params["topic"][i], my_data)
@@ -204,7 +216,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
-                time.sleep(1)
+                token_list.append(after_token)
+                time.sleep(5)
                 pass
 
             except IndexError:
@@ -212,6 +225,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 # time.sleep(120)
                 # print("no more data for subreddit: {}.".format(s))
                 token_list.append(params["token"][i])
+                time.sleep(3)
                 pass
 
             except Exception as e:
@@ -220,10 +234,17 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 token_list.append(params["token"][i])
                 # pass
                 time.sleep(60)
+<<<<<<< HEAD
+=======
+                pass
+>>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
 
         params["token"] = token_list
-        # print("------------------------------------------------------------------------------")
-        time.sleep(120)
+        if None in token_list:
+            time.sleep(5)
+
+        else:
+            time.sleep(110)
     
 
 def main():
@@ -246,7 +267,14 @@ def main():
         print("failed to find config.yaml")
         sys.exit()
 
+    s3, athena, secrets = aws()
+
+    print("s3: {}".format(s3))
+    print("athena: {}".format(athena))
+    print("secrets: {}".format(secrets))
+
     my_header = get_bearer()
+    print("authenticated w/ bearer token good for 24 hrs.")
     poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
 
 if __name__ == "__main__":
