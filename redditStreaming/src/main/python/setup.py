@@ -1,12 +1,12 @@
 import setuptools
  
 setuptools.setup(
-    name="glue",
-    version="1.0.0",
-    author="steven hurwitt",
+    name="reddit",
+    version="0.1.0",
+    author="Steven Hurwitt",
     author_email="stevenhurwitt@gmail.com",
-    description="Glue Jobs",
-    long_description="glue job",
+    description="Reddit API Kafka & Spark",
+    long_description="kafka producer and spark streaming application for multiple subreddits",
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     classifiers=[
@@ -14,5 +14,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.7',
 )
