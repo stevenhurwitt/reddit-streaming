@@ -1,0 +1,106 @@
+.nh
+.TH "GH-REPO-EDIT" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-repo-edit - Edit repository settings
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh repo edit [<repository>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Edit repository settings.
+
+.PP
+To toggle a setting off, use the \fB\fC--flag=false\fR syntax.
+
+
+.SH OPTIONS
+.TP
+\fB\fC--add-topic\fR \fB\fC<strings>\fR
+Add repository topic
+
+.TP
+\fB\fC--allow-forking\fR
+Allow forking of an organization repository
+
+.TP
+\fB\fC--default-branch\fR \fB\fC<name>\fR
+Set the default branch name for the repository
+
+.TP
+\fB\fC--delete-branch-on-merge\fR
+Delete head branch when pull requests are merged
+
+.TP
+\fB\fC-d\fR, \fB\fC--description\fR \fB\fC<string>\fR
+Description of the repository
+
+.TP
+\fB\fC--enable-auto-merge\fR
+Enable auto-merge functionality
+
+.TP
+\fB\fC--enable-issues\fR
+Enable issues in the repository
+
+.TP
+\fB\fC--enable-merge-commit\fR
+Enable merging pull requests via merge commit
+
+.TP
+\fB\fC--enable-projects\fR
+Enable projects in the repository
+
+.TP
+\fB\fC--enable-rebase-merge\fR
+Enable merging pull requests via rebase
+
+.TP
+\fB\fC--enable-squash-merge\fR
+Enable merging pull requests via squashed commit
+
+.TP
+\fB\fC--enable-wiki\fR
+Enable wiki in the repository
+
+.TP
+\fB\fC-h\fR, \fB\fC--homepage\fR \fB\fC<URL>\fR
+Repository home page URL
+
+.TP
+\fB\fC--remove-topic\fR \fB\fC<strings>\fR
+Remove repository topic
+
+.TP
+\fB\fC--template\fR
+Make the repository available as a template repository
+
+.TP
+\fB\fC--visibility\fR \fB\fC<string>\fR
+Change the visibility of the repository to {public,private,internal}
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# enable issues and wiki
+gh repo edit --enable-issues --enable-wiki
+
+# disable projects
+gh repo edit --enable-projects=false
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-repo(1)\fR

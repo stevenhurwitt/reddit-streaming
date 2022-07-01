@@ -1,0 +1,49 @@
+.nh
+.TH "GH-RELEASE-VIEW" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-release-view - View information about a release
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh release view [<tag>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+View information about a GitHub Release.
+
+.PP
+Without an explicit tag name argument, the latest release in the project
+is shown.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-q\fR, \fB\fC--jq\fR \fB\fC<expression>\fR
+Filter JSON output using a jq expression
+
+.TP
+\fB\fC--json\fR \fB\fC<fields>\fR
+Output JSON with the specified fields
+
+.TP
+\fB\fC-t\fR, \fB\fC--template\fR \fB\fC<string>\fR
+Format JSON output using a Go template
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open the release in the browser
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-release(1)\fR

@@ -1,0 +1,52 @@
+.nh
+.TH "GH-WORKFLOW-VIEW" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-workflow-view - View the summary of a workflow
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh workflow view [<workflow-id> | <workflow-name> | <filename>] [flags]\fR
+
+
+.SH OPTIONS
+.TP
+\fB\fC-r\fR, \fB\fC--ref\fR \fB\fC<string>\fR
+The branch or tag name which contains the version of the workflow file you'd like to view
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open workflow in the browser
+
+.TP
+\fB\fC-y\fR, \fB\fC--yaml\fR
+View the workflow yaml file
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# Interactively select a workflow to view
+$ gh workflow view
+
+# View a specific workflow
+$ gh workflow view 0451
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-workflow(1)\fR

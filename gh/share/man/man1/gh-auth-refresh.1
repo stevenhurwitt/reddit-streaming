@@ -1,0 +1,51 @@
+.nh
+.TH "GH-AUTH-REFRESH" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-auth-refresh - Refresh stored authentication credentials
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh auth refresh [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Expand or fix the permission scopes for stored credentials.
+
+.PP
+The --scopes flag accepts a comma separated list of scopes you want your gh credentials to have. If
+absent, this command ensures that gh has access to a minimum set of scopes.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-h\fR, \fB\fC--hostname\fR \fB\fC<string>\fR
+The GitHub host to use for authentication
+
+.TP
+\fB\fC-s\fR, \fB\fC--scopes\fR \fB\fC<strings>\fR
+Additional authentication scopes for gh to have
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+$ gh auth refresh --scopes write:org,read:public_key
+# => open a browser to add write:org and read:public_key scopes for use with gh api
+
+$ gh auth refresh
+# => open a browser to ensure your authentication credentials have the correct minimum scopes
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-auth(1)\fR

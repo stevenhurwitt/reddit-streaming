@@ -1,0 +1,78 @@
+.nh
+.TH "GH-AUTH-LOGIN" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-auth-login - Authenticate with a GitHub host
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh auth login [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Authenticate with a GitHub host.
+
+.PP
+The default authentication mode is a web-based browser flow. After completion, an
+authentication token will be stored internally.
+
+.PP
+Alternatively, use \fB\fC--with-token\fR to pass in a token on standard input.
+The minimum required scopes for the token are: "repo", "read:org".
+
+.PP
+Alternatively, gh will use the authentication token found in environment variables.
+This method is most suitable for "headless" use of gh such as in automation. See
+\fB\fCgh help environment\fR for more info.
+
+.PP
+To use gh in GitHub Actions, add \fB\fCGH_TOKEN: ${{secrets.GITHUB_TOKEN}}\fR to "env".
+
+
+.SH OPTIONS
+.TP
+\fB\fC-p\fR, \fB\fC--git-protocol\fR \fB\fC<string>\fR
+The protocol to use for git operations: {ssh|https}
+
+.TP
+\fB\fC-h\fR, \fB\fC--hostname\fR \fB\fC<string>\fR
+The hostname of the GitHub instance to authenticate with
+
+.TP
+\fB\fC-s\fR, \fB\fC--scopes\fR \fB\fC<strings>\fR
+Additional authentication scopes to request
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open a browser to authenticate
+
+.TP
+\fB\fC--with-token\fR
+Read token from standard input
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# start interactive setup
+$ gh auth login
+
+# authenticate against github.com by reading the token from a file
+$ gh auth login --with-token < mytoken.txt
+
+# authenticate with a specific GitHub instance
+$ gh auth login --hostname enterprise.internal
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-auth(1)\fR

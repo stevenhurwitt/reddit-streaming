@@ -1,0 +1,61 @@
+.nh
+.TH "GH-LABEL-CREATE" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-label-create - Create a new label
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh label create <name> [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Create a new label on GitHub, or updates an existing one with --force.
+
+.PP
+Must specify name for the label. The description and color are optional.
+If a color isn't provided, a random one will be chosen.
+
+.PP
+The label color needs to be 6 character hex value.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-c\fR, \fB\fC--color\fR \fB\fC<string>\fR
+Color of the label
+
+.TP
+\fB\fC-d\fR, \fB\fC--description\fR \fB\fC<string>\fR
+Description of the label
+
+.TP
+\fB\fC-f\fR, \fB\fC--force\fR
+Update the label color and description if label already exists
+
+
+.SH OPTIONS INHERITED FROM PARENT COMMANDS
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# create new bug label
+$ gh label create bug --description "Something isn't working" --color E99695
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-label(1)\fR
