@@ -17,7 +17,7 @@ glueContext = GlueContext(sc)
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
-subreddit = "technology"
+subreddit = os.environ["subreddit"]
 
 builder = SparkSession \
   .builder \
