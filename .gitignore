@@ -11,7 +11,6 @@ redditStreaming/.DS_Store
 redditStreaming/reddit
 redditStreaming/src/main/python/reddit/creds.json
 cluster_config
-<<<<<<< HEAD
 dags
 logs
 plugins
@@ -33,8 +32,6 @@ redditStreaming/src/main/python/reddit/build
 redditStreaming/src/main/python/reddit/reddit.egg-info
 redditStreaming/src/main/python/reddit/__init__.py
 redditStreaming/src/main/python/glue/creds.json
-=======
-.env
-logs/
-redditStreaming/reddit/
->>>>>>> main
+terraform/.terraform
+terraform/*.tfstate
+gh/share
