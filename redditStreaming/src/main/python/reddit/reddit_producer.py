@@ -155,27 +155,13 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     # api_version = (0, 10, 2)
                 )
     
-<<<<<<< HEAD
     except kafka.errors.NoBrokersAvailable:
-=======
-    except NoBrokersAvailable:
->>>>>>> main
         print("no kafka broker available.")
         sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
 
-<<<<<<< HEAD
-=======
-    if after_token is not None:
-        try:
-            producer.send(topic, my_data)
-
-        except KafkaTimeoutError:
-            print("kafka timed out sending first message, exiting now.")
-            sys.exit()
->>>>>>> main
 
     token_list = []
 
@@ -252,10 +238,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 token_list.append(params["token"][i])
                 # pass
                 time.sleep(60)
-<<<<<<< HEAD
-=======
-                pass
->>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
 
         params["token"] = token_list
         if None in token_list:
