@@ -1,6 +1,5 @@
 # from awsglue.transforms import *
 # from awsglue.utils import getResolvedOptions
-<<<<<<< HEAD
 # from awsglue.context import GlueContext
 # from awsglue.job import Job
 from pyspark.sql.session import SparkSession
@@ -12,23 +11,12 @@ from delta import *
 import datetime as dt
 import pandas as pd
 import numpy as np
-=======
-from pyspark.context import SparkContext
-# from awsglue.context import GlueContext
-# from awsglue.job import Job
-from pyspark.sql.session import SparkSession
-from pyspark.sql.functions import *
-from delta import *
-# from delta.tables import *
-import pprint
->>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
 import boto3
 import json
 import time
 import sys
 import os
 
-<<<<<<< HEAD
 start_time = time.time()
 args = sys.argv
 subreddit = os.environ["subreddit"]
@@ -71,23 +59,6 @@ sc.setLogLevel("WARN")
 # aws_key = ""
 # aws_secret = ""
 # spark = configure_spark_with_delta_pip(builder).getOrCreate()
-=======
-args = sys.argv
-print("args: {}".format(args))
-start_time = time.time()
-
-subreddit = os.environ["subreddit"]
-
-spark = builder = SparkSession \
-  .builder \
-  .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-  .getOrCreate()
-  
-# spark = configure_spark_with_delta_pip(builder).getOrCreate()
-# .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-# .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-# .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
->>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
 
 df = spark.read.format("delta").option("header", True).load("s3a://reddit-stevenhurwitt/" + subreddit)
 
@@ -95,7 +66,6 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
                 .withColumn("created_utc", col("created_utc").cast("timestamp")) \
                 .withColumn("created", col("created").cast("timestamp")) \
-<<<<<<< HEAD
                 .withColumn("year", year(col("date"))) \
                 .withColumn("month", month(col("date"))) \
                 .withColumn("day", dayofmonth(col("date"))) \
@@ -114,20 +84,6 @@ df.write.format("delta") \
 # deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
 # deltaTable.vacuum(168)
 # deltaTable.generate("symlink_format_manifest")
-=======
-                .withColumn("date", to_date(col("created_utc"), "MM-dd-yyyy")) \
-                .withColumn("year", year(col("date"))) \
-                .withColumn("month", month(col("date"))) \
-                .withColumn("day", dayofmonth(col("date"))) \
-                .dropDuplicates(subset = ["title"])
-                
-filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_clean/"
-df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("mergeSchema", "true").option("overwriteSchema", "true").option("header", True).save(filepath)
-        
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-stevenhurwitt/{}_clean".format(subreddit))
-deltaTable.vacuum(168)
-deltaTable.generate("symlink_format_manifest")
->>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
 
 athena = boto3.client('athena')
 athena.start_query_execution(
@@ -136,8 +92,4 @@ athena.start_query_execution(
              'OutputLocation': "s3://reddit-stevenhurwitt/_athena_results"
          })
 
-<<<<<<< HEAD
 # job.commit()
-=======
-job.commit()
->>>>>>> 6b5bef152908145a6445e177678cabdd74c2caf8
