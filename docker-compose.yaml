@@ -197,6 +197,17 @@ services:
   #       retries: 50
   #     restart: always
 
+   mssql:
+      image:
+      expose:
+         - 5432
+      healthcheck:
+      test: ["CMD", "mssql", "ping"]
+      interval: 10s
+      timeout: 60s
+      retries: 1
+   restart: always
+
   # airflow-webserver:
   #   <<: *airflow-common
   #   command: webserver
