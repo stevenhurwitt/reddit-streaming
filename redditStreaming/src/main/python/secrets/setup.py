@@ -1,11 +1,11 @@
 import setuptools
  
 setuptools.setup(
-    name="glue",
+    name="secrets",
     version="1.0.0",
-    author="Steven Hurwitt",
+    author="steven hurwitt",
     author_email="stevenhurwitt@gmail.com",
-    description="Glue Job Spark Serverless",
+    description="glue job spark serverless",
     long_description="glue job spark serverless",
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
