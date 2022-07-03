@@ -3,7 +3,6 @@
 .bloop
 .ipynb_checkpoints
 redditStreaming/creds.json
-target/
 redditStreaming/src/main/python/reddit/__pycache__
 local
 .DS_Store
