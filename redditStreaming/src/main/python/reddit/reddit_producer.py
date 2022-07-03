@@ -1,4 +1,5 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import kafka
@@ -141,6 +142,8 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         subreddit (str) - name of subreddit
         post_type (str) - type of posts (new, hot, controversial, etc)
         header (dict) - request header w/ bearer token
+        host (str) - kafka host name
+        port (int) - kafka port num
         debug (bool) - debug mode (True/False)
 
     """
@@ -149,6 +152,7 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
                 )
     
     except kafka.errors.NoBrokersAvailable:
@@ -234,7 +238,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                 token_list.append(params["token"][i])
                 # pass
                 time.sleep(60)
-                pass
 
         params["token"] = token_list
         if None in token_list:
