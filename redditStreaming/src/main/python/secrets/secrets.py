@@ -1,4 +1,4 @@
-from botocore.exceptions import ClientError
+# from botocore.exceptions import ClientError
 import datetime as dt
 import pprint
 import base64
@@ -45,7 +45,7 @@ try:
     get_secret_value_response = client.get_secret_value(
         SecretId=secret_name
     )
-except ClientError as e:
+except Exception as e:
     if e.response['Error']['Code'] == 'DecryptionFailureException':
         # Secrets Manager can't decrypt the protected secret text using the provided KMS key.
         # Deal with the exception here, and/or rethrow at your discretion.
@@ -78,7 +78,7 @@ else:
         
 # Your code goes here.
 def main():
-    
+
     print("starting glue.")
     print("s3: {}".format(s3))
     print("athena: {}".format(athena))
