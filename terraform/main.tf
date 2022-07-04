@@ -11,13 +11,15 @@ terraform {
 
 provider "aws" {
   region  = "us-east-2"
+  access_key = "AKIA6BTEPFALMKQYDKMN"
+  secret_key = ""
 }
 
-resource "aws_instance" "app_server" {
-  ami           = "ami-070650c005cce4203"
-  instance_type = "t4g.xlarge"
+# resource "aws_instance" "reddit_server" {
+#   ami           = "ami-070650c005cce4203"
+#   instance_type = "t4g.xlarge"
 
-  tags = {
-    Name = "twitter"
-  }
-}
+#   tags = {
+#     Name = "reddit"
+#   }
+# }
