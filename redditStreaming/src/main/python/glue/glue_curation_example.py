@@ -6,12 +6,12 @@
 from pyspark.context import SparkContext
 from pyspark.sql.session import SparkSession
 from pyspark.sql.functions import *
-from delta import *
 from glue_secrets import glue_secrets
 from glue_curation_example import glue_curation
 import datetime as dt
 import pandas as pd
 import numpy as np
+from delta import *
 import boto3
 import json
 import time
@@ -21,10 +21,17 @@ print("imported modules.")
 
 def glue_curation(event, context):
 
+      # check context
       if context is not None:
             print(context)
 
+      # read secrets
       creds = glue_secrets()
+      # {
+      #    "AWS_ACCESS_KEY_ID": "...",
+      #    "AWS_SECRET_ACCESS_KEY": "...",
+      #    "subreddit": "..."
+      # }
 
       # try to set initial variables
       try:
