@@ -11,13 +11,26 @@ terraform {
 
 provider "aws" {
   region  = "us-east-2"
+  access_key = "AKIA6BTEPFALMKQYDKMN"
+  secret_key = "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"
 }
 
-resource "aws_instance" "app_server" {
-  ami           = "ami-070650c005cce4203"
-  instance_type = "t4g.xlarge"
+# resource "aws_instance" "reddit_server" {
+#   ami           = "ami-070650c005cce4203"
+#   instance_type = "t4g.xlarge"
 
-  tags = {
-    Name = "twitter"
-  }
+#   tags = {
+#     Name = "reddit"
+#   }
+# }
+
+resource "aws_s3_bucket_object" "subreddit" {
+  bucket = "reddit-stevenhurwitt"
+  key = "AsiansGoneWild/"
+}
+
+resource "aws_s3_bucket_object" "subreddit_clean" {
+    bucket  = "reddit-stevenhurwitt"
+    key     =  "AsiansGoneWild_clean/"
+    content_type = "application/x-directory"
 }

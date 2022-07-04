@@ -28,3 +28,6 @@ redditStreaming/src/main/scala/com/steven/redditStreaming/adls.json
 redditStreaming/pat.json
 redditStreaming/src/main/python/glue/creds.json
 redditStreaming/src/main/python/reddit/reddit.egg-info
+terraform/.terraform
+terraform/.terraform.lock.hcl
+terraform/main.tf
