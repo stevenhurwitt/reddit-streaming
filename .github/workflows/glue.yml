@@ -1,7 +1,7 @@
 name: glue
-on: [push, pull_request]
+on: [push]
 jobs:
-  glue:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -13,11 +13,11 @@ jobs:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
           dir: 'redditStreaming/'
-      - name: change directory
-        run: cd redditStreaming/src/main/python/glue
+      - name: build dockerfiles
+        run: ./build.sh
       - name: build glue
-        run: python3 setup.py bdist_wheel
+        run: python3 -m redditStreaming/src/main/python/glue/setup.py bdist_wheel
       - name: install glue
-        run: ls dist/glue-1.0.0-py3-none-any.whl && pip3 install dist/glue-1.0.0-py3-none-any.whl --force-reinstall
-      - name: run glue script
-        run: ls redditStreaming/src/main/python/glue/glue && python3 -m redditStreaming/src/main/python/glue/glue
+        run: python3 -m pip install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
+      # - name: run glue script
+        # run: python3 -m redditStreaming/src/main/python/glue/glue
