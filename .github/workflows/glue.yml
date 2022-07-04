@@ -18,6 +18,6 @@ jobs:
       - name: build glue
         run: python3 redditStreaming/src/main/python/glue/setup.py bdist_wheel
       - name: install glue
-        run: python3 -m pip install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
+        run: pip3 install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
       # - name: run glue script
         # run: python3 -m redditStreaming/src/main/python/glue/glue
