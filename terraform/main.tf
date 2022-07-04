@@ -11,9 +11,8 @@ terraform {
 
 provider "aws" {
   region  = "us-east-2"
-  access_key = "AKIA6BTEPFALMKQYDKMN"
+  access_key = ""
   secret_key = ""
-  # secret_key = alphabet "q1s8hXL2MJPicEKBKDZEIhTZs+53krSxAK2PY9" double u
 }
 
 # resource "aws_instance" "reddit_server" {
