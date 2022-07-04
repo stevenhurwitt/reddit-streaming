@@ -6,7 +6,7 @@ import kafka
 import reddit
 import pprint
 import boto3
-# import yaml
+import yaml
 import time
 import json
 import sys
