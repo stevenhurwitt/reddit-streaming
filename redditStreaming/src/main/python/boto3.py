@@ -2,7 +2,7 @@ import boto3
 import json
 import os
 
-if __name__ == "__main__""
+if __name__ == "__main__":
     s3 = boto3.client("s3")
     athena = boto3.client("athena")
     glue = boto3.client("glue")
