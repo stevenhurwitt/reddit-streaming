@@ -31,7 +31,7 @@ jobs:
       - uses: olafurpg/setup-scala@v11
         # with:
         #   scala-version: '2.12'
-      - run: docker exec -it jupyterlab bash
+      - run: cd redditStreaming && mvn clean package
   pip-install:
     runs-on: ubuntu-latest
     steps:
@@ -39,4 +39,4 @@ jobs:
       - uses: actions/setup-python@v3
         with:
           python-version: '3.9'
-      - run: docker exec jupyterlab bash
+      - run: python3 -m pip install -r redditStreaming/src/main/python/requirements.txt
