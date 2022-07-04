@@ -32,7 +32,7 @@ target/maven-status
 */*/*.json
 */*/*/*.json
 redditStreaming/*.json
-terraform
+terraform/.terraform*
 redditStreaming/src/test/python/creds.json
 redditStreaming/src/main/python/s3/creds.json
 redditStreaming/src/main/python/glue/env/glue
