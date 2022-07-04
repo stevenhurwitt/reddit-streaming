@@ -1,7 +1,7 @@
 name: glue
 on: [push]
 jobs:
-  docker:
+  glue:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
