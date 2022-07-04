@@ -7,6 +7,8 @@ from pyspark.context import SparkContext
 from pyspark.sql.session import SparkSession
 from pyspark.sql.functions import *
 from delta import *
+from glue_secrets import glue_secrets
+from glue_curation_example import glue_curation
 import datetime as dt
 import pandas as pd
 import numpy as np
@@ -21,6 +23,8 @@ def glue_curation(event, context):
 
       if context is not None:
             print(context)
+
+      creds = glue_secrets()
 
       # try to set initial variables
       try:
