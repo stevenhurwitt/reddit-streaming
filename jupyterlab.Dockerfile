@@ -17,10 +17,11 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 RUN apt-get update -y && \
     apt-get install -y python3-pip && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} && \
-    python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
-    python3 -m pip install /opt/workspace/redditStreaming/src/main/python/glue/glue-1.0.0-py3-none-any.whl --force-reinstall && \
-    python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
+    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+
+RUN python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
+    # python3 -m pip install /opt/workspace/redditStreaming/src/main/python/glue/glue-1.0.0-py3-none-any.whl --force-reinstall && \
+    # python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
     rm -rf /var/lib/apt/lists/*
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
