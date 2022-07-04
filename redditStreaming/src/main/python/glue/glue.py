@@ -1,6 +1,8 @@
 import datetime as dt
 from pyspark.sql import SparkSession
 from glue_curation_example import glue_curation
+from glue_assets import glue_assets
+from glue_secrets import glue_secrets
 import boto3
 import json
 import time
@@ -22,6 +24,10 @@ def glue():
         print("glue_args: {}".format(glue_args))
         os.environ["subreddit"] = glue_args["subreddit"]
         g.close()
+
+    # dependency scripts
+    glue_assets()
+    glue_secrets()
 
     # basic environment variables
     base = os.getcwd()
