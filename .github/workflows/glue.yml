@@ -13,8 +13,6 @@ jobs:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
           dir: 'redditStreaming/'
-      # - name: build dockerfiles
-      #   run: ./build.sh
       - name: build glue
         run: python3 redditStreaming/src/main/python/glue/setup.py bdist_wheel
       - name: install glue
