@@ -15,6 +15,7 @@ dags
 logs
 plugins
 .env
+gh
 pat.json
 ./pat.json
 src/test/python/__pycache__
