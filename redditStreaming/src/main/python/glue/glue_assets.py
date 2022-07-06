@@ -19,6 +19,11 @@ def glue_assets(filepath, command):
     s3 = boto3.client("s3", region_name = "us-east-2")
     my_bucket = "aws-glue-assets-965504608278-us-east-2"
     my_folder = "scripts"
+    filepath = "scripts/technology-curation.py"
+    local_path = "/opt/workspace/redditStreaming/src/main/python/glue/scripts/technology-curation.py"
+    s3_url = "s3://{}/{}/{}".format(my_bucket, my_folder, filepath)
+    print("source: {}".format(local_path))
+    print("target: {}".format(s3_url))
 
     if command == "upload":
         # s3://aws-glue-assets-965504608278-us-east-2/scripts/technology-curation.py
@@ -34,5 +39,8 @@ def glue_assets(filepath, command):
 if __name__ == "__main__":
 
     filepath = os.environ["filepath"]
-    # "~/reddit-streaming/redditStreaming/src/main/python/glue/scripts/"
-    glue_assets(filepath, "upload")
+    command = "upload"
+    # command = "download"
+
+    glue_assets(filepath, command)
+    print("finished glue assets run.")

@@ -4,7 +4,16 @@
 .ipynb_checkpoints
 .env
 redditStreaming/creds.json
+redditStreaming/src/test/python/creds.json
+redditStreaming/src/main/python/s3/creds.json
+redditStreaming/src/test/python/__pycache__
+redditStreaming/src/test/*/*/__pycache__
+redditStreaming/src/main/python/*/__init__.py
 redditStreaming/src/main/python/reddit/__pycache__
+redditStreaming/src/main/python/s3/__init__.py
+redditStreaming/src/main/python/s3/__pycache__
+redditStreaming/src/main/python/reddit/reddit-env
+redditStreaming/src/main/python/glue/env/glue
 local
 .DS_Store
 redditStreaming/.DS_Store

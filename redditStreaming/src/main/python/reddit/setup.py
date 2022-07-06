@@ -3,9 +3,9 @@ import setuptools
 setuptools.setup(
     name="reddit",
     version="0.1.0",
-    author="Steven Hurwitt",
+    author="steven hurwitt",
     author_email="stevenhurwitt@gmail.com",
-    description="Reddit API Kafka & Spark",
+    description="reddit api kafka & pyspark",
     long_description="kafka producer and spark streaming application for multiple subreddits",
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
