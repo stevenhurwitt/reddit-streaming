@@ -1,0 +1,21 @@
+name: scala
+on: [push, pull_request]
+jobs:
+  scala:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: '/'
+      - name: build dockerfiles
+        run: ./build.sh
+      - name: versions
+        run: scala -version && mvn -version && java -version
+      - name: build uberjar
+        run: cd ./redditStreaming && mvn clean package
