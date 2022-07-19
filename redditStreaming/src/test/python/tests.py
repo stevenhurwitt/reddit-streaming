@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import datetime as dt
+import boto3
 import pytest
 import json
 import time
@@ -24,12 +25,16 @@ def test():
 
     print("imported modules.")
 
+    os.environ["subreddit"] = "technology"
     subreddit = os.environ["subreddit"]
+
+    secrets = boto3.client("secretmanager", region_name="us-east-2")
+    os.environ["AWS_ACCESS_KEY_ID"] = secrets.get_secret_value(SecretId = aws_client)
+    os.environ["AWS_SECRET_ACCESS_KEY"] = secrets.get_secret_value(SecretId = aws_secret)
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
     print("subreddit: {}".format(os.environ["subreddit"]))
-    print("aws_access_key: {}".format(os.environ["AWS_ACCESS_KEY_ID"]))
-    print("aws_secret_key: {}".format(os.environ["AWS_SECRET_ACCESS_KEY"]))
 
     with open("creds.json", "r") as f:
         creds = json.load(f)
