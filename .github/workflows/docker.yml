@@ -17,13 +17,13 @@ jobs:
           dir: 'redditStreaming/'
       - name: aws access key id
         run: |
-            echo $ACCESS_KEY >> /github/workspace/aws_access_key.txt
+            echo $ACCESS_KEY >> aws_access_key.txt
         shell: bash
         env:
           ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
       - name: aws secret key
         run: |
-            echo $SECRET_KEY >> /github/workspace/aws_secret.txt
+            echo $SECRET_KEY >> aws_secret.txt
         shell: bash
         env:
           SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
