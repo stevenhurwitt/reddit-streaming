@@ -1,7 +1,7 @@
 name: pytest
 on: [push, pull_request]
 jobs:
-  python:
+  pytest:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -23,8 +23,8 @@ jobs:
         uses: pavelzw/pytest-action@v1
         with:
           verbose: true
-          emoji: true
-          job_summary: true
+          emoji: false
+          job_summary: false
           custom_arguments: '-q'
       # - name: pytest
       #   run: pytest redditStreaming/src/test/python/tests.py -v

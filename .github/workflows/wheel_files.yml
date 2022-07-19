@@ -26,7 +26,7 @@ jobs:
       - name: install glue
         run: pip3 install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
       - name: run glue script
-        run: python3 -m reddit-streaming/redditStreaming/src/main/python/glue/glue
+        run: python3 -m redditStreaming/src/main/python/glue/glue
   s3_transfer:
     runs-on: ubuntu-latest
     steps:
