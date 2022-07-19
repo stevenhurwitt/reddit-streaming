@@ -1,5 +1,0 @@
-setup.py
-s3.egg-info/PKG-INFO
-s3.egg-info/SOURCES.txt
-s3.egg-info/dependency_links.txt
-s3.egg-info/top_level.txt
