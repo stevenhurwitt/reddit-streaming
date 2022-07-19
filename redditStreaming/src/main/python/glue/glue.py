@@ -43,8 +43,6 @@ def glue():
     secrets = boto3.client("secretmanager", region_name="us-east-2")
     client_id = secrets.get_secret_value(SecretId = aws_client)
     client_secret = secrets.get_secret_value(SecretId = aws_secret)
-    print(client_id)
-    print(client_secret)
 
     # creds file
     with open("creds.json", "r") as f:
