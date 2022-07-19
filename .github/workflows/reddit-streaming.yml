@@ -31,7 +31,7 @@ jobs:
       - uses: olafurpg/setup-scala@v11
         # with:
         #   scala-version: '2.12'
-      - run: cd redditStreaming && mvn clean package
+      - run: cd reddit-streaming/redditStreaming && mvn clean package
   pip-install:
     runs-on: ubuntu-latest
     steps:
