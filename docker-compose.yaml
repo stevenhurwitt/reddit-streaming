@@ -1,4 +1,9 @@
 version: "3"
+secrets:
+  aws_access_key_id: 
+    file: ./aws_access_key.txt
+  aws_secret_access_key: 
+    file: ./aws_secret.txt
 volumes:
   shared-workspace:
     # name: "hadoop-distributed-file-system"
@@ -8,8 +13,13 @@ services:
   jupyterlab:
     image: stevenhurwitt/jupyterlab
     container_name: jupyterlab
+    secrets:
+      - aws_access_key_id
+      - aws_secret_access_key
     environment:
       - JUPYTER_TOKEN=easy
+      - AWS_ACCESS_KEY_ID=/run/secrets/aws_access_key_id
+      - AWS_SECRET_ACCESS_KEY=/run/secrets/aws_secret_access_key
     ports:
       - 8899:8888
     volumes:
