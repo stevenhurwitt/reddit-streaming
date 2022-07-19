@@ -18,4 +18,4 @@ jobs:
       - name: versions
         run: scala -version && mvn -version && java -version
       - name: build uberjar
-        run: cd ./reddit-streaming/redditStreaming && mvn clean package
+        run: cd ./redditStreaming && mvn clean package
