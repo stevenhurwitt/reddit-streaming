@@ -18,4 +18,4 @@ jobs:
       - name: python dependencies
         run: apt-get install python3-pip python3-virtualenv python3-pytest
       - name: pytest
-        run: pytest 
+        run: pytest redditStreaming/src/test/python/tests.py -v

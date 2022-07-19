@@ -13,13 +13,13 @@ jobs:
       #     name: "creds.json"
       #     json: ${{ secrets.CREDS }}
       #     dir: 'reddit-streaming/redditStreaming/'
-      - name: change directory
-        run: cd redditStreaming/src/main/python/glue
-      - name: list directory
-        run: ls
+      # - name: change directory
+      #   run: cd redditStreaming/src/main/python/glue
+      # - name: list directory
+      #   run: ls
       - name: build glue
-        run: python3 setup.py bdist_wheel
+        run: python3 redditStreaming/src/main/python/glue/setup.py bdist_wheel
       - name: install glue
-        run: ls dist/glue-1.0.0-py3-none-any.whl && pip3 install dist/glue-1.0.0-py3-none-any.whl --force-reinstall
+        run: ls redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl && pip3 install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
       - name: run glue script
-        run: ls redditStreaming/src/main/python/glue/glue && python3 -m reddit-streaming/redditStreaming/src/main/python/glue/glue
+        run: python3 -m reddit-streaming/redditStreaming/src/main/python/glue/glue
