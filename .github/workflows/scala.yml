@@ -13,8 +13,8 @@ jobs:
       #     name: "creds.json"
       #     json: ${{ secrets.CREDS }}
       #     dir: '/'
-      - name: build dockerfiles
-        run: ./build.sh
+      # - name: build dockerfiles
+      #   run: ./build.sh
       - name: versions
         run: scala -version && mvn -version && java -version
       - name: build uberjar
