@@ -12,7 +12,7 @@ jobs:
         with:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
-          dir: 'redditStreaming/'
+          dir: 'reddit-streaming/redditStreaming/'
       - name: build dockerfiles
         run: ./build.sh
       - name: run docker-compose

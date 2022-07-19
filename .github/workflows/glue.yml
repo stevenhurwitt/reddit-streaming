@@ -6,13 +6,13 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      - name: create-json
-        id: create-json
-        uses: jsdaniell/create-json@1.1.2
-        with:
-          name: "creds.json"
-          json: ${{ secrets.CREDS }}
-          dir: 'redditStreaming/'
+      # - name: create-json
+      #   id: create-json
+      #   uses: jsdaniell/create-json@1.1.2
+      #   with:
+      #     name: "creds.json"
+      #     json: ${{ secrets.CREDS }}
+      #     dir: 'reddit-streaming/redditStreaming/'
       - name: change directory
         run: cd redditStreaming/src/main/python/glue
       - name: build glue
