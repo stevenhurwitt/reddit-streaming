@@ -23,9 +23,9 @@ RUN apt-get update -y && \
     # python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
     # python3 -m pip install -r /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall && \
 
-# RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
-#     rm -rf /var/lib/apt/lists/*
-    # ln -s /usr/local/bin/python3 /usr/bin/python
+RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
 # RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \

@@ -1,0 +1,76 @@
+.nh
+.TH "GH-BROWSE" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-browse - Open the repository in the browser
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh browse [<number> | <path>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Open the GitHub repository in the web browser.
+
+
+.SH OPTIONS
+.TP
+\fB\fC-b\fR, \fB\fC--branch\fR \fB\fC<string>\fR
+Select another branch by passing in the branch name
+
+.TP
+\fB\fC-c\fR, \fB\fC--commit\fR
+Open the last commit
+
+.TP
+\fB\fC-n\fR, \fB\fC--no-browser\fR
+Print destination URL instead of opening the browser
+
+.TP
+\fB\fC-p\fR, \fB\fC--projects\fR
+Open repository projects
+
+.TP
+\fB\fC-R\fR, \fB\fC--repo\fR \fB\fC<[HOST/]OWNER/REPO>\fR
+Select another repository using the [HOST/]OWNER/REPO format
+
+.TP
+\fB\fC-s\fR, \fB\fC--settings\fR
+Open repository settings
+
+.TP
+\fB\fC-w\fR, \fB\fC--wiki\fR
+Open repository wiki
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+$ gh browse
+#=> Open the home page of the current repository
+
+$ gh browse 217
+#=> Open issue or pull request 217
+
+$ gh browse --settings
+#=> Open repository settings
+
+$ gh browse main.go:312
+#=> Open main.go at line 312
+
+$ gh browse main.go --branch main
+#=> Open main.go in the main branch
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh(1)\fR

@@ -134,7 +134,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, host, debug):
+def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -163,6 +163,14 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
+    topic = params["topic"][index]
+
+    if after_token is not None:
+        try:
+            producer.send(topic, my_data)
+        
+        except Exception as e:
+            print(e)
 
     if after_token is not None:
         try:
