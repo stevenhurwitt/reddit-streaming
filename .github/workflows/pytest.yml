@@ -1,4 +1,4 @@
-name: python
+name: pytest
 on: [push, pull_request]
 jobs:
   python:
@@ -13,9 +13,9 @@ jobs:
       #     name: "creds.json"
       #     json: ${{ secrets.CREDS }}
       #     dir: '/'
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip python3-virtualenv python3-pytest
       - name: versions
         run: python --version && pip --version
-      - name: python dependencies
-        run: apt-get install python3-pip python3-virtualenv python3-pytest
       - name: pytest
         run: pytest redditStreaming/src/test/python/tests.py -v
