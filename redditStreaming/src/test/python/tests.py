@@ -29,8 +29,8 @@ def test():
     subreddit = os.environ["subreddit"]
 
     secrets = boto3.client("secretsmanager", region_name="us-east-2")
-    os.environ["AWS_ACCESS_KEY_ID"] = secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")
-    os.environ["AWS_SECRET_ACCESS_KEY"] = secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")
+    os.environ["AWS_ACCESS_KEY_ID"] = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    os.environ["AWS_SECRET_ACCESS_KEY"] = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
 
