@@ -29,8 +29,8 @@ def test():
     subreddit = os.environ["subreddit"]
 
     secrets = boto3.client("secretsmanager", region_name="us-east-2")
-    os.environ["AWS_ACCESS_KEY_ID"] = secrets.get_secret_value(SecretId = aws_client)
-    os.environ["AWS_SECRET_ACCESS_KEY"] = secrets.get_secret_value(SecretId = aws_secret)
+    os.environ["AWS_ACCESS_KEY_ID"] = secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")
+    os.environ["AWS_SECRET_ACCESS_KEY"] = secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
 
@@ -39,10 +39,10 @@ def test():
     with open("creds.json", "r") as f:
         creds = json.load(f)
         f.close()
-        print("creds: {}".format(creds))
+        # print("creds: {}".format(creds))
 
-    spark_host = creds["spark_host"]
-    kafka_host = creds["kafka_host"]
+    spark_host = "spark-master"
+    kafka_host = "kafka"
     extra_jar_list = ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"]
 
     print("attempting spark session...")
