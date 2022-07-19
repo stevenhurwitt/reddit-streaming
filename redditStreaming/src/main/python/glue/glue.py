@@ -40,7 +40,7 @@ def glue():
     aws_client = glue_args["AWS_ACCESS_KEY_ID"]
     aws_secret = glue_args["AWS_SECRET_ACCESS_KEY"]
 
-    secrets = boto3.client("secretmanager", region_name="us-east-2")
+    secrets = boto3.client("secretsmanager", region_name="us-east-2")
     client_id = secrets.get_secret_value(SecretId = aws_client)
     client_secret = secrets.get_secret_value(SecretId = aws_secret)
 

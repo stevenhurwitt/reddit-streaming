@@ -28,7 +28,7 @@ def test():
     os.environ["subreddit"] = "technology"
     subreddit = os.environ["subreddit"]
 
-    secrets = boto3.client("secretmanager", region_name="us-east-2")
+    secrets = boto3.client("secretsmanager", region_name="us-east-2")
     os.environ["AWS_ACCESS_KEY_ID"] = secrets.get_secret_value(SecretId = aws_client)
     os.environ["AWS_SECRET_ACCESS_KEY"] = secrets.get_secret_value(SecretId = aws_secret)
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
