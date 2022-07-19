@@ -18,6 +18,7 @@ redditStreaming/target/*.jar
 .bloop
 .ipynb_checkpoints
 .env
+.pytest_cache
 local
 .DS_Store
 redditStreaming/.DS_Store
