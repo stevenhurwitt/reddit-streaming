@@ -22,23 +22,4 @@ jobs:
         with:
             # https://docs.docker.com/compose/reference/overview/
             cli-args: "up -d"
-  mvn-install:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: s4u/setup-maven-action@1.3.0
-        with:
-          java-version: 8
-          maven-version: 3.8.2
-      - uses: olafurpg/setup-scala@v11
-        # with:
-        #   scala-version: '2.12'
-      - run: cd reddit-streaming/redditStreaming && mvn clean package
-  pip-install:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-        with:
-          python-version: '3.9'
-      - run: python3 -m pip install -r redditStreaming/src/main/python/requirements.txt
+            

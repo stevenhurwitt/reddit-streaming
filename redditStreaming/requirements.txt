@@ -22,7 +22,7 @@ entrypoints==0.4
 executing==0.8.2
 fastjsonschema==2.15.3
 fonttools==4.33.3
-glue @ file:///home/steven/reddit-streaming/redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl
+# glue @ file:///home/steven/reddit-streaming/redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl
 idna==3.3
 importlib-metadata==4.11.3
 importlib-resources==5.7.1
