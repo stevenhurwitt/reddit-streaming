@@ -34,7 +34,7 @@ src/test/python/__pycache__
 src/test/python/.pytest_cache
 cluster_config
 build_files
-redditstreaming
+redditStreaming/redditstreaming
 target/maven-archiver
 target/maven-status
 *.json
