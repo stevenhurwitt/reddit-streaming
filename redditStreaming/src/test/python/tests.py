@@ -36,10 +36,10 @@ def test():
 
     print("subreddit: {}".format(os.environ["subreddit"]))
 
-    with open("creds.json", "r") as f:
-        creds = json.load(f)
-        f.close()
-        # print("creds: {}".format(creds))
+    # with open("creds.json", "r") as f:
+    #     creds = json.load(f)
+    #     f.close()
+    #     # print("creds: {}".format(creds))
 
     spark_host = "spark-master"
     kafka_host = "kafka"

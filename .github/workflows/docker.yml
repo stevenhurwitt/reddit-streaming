@@ -1,4 +1,4 @@
-name: reddit-streaming
+name: docker
 on: [push]
 jobs:
   docker:
