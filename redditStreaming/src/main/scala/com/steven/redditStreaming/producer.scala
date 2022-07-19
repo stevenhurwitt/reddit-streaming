@@ -1,4 +1,3 @@
-package com.steven.redditStreaming
 
 import org.apache.spark.sql._
 

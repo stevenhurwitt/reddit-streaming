@@ -7,7 +7,7 @@ import org.apache.spark.sql.types._
 
 object streaming {
 
-def main(args:Array[String]):Unit= {
+def streaming(args:Array[String]):Unit= {
 
   val aws_client = "AKIA6BTEPFALPAPNQ3D4"
   val aws_secret = ""

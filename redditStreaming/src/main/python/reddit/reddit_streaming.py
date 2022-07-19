@@ -62,6 +62,7 @@ def init_spark(subreddit, index):
     spark_host = "xanaxprincess.asuscomm.com"
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
+    index = 0
 
     # initialize spark session
     try:
@@ -70,7 +71,7 @@ def init_spark(subreddit, index):
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "2048m") \
-                    .config("spark.executor.cores", "2") \
+                    .config("spark.executor.cores", "1") \
                     .config("spark.streaming.concurrentJobs", "4") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \

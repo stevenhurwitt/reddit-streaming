@@ -1,0 +1,44 @@
+.nh
+.TH "GH-EXTENSION-CREATE" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-extension-create - Create a new extension
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh extension create [<name>] [flags]\fR
+
+
+.SH OPTIONS
+.TP
+\fB\fC--precompiled\fR \fB\fC<string>\fR
+Create a precompiled extension. Possible values: go, other
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# Use interactively
+gh extension create
+
+# Create a script-based extension
+gh extension create foobar
+
+# Create a Go extension
+gh extension create --precompiled=go foobar
+
+# Create a non-Go precompiled extension
+gh extension create --precompiled=other foobar
+
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-extension(1)\fR
