@@ -18,7 +18,7 @@ jobs:
       - name: pip dependencies
         run: pip install pytest pytest-md pytest-emoji
       - name: requirements
-        run: pip install -r redditStreaming/src/main/python/reddit/requirements.txt
+        run: pip install -r redditStreaming/requirements.txt
       - name: versions
         run: python --version && pip --version && pytest --version
       - name: Run pytest
