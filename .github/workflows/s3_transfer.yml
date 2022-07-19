@@ -12,10 +12,10 @@ jobs:
         with:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
-          dir: '/'
+          dir: '/reddit-streaming/redditStreaming'
       - name: build dockerfiles
         run: ./build.sh
       - name: versions
         run: python --version && pip --version && java -version && scala -version && mvn -version
       - name: build glue
-        run: python ./redditStreaming/src/main/python/glue/setup.py bdist_wheel
+        run: python ./redditStreaming/src/main/python/s3/setup.py bdist_wheel
