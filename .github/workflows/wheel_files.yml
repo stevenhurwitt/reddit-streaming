@@ -1,4 +1,4 @@
-name: glue
+name: wheel files
 on: [push, pull_request]
 jobs:
   glue:
@@ -25,3 +25,25 @@ jobs:
         run: pip3 install redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl --force-reinstall
       - name: run glue script
         run: python3 -m reddit-streaming/redditStreaming/src/main/python/glue/glue
+  s3_transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: '/redditStreaming'
+      # - name: build dockerfiles
+      #   run: ./build.sh
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip python3-virtualenv python3-pytest
+      - name: versions
+        run: python3 --version && pip --version
+      - name: build s3
+        run: python3 ./redditStreaming/src/main/python/s3/setup.py bdist_wheel
+      - name: install s3
+        run: pip3 install redditStreaming/src/main/python/s3/dist/s3-1.0.0-py3-none-any.whl --force-reinstall
