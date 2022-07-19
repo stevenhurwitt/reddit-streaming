@@ -1,7 +1,7 @@
-name: python
+name: s3_transfer
 on: [push, pull_request]
 jobs:
-  python:
+  s3_transfer:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -13,9 +13,14 @@ jobs:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
           dir: '/redditStreaming'
-      - name: build dockerfiles
-        run: ./build.sh
+      # - name: build dockerfiles
+      #   run: ./build.sh
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip python3-virtualenv python3-pytest
       - name: versions
-        run: python --version && pip --version && java -version && scala -version && mvn -version
-      - name: build glue
-        run: python ./reddit-streaming/redditStreaming/src/main/python/s3/setup.py bdist_wheel
+        run: python3 --version && pip --version &&
+      - name: build s3
+        run: python3 ./redditStreaming/src/main/python/s3/setup.py bdist_wheel
+      - name: install s3
+        run: pip3 install redditStreaming/src/main/python/s3/dist/s3-1.0.0-py3-none-any.whl --force-reinstall
+      
