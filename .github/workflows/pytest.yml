@@ -15,7 +15,9 @@ jobs:
       #     dir: '/'
       - name: python dependencies
         run: sudo apt-get install python3 python3-pip python3-virtualenv python3-pytest
+      - name: pip dependencies
+        run: pip3 install pytest
       - name: versions
-        run: python --version && pip --version
+        run: python --version && pip --version && pytest --version
       - name: pytest
         run: pytest redditStreaming/src/test/python/tests.py -v
