@@ -1,0 +1,5 @@
+glue/include
+glue/lib
+glue/lib64
+glue/share
+pyvenv.cfg

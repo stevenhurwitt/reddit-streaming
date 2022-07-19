@@ -11,12 +11,9 @@ from glue_curation_example import glue_curation
 import datetime as dt
 import pandas as pd
 import numpy as np
-import datetime as dt
-import pandas as pd
-import numpy as np
-import pyarrow
 from delta import *
 # from delta.tables import *
+import pprint
 import boto3
 import json
 import time
@@ -121,18 +118,18 @@ def glue_curation(event, context):
       # read df
       df_raw = spark.read.format("delta").option("header", True).load("s3a://reddit-stevenhurwitt/" + subreddit)
 
-df_clean = df_raw.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
-                .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
-                .withColumn("created_utc", col("created_utc").cast("timestamp")) \
-                .withColumn("created", col("created").cast("timestamp")) \
-                .withColumn("post_date", to_date(col("created_utc"), "MM-dd-yyyy")) \
-                .withColumn("year", year(col("post_date"))) \
-                .withColumn("month", month(col("post_date"))) \
-                .withColumn("day", dayofmonth(col("post_date"))) \
-                .dropDuplicates(subset = ["title"])
-                
-filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_clean/"
-raw_filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_raw/"
+      df_clean = df_raw.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
+                  .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
+                  .withColumn("created_utc", col("created_utc").cast("timestamp")) \
+                  .withColumn("created", col("created").cast("timestamp")) \
+                  .withColumn("post_date", to_date(col("created_utc"), "MM-dd-yyyy")) \
+                  .withColumn("year", year(col("post_date"))) \
+                  .withColumn("month", month(col("post_date"))) \
+                  .withColumn("day", dayofmonth(col("post_date"))) \
+                  .dropDuplicates(subset = ["title"])
+                  
+      filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_clean/"
+      raw_filepath = "s3a://reddit-stevenhurwitt/" + subreddit + "_raw/"
 
       df_clean.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("mergeSchema", "true").option("overwriteSchema", "true").option("header", "true").save(filepath)
       df_raw.write.format("delta").option("header", "true").option("overwriteSchema", "true").save(raw_filepath)
