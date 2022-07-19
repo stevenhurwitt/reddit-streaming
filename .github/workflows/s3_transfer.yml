@@ -18,4 +18,4 @@ jobs:
       - name: versions
         run: python --version && pip --version && java -version && scala -version && mvn -version
       - name: build glue
-        run: python ./redditStreaming/src/main/python/s3/setup.py bdist_wheel
+        run: python ./reddit-streaming/redditStreaming/src/main/python/s3/setup.py bdist_wheel

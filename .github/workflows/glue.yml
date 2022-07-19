@@ -14,7 +14,7 @@ jobs:
       #     json: ${{ secrets.CREDS }}
       #     dir: 'reddit-streaming/redditStreaming/'
       - name: change directory
-        run: cd redditStreaming/src/main/python/glue
+        run: cd reddit-streaming/redditStreaming/src/main/python/glue
       - name: build glue
         run: python3 setup.py bdist_wheel
       - name: install glue
