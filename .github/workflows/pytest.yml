@@ -21,6 +21,13 @@ jobs:
         run: pip install -r redditStreaming/requirements.txt
       - name: versions
         run: python --version && pip --version && pytest --version
+      - name: build dockerfiles
+        run: ./build.sh
+      - name: run docker-compose
+        uses: sudo-bot/action-docker-compose@latest
+        with:
+            # https://docs.docker.com/compose/reference/overview/
+            cli-args: "up -d"
       - name: Run pytest
         uses: pavelzw/pytest-action@v1
         with:
