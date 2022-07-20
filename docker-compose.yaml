@@ -18,8 +18,8 @@ services:
       - aws_secret_access_key
     environment:
       - JUPYTER_TOKEN=easy
-      - AWS_ACCESS_KEY_ID=/run/secrets/aws_access_key_id
-      - AWS_SECRET_ACCESS_KEY=/run/secrets/aws_secret_access_key
+      - AWS_ACCESS_KEY_ID=aws_access_key_id
+      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
     ports:
       - 8899:8888
     volumes:
