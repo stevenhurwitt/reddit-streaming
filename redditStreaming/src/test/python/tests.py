@@ -9,37 +9,28 @@ import time
 import sys
 import os
 
-def test():
+def test_spark_session():
     base = os.getcwd()
-    print("working directory: {}".format("base"))
-    start = time.time()
-    start_dt = dt.datetime.now()
 
-    print("adding to sys path...")
+    # add to path
     sys.path.append(base + "/src/test/python")
-    sys.path.append(base + "/src/test/scala")
-    sys.path.append(base + "/src/test/python/test")
-    sys.path.append(base + "/src/test/scala/test/")
     sys.path.append(base + "/src/test/python/test/test_reddit_streaming")
-    sys.path.append(base + "/src/test/scala/test/test_reddit_streaming")
 
-    print("imported modules.")
-
+    # set environment variables
     os.environ["subreddit"] = "technology"
-    subreddit = os.environ["subreddit"]
-
     secrets = boto3.client("secretsmanager", region_name="us-east-2")
-    os.environ["AWS_ACCESS_KEY_ID"] = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-    os.environ["AWS_SECRET_ACCESS_KEY"] = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    access_key_response = secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"]
+    secret_key_response = secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"]
+    
+    os.environ["AWS_ACCESS_KEY_ID"] = json.loads(access_key_response)["AWS_ACCESS_KEY_ID"]
+    os.environ["AWS_SECRET_ACCESS_KEY"] = json.loads(secret_key_response)["AWS_SECRET_ACCESS_KEY"]
+
+    # set local vars
+    subreddit = os.environ["subreddit"]
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
 
     print("subreddit: {}".format(os.environ["subreddit"]))
-
-    # with open("creds.json", "r") as f:
-    #     creds = json.load(f)
-    #     f.close()
-    #     # print("creds: {}".format(creds))
 
     spark_host = "spark-master"
     kafka_host = "kafka"
@@ -72,46 +63,54 @@ def test():
             .getOrCreate()
 
     print("spark session created.")
+    assert str(type(spark)) == "<class 'pyspark.sql.session.SparkSession'>"
+    return(spark, subreddit)
 
-    # read df
+
+def read_raw_s3(spark, subreddit):
+    # set s3 filepaths
     bucket = "reddit-stevenhurwitt"
     folder = subreddit
-    clean_folder = subreddit + "_clean"
     filepath = "s3a://{}/{}/".format(bucket, folder)
-    clean_filepath = "s3a://{}/{}/".format(bucket, clean_folder)
+
+    # read raw df
     df = spark.read.format("delta").option("header", "true").load(filepath)
+    # df.show()
+
+    assert df.count() > 0
+    return(df)
+
+def read_clean_s3(spark, subreddit):
+    # set s3 filepaths
+    bucket = "reddit-stevenhurwitt"
+    clean_folder = subreddit + "_clean"
+    clean_filepath = "s3a://{}/{}/".format(bucket, clean_folder)
+
+    # read clean df
+    df_clean = spark.read.format("delta").option("header", "true").load(clean_filepath)
+    # df_clean.show()
+
+    assert df_clean.count() > 0
+    return(df_clean)
+
+
+def write_console(df):
+    # write df to console
     df.show()
-
-    # write df to s3 delta tables
-    df.write.format("delta").mode("overwrite").option("header", "true").option("overwriteSchema", "true").save(clean_filepath)
-    print("wrote df's to s3 delta tables.")
-
-    # write df locally
-    local_filepath = "file://opt/workspace/redditStreaming/data/raw/{}/".format(subreddit)
-    local_clean_filepath = "file://opt/workspace/redditStreaming/data/clean/{}/".format(subreddit)
-    df.write.format("delta").mode("overwrite").option("header", "true").option("overwriteSchema", "true").save(local_filepath)
-    df.write.format("delta").mode("overwrite").option("header", "true").option("overwriteSchema", "true").save(local_clean_filepath)
-    print("wrote df's to local delta tables.")
-
-    # write df console
-    print("writing df to console: ")
-    df.write.format("console").mode("append").option("truncate", "true").option("header", "true").start()
-
-    # other??
-
-    # timer
-    end = time.time()
-    end_dt = dt.datetime.now()
-
-    diff = (end - start)
-    diff_dt = (end_dt - start_dt)
-    print("time: {}".format(diff))
-    print("datetime diff: {}".format(diff_dt))
+    assert True == True
 
 
 if __name__ == "__main__":
     print("running tests...")
-    test()
+    spark, subreddit = test_spark_session()
+
+    df_raw = read_raw_s3(spark, subreddit)
+
+    df_clean = read_clean_s3(spark, subreddit)
+
+    write_console(df_raw)
+
+    write_console(df_clean)
     print("tests completed.")
 
 
