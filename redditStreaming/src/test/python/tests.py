@@ -9,7 +9,25 @@ import time
 import sys
 import os
 
-def test_spark_session():
+def test_aws_creds():
+
+    # set environment variables
+    os.environ["subreddit"] = "technology"
+    os.environ["AWS_ACCESS_KEY_ID"] = "AKIA6BTEPFALMZ7ZHAYU"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
+
+    # set local vars
+    subreddit = os.environ["subreddit"]
+    aws_client = os.environ["AWS_ACCESS_KEY_ID"]
+    aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
+
+    print(subreddit)
+    os.popen("aws configure")
+    assert True == True
+    return(aws_client, aws_secret)
+
+
+def test_spark_session(aws_client, aws_secret):
     base = os.getcwd()
 
     # add to path
@@ -18,18 +36,9 @@ def test_spark_session():
 
     # set environment variables
     os.environ["subreddit"] = "technology"
-    secrets = boto3.client("secretsmanager", region_name="us-east-2")
-    access_key_response = secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"]
-    secret_key_response = secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"]
-    
-    os.environ["AWS_ACCESS_KEY_ID"] = json.loads(access_key_response)["AWS_ACCESS_KEY_ID"]
-    os.environ["AWS_SECRET_ACCESS_KEY"] = json.loads(secret_key_response)["AWS_SECRET_ACCESS_KEY"]
-
+ 
     # set local vars
     subreddit = os.environ["subreddit"]
-    aws_client = os.environ["AWS_ACCESS_KEY_ID"]
-    aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
-
     print("subreddit: {}".format(os.environ["subreddit"]))
 
     spark_host = "spark-master"
@@ -101,8 +110,12 @@ def write_console(df):
 
 
 if __name__ == "__main__":
+
     print("running tests...")
-    spark, subreddit = test_spark_session()
+
+    client, secret = test_aws_creds()
+
+    spark, subreddit = test_spark_session(client, secret)
 
     df_raw = read_raw_s3(spark, subreddit)
 
@@ -111,6 +124,7 @@ if __name__ == "__main__":
     write_console(df_raw)
 
     write_console(df_clean)
+
     print("tests completed.")
 
 
