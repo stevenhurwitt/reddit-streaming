@@ -3,7 +3,6 @@ from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import kafka
-import reddit
 import pprint
 import boto3
 import yaml
@@ -12,13 +11,21 @@ import json
 import sys
 import os
 
+try:
+    import reddit
+    print("imported reddit module.")
+
+except:
+    print("failed to import reddit module.")
+    pass
+
 pp = pprint.PrettyPrinter(indent = 1)
 
-def aws():
-    s3_client = boto3.client("s3")
-    athena_client = boto3.client("athena")
-    secret_client = boto3.client("secrets")
-    return(s3_client, athena_client, secret_client)
+# def aws():
+#     s3_client = boto3.client("s3")
+#     athena_client = boto3.client("athena")
+#     secret_client = boto3.client("secrets")
+#     return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """
@@ -285,11 +292,11 @@ def main():
         print("failed to find config.yaml")
         sys.exit()
 
-    s3, athena, secrets = aws()
+    # s3, athena, secrets = aws()
 
-    print("s3: {}".format(s3))
-    print("athena: {}".format(athena))
-    print("secrets: {}".format(secrets))
+    # print("s3: {}".format(s3))
+    # print("athena: {}".format(athena))
+    # print("secrets: {}".format(secrets))
 
     my_header = get_bearer()
     print("authenticated w/ bearer token good for 24 hrs.")
