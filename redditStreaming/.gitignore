@@ -12,10 +12,9 @@ target/maven-status
 */*/*.json
 */*/*/*.json
 terraform
-redditStreaming/src/test/python/creds.json
-redditStreaming/src/main/python/s3/creds.json
+redditStreaming/src/test/python/*.json
+redditStreaming/src/main/python/s3/*.json
 redditStreaming/src/main/python/glue/env/glue
+redditStreaming/src/main/python/glue/___pycache__
 redditStreaming/src/main/python/secrets/__pycache__
 redditStreaming/src/main/python/scripts/__pycache__
-# redditStreaming/target/*.jar
-# redditStreaming/src/main/python/wheels/*.whl
