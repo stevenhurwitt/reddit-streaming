@@ -10,6 +10,7 @@ import time
 import json
 import sys
 import os
+pp = pprint.PrettyPrinter(indent=1)
 
 try:
     import reddit
@@ -65,9 +66,16 @@ def get_bearer():
     response = requests.post('https://www.reddit.com/api/v1/access_token',
                     auth=auth, data=data, headers=headers)
 
-    token = response.json()["access_token"]
-    headers = {**headers, **{'Authorization': f"bearer {token}"}}
-    return(headers)
+    try:
+        token = response.json()["access_token"]
+        headers = {**headers, **{'Authorization': f"bearer {token}"}}
+        return(headers)
+
+    except Exception as e:
+        print(e)
+        print(response.json())
+        pass
+
 
 def get_subreddit(subreddit, limit, post_type, before, headers):
     """
@@ -287,6 +295,9 @@ def main():
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
             debug = config["debug"]
+            debug = True
+            print(subreddit)
+            print(debug)
     
     except:
         print("failed to find config.yaml")
@@ -300,7 +311,7 @@ def main():
 
     my_header = get_bearer()
     print("authenticated w/ bearer token good for 24 hrs.")
-    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+    poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
 
 if __name__ == "__main__":
     # time.sleep(600)
