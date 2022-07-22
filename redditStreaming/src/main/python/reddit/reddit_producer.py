@@ -294,10 +294,23 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            debug = config["debug"]
+            # debug = config["debug"]
             debug = True
-            print(subreddit)
-            print(debug)
+            f.close()
+
+        with open("reddit.json", "r") as g:
+            creds = json.load(f)
+            aws_client = creds["aws_client"]
+            aws_secret = creds["aws_secret"]
+            secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+            aws_client = json.loads(secrets.getSecretValue(SecretId = aws_client)["SecretString"])["AWS_ACCESS_KEY_ID"]
+            aws_secret = json.loads(secrets.getSecretValue(SecretId = aws_secret)["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+            print("read client & secret keys.")
+
+            s3 = boto3.client("s3", region_name = "us-east-2", bucket = "reddit-stevenhurwitt", aws_access_key_id = client, aws_secret_access_key = secret)
+            my_data = s3.getBucket("reddit-stevenhurwitt")
+            print(my_data)
+            g.close()
     
     except:
         print("failed to find config.yaml")
