@@ -3,7 +3,7 @@ redditStreaming/src/main/python/reddit/creds.json
 redditStreaming/src/test/python/creds.json
 redditStreaming/src/main/python/s3/creds.json
 redditStreaming/src/test/python/__pycache__
-redditStreaming/src/test/*/*/__pycache__
+# redditStreaming/src/test/*/*/__pycache__
 redditStreaming/src/main/python/*/__init__.py
 redditStreaming/src/main/python/reddit/__pycache__
 redditStreaming/src/main/python/s3/__init__.py
@@ -22,7 +22,7 @@ redditStreaming/target/*.jar
 local
 .DS_Store
 redditStreaming/.DS_Store
-redditStreaming/reddit
+# redditStreaming/reddit
 cluster_config
 dags
 logs
