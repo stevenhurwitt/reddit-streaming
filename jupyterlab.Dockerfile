@@ -15,13 +15,14 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
   #   snap install terraform
     
 RUN apt-get update -y && \
-    apt-get install -y python3 && \
+    apt-get install -y python3 python3-distutils python3-setuptools && \
+    curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+    python3 -m pip install psutil==5.9.0 pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
-# RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
-    # python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
-    # python3 -m pip install -r /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall && \
+RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
+    python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
+    python3 -m pip install -r /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall
 
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
     rm -rf /var/lib/apt/lists/* && \
@@ -29,9 +30,9 @@ RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
-# RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
-#     mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
-#     wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
+RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
+    mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
+    wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
 
 
 # -- Runtime
