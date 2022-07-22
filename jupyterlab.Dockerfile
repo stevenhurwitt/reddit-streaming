@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.2.0
+ARG spark_version=3.2.1
 ARG jupyterlab_version=3.2.5
 # ARG psutil_version=5.9.0
 
