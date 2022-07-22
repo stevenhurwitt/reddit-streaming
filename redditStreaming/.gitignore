@@ -17,5 +17,5 @@ redditStreaming/src/main/python/s3/creds.json
 redditStreaming/src/main/python/glue/env/glue
 redditStreaming/src/main/python/secrets/__pycache__
 redditStreaming/src/main/python/scripts/__pycache__
-redditStreaming/target/*.jar
-redditStreaming/src/main/python/wheels/*.whl
+# redditStreaming/target/*.jar
+# redditStreaming/src/main/python/wheels/*.whl
