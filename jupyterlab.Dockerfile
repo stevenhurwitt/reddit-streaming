@@ -4,6 +4,7 @@ FROM cluster-base
 
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
+ARG psutil_version=5.9.0
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 # COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
@@ -13,17 +14,20 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # RUN apt-get install awscli && \
   #   snap install terraform
-    
+
+# base python
 RUN apt-get update -y && \
     apt-get install -y python3 python3-distutils python3-setuptools && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install psutil==5.9.0 pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+    python3 -m pip install psutil==${psutil_version} pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
+# custom .whl's
 RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
     python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
     python3 -m pip install -r /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall
 
+# requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws
