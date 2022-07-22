@@ -15,9 +15,9 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
   #   snap install terraform
     
 RUN apt-get update -y && \
-    apt-get install -y python3-pip && \
+    apt-get install -y python3 && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} awscli
+    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
     # python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
