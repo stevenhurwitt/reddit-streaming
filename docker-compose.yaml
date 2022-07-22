@@ -68,27 +68,15 @@ services:
       - shared-workspace:/opt/workspace
     depends_on:
       - spark-master
-    networks:
-      - reddit_streaming
-
   postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Secret!12345
-      # POSTGRES_DB: airflow
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 5s
-      retries: 5
-    restart: always
+    image: postgres
+    container_name: postgres
     hostname: postgres
-    networks:
-      - reddit_streaming
     ports: 
       - "5432:5432"
+    environment: 
+      - POSTGRES_USER=steven
+      - POSTGRES_PASSWORD=secret!1234
   zookeeper:
     # image: wurstmeister/zookeeper
     image: ghcr.io/arm64-compat/confluentinc/cp-zookeeper:7.1.1
@@ -149,22 +137,22 @@ services:
     depends_on:
       - kafka
 
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: ecret!12345
-      POSTGRES_DB: airflow
-    volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 5s
-      retries: 5
-    restart: always
-    hostname: postgres
-    ports: 
-      - "5432:5432"
+  # postgres:
+  #   image: postgres:13
+  #   environment:
+  #     POSTGRES_USER: airflow
+  #     POSTGRES_PASSWORD: ecret!12345
+  #     POSTGRES_DB: airflow
+  #   volumes:
+  #     - postgres-db-volume:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD", "pg_isready", "-U", "airflow"]
+  #     interval: 5s
+  #     retries: 5
+  #   restart: always
+  #   hostname: postgres
+  #   ports: 
+  #     - "5432:5432"
 
   # ganglia:
   #   image: kurthuwig/ganglia:latest
