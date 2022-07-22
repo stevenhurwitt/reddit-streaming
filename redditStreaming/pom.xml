@@ -13,7 +13,7 @@
         <spark.version>3.3.0</spark.version>
         <hadoop.version>3.3.0</hadoop.version>
         <postgresql.version>42.3.2</postgresql.version>
-        <kafka.version>3.2.0</kafka.version>
+        <kafka.version>3.3.0</kafka.version>
     </properties>
     <packaging>jar</packaging>
 
