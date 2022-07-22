@@ -21,9 +21,15 @@ def test_aws_creds():
     aws_client = os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
 
+    # aws
+    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    # client = secrets.getSecretValue("AWS_ACCESS_KEY_ID")
+    # secret = secrets.getSecretValue("AWS_SECRET_ACCESS_KEY")
+    # print("client: {}, secret: {}.".format(client, secret))
+
     print(subreddit)
     os.popen("aws configure")
-    assert True == True
+    assert len(aws_client) > 0
     return(aws_client, aws_secret)
 
 
