@@ -21,14 +21,14 @@ terraform {
 
 provider "aws" {
   region  = "us-east-2"
-  access_key = "${vars.aws_client}"
-  secret_key = "${vars.aws_secret}"
+  access_key = ""
+  secret_key = ""
 }
 
 
 resource "aws_instance" "reddit-streaming" {
   ami           = "ami-070650c005cce4203"
-  instance_type = "t4g.xlarge"
+  instance_type = "t3a.2xlarge"
 
   tags = {
     Name = "reddit",
