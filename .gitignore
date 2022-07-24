@@ -15,6 +15,7 @@ redditStreaming/src/main/python/wheels/*.whl
 redditStreaming/target/*.jar
 redditStreaming/target
 redditStreaming/build_files
+terraform/vars.tf
 .vscode
 .metals
 .bloop
