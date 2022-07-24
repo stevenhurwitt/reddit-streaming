@@ -9,21 +9,33 @@ terraform {
   required_version = ">= 1.2.0"
 }
 
+# variable "aws_client" {
+#   type = string
+#   default = ""
+# }
+
+# variable "aws_secret" {
+#   type = string
+#   default = ""
+# }
+
 provider "aws" {
   region  = "us-east-2"
-  access_key = "AKIA6BTEPFALMKQYDKMN"
-  secret_key = ""
-  # secret_key = alphabet "q1s8hXL2MJPicEKBKDZEIhTZs+53krSxAK2PY9" double u
+  access_key = "${vars.aws_client}"
+  secret_key = "${vars.aws_secret}"
 }
 
-# resource "aws_instance" "reddit_server" {
-#   ami           = "ami-070650c005cce4203"
-#   instance_type = "t4g.xlarge"
 
-#   tags = {
-#     Name = "reddit"
-#   }
-# }
+resource "aws_instance" "reddit-streaming" {
+  ami           = "ami-070650c005cce4203"
+  instance_type = "t4g.xlarge"
+
+  tags = {
+    Name = "reddit",
+    Env = "dev",
+    Owner = "steven hurwitt"
+  }
+}
 
 # Creating a AWS secret versions for database master account (Masteraccoundb)
 # resource "aws_secretsmanager_secret_version" "sversion" {
