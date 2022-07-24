@@ -6,7 +6,7 @@ ARG spark_version=3.3.0
 ARG jupyterlab_version=3.2.5
 # ARG psutil_version=5.9.0
 
-COPY ./pyosolver/ ${SHARED_WORKSPACE}/pyosolver/
+COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 # COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
 # COPY ./redditStreaming/fairscheduler.xml ${SHARED_WORKSPACE}
 # COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
