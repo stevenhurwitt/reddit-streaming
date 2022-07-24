@@ -55,5 +55,5 @@ jobs:
           emoji: false
           job_summary: false
           custom_arguments: 'redditStreaming/src/test/python/tests.py -q'
-      # - name: pytest
-      #   run: pytest redditStreaming/src/test/python/tests.py -v
+      - name: pytest
+        run: pytest redditStreaming/src/test/python/tests.py -v
