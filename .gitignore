@@ -13,6 +13,8 @@ redditStreaming/src/main/python/reddit/reddit-env
 redditStreaming/src/main/python/glue/env/glue
 redditStreaming/src/main/python/wheels/*.whl
 redditStreaming/target/*.jar
+redditStreaming/target
+redditStreaming/build_files
 .vscode
 .metals
 .bloop
@@ -22,12 +24,12 @@ redditStreaming/target/*.jar
 local
 .DS_Store
 redditStreaming/.DS_Store
-# redditStreaming/reddit
 cluster_config
 dags
 logs
 plugins
 gh/*
+gh
 pat.json
 ./pat.json
 aws_access_key.txt
