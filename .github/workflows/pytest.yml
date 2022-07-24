@@ -41,8 +41,8 @@ jobs:
       #   shell: bash
       #   env:
       #     SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
-      - name: build dockerfiles
-        run: ./build.sh
+      # - name: build dockerfiles
+      #   run: ./build.sh
       - name: run docker-compose
         uses: sudo-bot/action-docker-compose@latest
         with:
