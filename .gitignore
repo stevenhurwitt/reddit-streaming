@@ -25,7 +25,6 @@ terraform/vars.tf
 local
 .DS_Store
 redditStreaming/.DS_Store
-# redditStreaming/reddit
 cluster_config
 dags
 logs
