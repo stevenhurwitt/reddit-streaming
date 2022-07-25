@@ -32,9 +32,9 @@ jobs:
         run: exit 1
       - name: Terraform Plan
         run: terraform init && terraform plan -out tfplan
-      - name: Terraform Apply
-        run: terraform apply "tfplan"
-      - name: Terraform Apply Push
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+      # - name: Terraform Apply
+      #   run: terraform apply "tfplan"
+      # - name: Terraform Apply Push
+      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   run: terraform apply -auto-approve -input=false
         
