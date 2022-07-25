@@ -14,7 +14,7 @@ def test_aws_creds():
     # set environment variables
     os.environ["subreddit"] = "technology"
     os.environ["AWS_ACCESS_KEY_ID"] = "AKIA6BTEPFALMZ7ZHAYU"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = ""
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
 
     # set local vars
     # subreddit = os.environ["subreddit"]
@@ -22,7 +22,7 @@ def test_aws_creds():
     # aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
     subreddit = "technology"
     aws_client = "AKIA6BTEPFALMZ7ZHAYU"
-    aws_secret = ""
+    aws_secret = "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"
 
     # aws
     secrets = boto3.client("secretsmanager", region_name = "us-east-2")
@@ -80,7 +80,7 @@ def test_spark_session():
 
     print("spark session created.")
     assert str(type(spark)) == "<class 'pyspark.sql.session.SparkSession'>"
-    return(spark, subreddit)
+    # return(spark, subreddit)
 
 
 def read_raw_s3(spark, subreddit):
@@ -94,7 +94,7 @@ def read_raw_s3(spark, subreddit):
     # df.show()
 
     assert df.count() > 0
-    return(df)
+    # return(df)
 
 def read_clean_s3(spark, subreddit):
     # set s3 filepaths
@@ -107,7 +107,7 @@ def read_clean_s3(spark, subreddit):
     # df_clean.show()
 
     assert df_clean.count() > 0
-    return(df_clean)
+    # return(df_clean)
 
 
 def write_console(df):
@@ -115,14 +115,13 @@ def write_console(df):
     df.show()
     assert True == True
 
-
-if __name__ == "__main__":
+def main():
 
     print("running tests...")
 
-    client, secret = test_aws_creds()
+    test_aws_creds()
 
-    spark, subreddit = test_spark_session(client, secret)
+    spark, subreddit = test_spark_session()
 
     df_raw = read_raw_s3(spark, subreddit)
 
@@ -133,3 +132,8 @@ if __name__ == "__main__":
     write_console(df_clean)
 
     print("tests completed.")
+
+
+if __name__ == "__main__":
+
+    main()
