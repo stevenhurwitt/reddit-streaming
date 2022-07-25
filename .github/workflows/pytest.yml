@@ -43,11 +43,11 @@ jobs:
       #     SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
       # - name: build dockerfiles
       #   run: ./build.sh
-      - name: run docker-compose
-        uses: sudo-bot/action-docker-compose@latest
-        with:
-            # https://docs.docker.com/compose/reference/overview/
-            cli-args: "up -d"
+      # - name: run docker-compose
+      #   uses: sudo-bot/action-docker-compose@latest
+      #   with:
+      #       # https://docs.docker.com/compose/reference/overview/
+      #       cli-args: "up -d"
       - name: Run pytest
         uses: pavelzw/pytest-action@v1
         with:

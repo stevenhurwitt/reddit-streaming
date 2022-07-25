@@ -12,7 +12,7 @@ jobs:
         with:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
-          dir: 'reddit-streaming/redditStreaming/'
+          dir: 'redditStreaming/'
       - name: python dependencies
         run: sudo apt-get install python3 python3-pip
       - name: version check
