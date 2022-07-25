@@ -19,8 +19,9 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 RUN apt-get update -y && \
     apt-get install -y python3 python3-distutils python3-setuptools && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
-    python3 -m pip install --upgrade pip && \
-    python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+    python3 -m pip install --upgrade pip
+
+RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 RUN python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
     # python3 -m pip install /opt/workspace/redditStreaming/src/main/python/glue/glue-1.0.0-py3-none-any.whl --force-reinstall && \
