@@ -31,7 +31,7 @@ def read_files():
                 f.close()
 
         except FileNotFoundError:
-            with open("/home/pi/Documents/reddit-streaming/redditStreaming/creds.json", "r") as f:
+            with open("~/redditStreaming/creds.json", "r") as f:
                 creds = json.load(f)
                 f.close()
 
@@ -58,8 +58,8 @@ def init_spark(subreddit, index):
     returns: spark, sparkContext (sc)
     """
     creds = read_files()
-    # spark_host = config["spark_host"]
-    spark_host = "xanaxprincess.asuscomm.com"
+    spark_host = config["spark_host"]
+    # spark_host = "spark-master"
     aws_client = creds["aws-client"]
     aws_secret = creds["aws-secret"]
     index = 0
@@ -255,7 +255,7 @@ def write_stream(df, subreddit):
     df.writeStream \
         .trigger(processingTime="60 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/{}".format(subreddit)) \
+        .option("path", "s3a://reddit-streaming-stevenhurwitt/{}".format(subreddit)) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \

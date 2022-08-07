@@ -307,8 +307,8 @@ def main():
             aws_secret = json.loads(secrets.getSecretValue(SecretId = aws_secret)["SecretString"])["AWS_SECRET_ACCESS_KEY"]
             print("read client & secret keys.")
 
-            s3 = boto3.client("s3", region_name = "us-east-2", bucket = "reddit-stevenhurwitt", aws_access_key_id = client, aws_secret_access_key = secret)
-            my_data = s3.getBucket("reddit-stevenhurwitt")
+            s3 = boto3.client("s3", region_name = "us-east-2", bucket = "reddit-streaming-stevenhurwitt", aws_access_key_id = aws_client, aws_secret_access_key = aws_secret)
+            my_data = s3.getBucket("reddit-streaming-stevenhurwitt")
             print(my_data)
             g.close()
     
