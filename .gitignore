@@ -50,4 +50,5 @@ target/maven-status
 redditStreaming/*.json
 terraform/.terraform*
 terraform/*.tfstate*
+# terraform/*.tfvars
 
