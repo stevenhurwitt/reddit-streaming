@@ -29,7 +29,13 @@ RUN apt-get update -y && \
 #     python3 -m pip install /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed && \
+RUN python3 -m pip install virtualenv && \
+    cd ${SHARED_WORKSPACE}/redditStreaming && \
+    virtualenv reddit && \
+    source reddit/bin/activate && \
+    python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+    
+RUN cd .. && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws
     # ln -s /usr/local/bin/python3 /usr/bin/python
