@@ -14,7 +14,7 @@ def test_aws_creds():
     # set environment variables
     os.environ["subreddit"] = "technology"
     os.environ["AWS_ACCESS_KEY_ID"] = "AKIA6BTEPFALMZ7ZHAYU"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "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"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = ""
 
     # set local vars
     # subreddit = os.environ["subreddit"]
@@ -22,12 +22,12 @@ def test_aws_creds():
     # aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
     subreddit = "technology"
     aws_client = "AKIA6BTEPFALMZ7ZHAYU"
-    aws_secret = "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"
+    aws_secret = ""
 
     # aws
     secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    # client = secrets.getSecretValue("AWS_ACCESS_KEY_ID")
-    # secret = secrets.getSecretValue("AWS_SECRET_ACCESS_KEY")
+    client = secrets.getSecretValue("AWS_ACCESS_KEY_ID")
+    secret = secrets.getSecretValue("AWS_SECRET_ACCESS_KEY")
     # print("client: {}, secret: {}.".format(client, secret))
     assert True == True
 
@@ -42,7 +42,7 @@ def test_spark_session():
     # set environment variables
     os.environ["subreddit"] = "technology"
     aws_client = "AKIA6BTEPFALMZ7ZHAYU"
-    aws_secret = "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"
+    aws_secret = ""
  
     # set local vars
     subreddit = os.environ["subreddit"]
