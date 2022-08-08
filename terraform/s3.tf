@@ -65,3 +65,9 @@ resource "aws_s3_object" "jars" {
   key          = "${var.folder_jars}/"
   content_type = "application/x-directory"
 }
+
+resource "aws_s3_object" "scripts" {
+  bucket       = "${aws_s3_bucket.reddit_stevenhurwitt.id}"
+  key          = "${var.folder_scripts}/"
+  content_type = "application/x-directory"
+}

@@ -17,26 +17,19 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3 python3-distutils python3-setuptools && \
+    apt-get install -y python3-dev python3-distutils python3-setuptools && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
     
-# RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-# RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall && \
-#     python3 -m pip install /opt/workspace/redditStreaming/target/glue-1.0.0-py3-none-any.whl --force-reinstall && \
-#     python3 -m pip install /opt/workspace/redditStreaming/target/secrets-1.0.0-py3-none-any.whl --force-reinstall
+RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN python3 -m pip install virtualenv && \
-    cd ${SHARED_WORKSPACE}/redditStreaming && \
-    virtualenv reddit && \
-    source reddit/bin/activate && \
-    python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
     
-RUN cd .. && \
-    rm -rf /var/lib/apt/lists/* && \
+RUN rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
