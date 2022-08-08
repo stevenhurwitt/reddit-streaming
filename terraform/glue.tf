@@ -18,7 +18,7 @@ resource "aws_glue_job" "news" {
     "--enable-continuous-log-filter"     = "true"
     "--extra-jars"                  = "s3://${var.s3_bucket_name}/jars/com.amazonaws_aws-java-sdk-bundle-1.11.901.jar,s3://${var.s3_bucket_name}/jars/com.ibm.icu_icu4j-58.2.jar,s3://${var.s3_bucket_name}/jars/hadoop-aws-3.3.1.jar,s3://${var.s3_bucket_name}/jars/io.delta_delta-core_2.12-1.0.0.jar,s3://${var.s3_bucket_name}/jars/org.abego.treelayout_org.abego.treelayout.core-1.0.3.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr-runtime-3.5.2.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-runtime-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_ST4-4.0.8.jar,s3://${var.s3_bucket_name}/jars/org.glassfish_javax.json-1.0.4.jar,s3://${var.s3_bucket_name}/jars/org.wildfly.openssl_wildfly-openssl-1.0.7.Final.jar"
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
-    "--user-jars-first"             = "true"
+    # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
     "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
   }
@@ -44,7 +44,7 @@ resource "aws_glue_job" "technology" {
     "--enable-continuous-log-filter"     = "true"
     "--extra-jars"                  = "s3://${var.s3_bucket_name}/jars/com.amazonaws_aws-java-sdk-bundle-1.11.901.jar,s3://${var.s3_bucket_name}/jars/com.ibm.icu_icu4j-58.2.jar,s3://${var.s3_bucket_name}/jars/hadoop-aws-3.3.1.jar,s3://${var.s3_bucket_name}/jars/io.delta_delta-core_2.12-1.0.0.jar,s3://${var.s3_bucket_name}/jars/org.abego.treelayout_org.abego.treelayout.core-1.0.3.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr-runtime-3.5.2.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-runtime-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_ST4-4.0.8.jar,s3://${var.s3_bucket_name}/jars/org.glassfish_javax.json-1.0.4.jar,s3://${var.s3_bucket_name}/jars/org.wildfly.openssl_wildfly-openssl-1.0.7.Final.jar"
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
-    "--user-jars-first"             = "true"
+    # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
     "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
   }
@@ -70,7 +70,7 @@ resource "aws_glue_job" "worldnews" {
     "--enable-continuous-log-filter"     = "true"
     "--extra-jars"                  = "s3://${var.s3_bucket_name}/jars/com.amazonaws_aws-java-sdk-bundle-1.11.901.jar,s3://${var.s3_bucket_name}/jars/com.ibm.icu_icu4j-58.2.jar,s3://${var.s3_bucket_name}/jars/hadoop-aws-3.3.1.jar,s3://${var.s3_bucket_name}/jars/io.delta_delta-core_2.12-1.0.0.jar,s3://${var.s3_bucket_name}/jars/org.abego.treelayout_org.abego.treelayout.core-1.0.3.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr-runtime-3.5.2.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-runtime-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_ST4-4.0.8.jar,s3://${var.s3_bucket_name}/jars/org.glassfish_javax.json-1.0.4.jar,s3://${var.s3_bucket_name}/jars/org.wildfly.openssl_wildfly-openssl-1.0.7.Final.jar"
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
-    "--user-jars-first"             = "true"
+    # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
     "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
   }
@@ -96,7 +96,7 @@ resource "aws_glue_job" "ProgrammerHumor" {
     "--enable-continuous-log-filter"     = "true"
     "--extra-jars"                  = "s3://${var.s3_bucket_name}/jars/com.amazonaws_aws-java-sdk-bundle-1.11.901.jar,s3://${var.s3_bucket_name}/jars/com.ibm.icu_icu4j-58.2.jar,s3://${var.s3_bucket_name}/jars/hadoop-aws-3.3.1.jar,s3://${var.s3_bucket_name}/jars/io.delta_delta-core_2.12-1.0.0.jar,s3://${var.s3_bucket_name}/jars/org.abego.treelayout_org.abego.treelayout.core-1.0.3.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr-runtime-3.5.2.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_antlr4-runtime-4.7.jar,s3://${var.s3_bucket_name}/jars/org.antlr_ST4-4.0.8.jar,s3://${var.s3_bucket_name}/jars/org.glassfish_javax.json-1.0.4.jar,s3://${var.s3_bucket_name}/jars/org.wildfly.openssl_wildfly-openssl-1.0.7.Final.jar"
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
-    "--user-jars-first"             = "true"
+    # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
     "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
   }
