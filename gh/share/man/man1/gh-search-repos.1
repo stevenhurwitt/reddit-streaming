@@ -1,0 +1,156 @@
+.nh
+.TH "GH-SEARCH-REPOS" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-search-repos - Search for repositories
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh search repos [<query>] [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Search for repositories on GitHub.
+
+.PP
+The command supports constructing queries using the GitHub search syntax,
+using the parameter and qualifier flags, or a combination of the two.
+
+.PP
+GitHub search syntax is documented at:
+https://docs.github.com/search-github/searching-on-github/searching-for-repositories
+\[la]https://docs.github.com/search-github/searching-on-github/searching-for-repositories\[ra]
+
+
+.SH OPTIONS
+.TP
+\fB\fC--archived\fR
+Filter based on archive state
+
+.TP
+\fB\fC--created\fR \fB\fC<date>\fR
+Filter based on created at date
+
+.TP
+\fB\fC--followers\fR \fB\fC<number>\fR
+Filter based on number of followers
+
+.TP
+\fB\fC--forks\fR \fB\fC<number>\fR
+Filter on number of forks
+
+.TP
+\fB\fC--good-first-issues\fR \fB\fC<number>\fR
+Filter on number of issues with the 'good first issue' label
+
+.TP
+\fB\fC--help-wanted-issues\fR \fB\fC<number>\fR
+Filter on number of issues with the 'help wanted' label
+
+.TP
+\fB\fC--include-forks\fR \fB\fC<string>\fR
+Include forks in fetched repositories: {false|true|only}
+
+.TP
+\fB\fC-q\fR, \fB\fC--jq\fR \fB\fC<expression>\fR
+Filter JSON output using a jq expression
+
+.TP
+\fB\fC--json\fR \fB\fC<fields>\fR
+Output JSON with the specified fields
+
+.TP
+\fB\fC--language\fR \fB\fC<string>\fR
+Filter based on the coding language
+
+.TP
+\fB\fC--license\fR \fB\fC<strings>\fR
+Filter based on license type
+
+.TP
+\fB\fC-L\fR, \fB\fC--limit\fR \fB\fC<int>\fR
+Maximum number of repositories to fetch
+
+.TP
+\fB\fC--match\fR \fB\fC<strings>\fR
+Restrict search to specific field of repository: {name|description|readme}
+
+.TP
+\fB\fC--number-topics\fR \fB\fC<number>\fR
+Filter on number of topics
+
+.TP
+\fB\fC--order\fR \fB\fC<string>\fR
+Order of repositories returned, ignored unless '--sort' flag is specified: {asc|desc}
+
+.TP
+\fB\fC--owner\fR \fB\fC<string>\fR
+Filter on owner
+
+.TP
+\fB\fC--size\fR \fB\fC<string>\fR
+Filter on a size range, in kilobytes
+
+.TP
+\fB\fC--sort\fR \fB\fC<string>\fR
+Sort fetched repositories: {forks|help-wanted-issues|stars|updated}
+
+.TP
+\fB\fC--stars\fR \fB\fC<number>\fR
+Filter on number of stars
+
+.TP
+\fB\fC-t\fR, \fB\fC--template\fR \fB\fC<string>\fR
+Format JSON output using a Go template
+
+.TP
+\fB\fC--topic\fR \fB\fC<strings>\fR
+Filter on topic
+
+.TP
+\fB\fC--updated\fR \fB\fC<date>\fR
+Filter on last updated at date
+
+.TP
+\fB\fC--visibility\fR \fB\fC<strings>\fR
+Filter based on visibility: {public|private|internal}
+
+.TP
+\fB\fC-w\fR, \fB\fC--web\fR
+Open the search query in the web browser
+
+
+.SH EXAMPLE
+.PP
+.RS
+
+.nf
+# search repositories matching set of keywords "cli" and "shell"
+$ gh search repos cli shell
+
+# search repositories matching phrase "vim plugin"
+$ gh search repos "vim plugin"
+
+# search repositories public repos in the microsoft organization
+$ gh search repos --owner=microsoft --visibility=public
+
+# search repositories with a set of topics
+$ gh search repos --topic=unix,terminal
+
+# search repositories by coding language and number of good first issues
+$ gh search repos --language=go --good-first-issues=">=10"
+
+# search repositories without topic "linux"
+$ gh search repos -- -topic:linux
+ 
+
+.fi
+.RE
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh-search(1)\fR

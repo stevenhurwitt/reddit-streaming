@@ -1,0 +1,44 @@
+.nh
+.TH "GH-CONFIG" "1" "Jun 2022" "GitHub CLI 2.13.0" "GitHub CLI manual"
+
+.SH NAME
+.PP
+gh-config - Manage configuration for gh
+
+
+.SH SYNOPSIS
+.PP
+\fB\fCgh config <command> [flags]\fR
+
+
+.SH DESCRIPTION
+.PP
+Display or change configuration settings for gh.
+
+.PP
+Current respected settings:
+- git_protocol: the protocol to use for git clone and push operations (default: "https")
+- editor: the text editor program to use for authoring text
+- prompt: toggle interactive prompting in the terminal (default: "enabled")
+- pager: the terminal pager program to send standard output to
+- http_unix_socket: the path to a Unix socket through which to make an HTTP connection
+- browser: the web browser to use for opening URLs
+
+
+.SH COMMANDS
+.TP
+\fB\fCgh-config-get(1)\fR
+Print the value of a given configuration key
+
+.TP
+\fB\fCgh-config-list(1)\fR
+Print a list of configuration keys and values
+
+.TP
+\fB\fCgh-config-set(1)\fR
+Update configuration with a value for the given key
+
+
+.SH SEE ALSO
+.PP
+\fB\fCgh(1)\fR
