@@ -31,7 +31,7 @@ def read_files():
                 f.close()
 
         except FileNotFoundError:
-            with open("~/redditStreaming/creds.json", "r") as f:
+            with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
                 creds = json.load(f)
                 f.close()
 
@@ -39,17 +39,17 @@ def read_files():
         print("failed to find creds.json.")
         sys.exit()
 
-    # try:
-        # with open("config.yaml", "r") as f:
-        #     config = yaml.safe_load(f)
-        #     print("read config file.")
-        #     f.close()
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            print("read config file.")
+            f.close()
 
-    # except:
-    #     print("failed to find config.yaml, exiting now.")
-    #     sys.exit()
+    except:
+        print("failed to find config.yaml, exiting now.")
+        sys.exit()
 
-    return(creds)
+    return(creds, config)
 
 def init_spark(subreddit, index):
     """
@@ -57,11 +57,11 @@ def init_spark(subreddit, index):
 
     returns: spark, sparkContext (sc)
     """
-    creds = read_files()
+    creds, config = read_files()
     spark_host = config["spark_host"]
     # spark_host = "spark-master"
-    aws_client = creds["aws-client"]
-    aws_secret = creds["aws-secret"]
+    aws_client = creds["aws_client"]
+    aws_secret = creds["aws_secret"]
     index = 0
 
     # initialize spark session
@@ -266,9 +266,9 @@ def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
-    creds = read_files()
-    subreddit_list = []
-    # subreddit_list = config["subreddit"]
+    creds, config = read_files()
+    # subreddit_list = []
+    subreddit_list = config["subreddit"]
     for i, s in enumerate(subreddit_list):
         spark, sc = init_spark(s, i)
 
