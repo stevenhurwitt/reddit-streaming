@@ -63,3 +63,8 @@ variable "folder_jars" {
     default = "jars"
     type = string
 }
+
+variable "folder_scripts" {
+    default = "scripts"
+    type = string
+}

@@ -106,4 +106,4 @@ PARTITIONED BY (
 ROW FORMAT SERDE 'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.SymlinkTextInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
-LOCATION 's3://reddit-stevenhurwitt/technology_clean/_symlink_format_manifest/'
+LOCATION 's3://reddit-streaming-stevenhurwitt/technology_clean/_symlink_format_manifest/'
