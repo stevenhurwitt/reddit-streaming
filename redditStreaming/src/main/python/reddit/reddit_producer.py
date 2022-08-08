@@ -164,7 +164,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     try:
         broker = ["{}:9092".format(host)]
-        topic = "reddit_" + subreddit
+        # topic = "reddit_" + subreddit
 
         producer = KafkaProducer(
                     bootstrap_servers=broker,
@@ -179,21 +179,6 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
     topic = params["topic"][index]
-
-    if after_token is not None:
-        try:
-            producer.send(topic, my_data)
-        
-        except Exception as e:
-            print(e)
-
-    if after_token is not None:
-        try:
-            producer.send(topic, my_data)
-
-        except KafkaTimeoutError:
-            print("kafka timed out sending first message, exiting now.")
-            sys.exit()
 
     token_list = []
 
@@ -297,20 +282,6 @@ def main():
             # debug = config["debug"]
             debug = True
             f.close()
-
-        with open("reddit.json", "r") as g:
-            creds = json.load(f)
-            aws_client = creds["aws_client"]
-            aws_secret = creds["aws_secret"]
-            secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-            aws_client = json.loads(secrets.getSecretValue(SecretId = aws_client)["SecretString"])["AWS_ACCESS_KEY_ID"]
-            aws_secret = json.loads(secrets.getSecretValue(SecretId = aws_secret)["SecretString"])["AWS_SECRET_ACCESS_KEY"]
-            print("read client & secret keys.")
-
-            s3 = boto3.client("s3", region_name = "us-east-2", bucket = "reddit-streaming-stevenhurwitt", aws_access_key_id = aws_client, aws_secret_access_key = aws_secret)
-            my_data = s3.getBucket("reddit-streaming-stevenhurwitt")
-            print(my_data)
-            g.close()
     
     except:
         print("failed to find config.yaml")
