@@ -89,6 +89,7 @@ def init_spark(subreddit, index):
                     .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
                     .enableHiveSupport() \
                     .getOrCreate()
+
         sc = spark.sparkContext
         # .config('spark.hadoop.fs.s3a.fast.upload.buffer', 'bytebuffer') \
 
@@ -255,7 +256,7 @@ def write_stream(df, subreddit):
 
     # write to s3 delta
     df.writeStream \
-        .trigger(processingTime="60 seconds") \
+        .trigger(processingTime="180 seconds") \
         .format("delta") \
         .option("path", "s3a://reddit-streaming-stevenhurwitt/{}".format(subreddit)) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
