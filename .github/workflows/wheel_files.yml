@@ -14,10 +14,10 @@ jobs:
           json: ${{ secrets.CREDS }}
           dir: '/redditStreaming'
       - name: python dependencies
-        run: sudo apt-get install python3 python3-pip python3-virtualenv python3-pytest
+        run: sudo apt-get install python3 python3-pip python3-virtualenv
       - name: versions
         run: python3 --version && pip --version
       - name: build reddit
         run: python3 ./redditStreaming/src/main/python/reddit/setup.py bdist_wheel
-      - name: install s3
+      - name: install reddit
         run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
