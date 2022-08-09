@@ -6,8 +6,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      # - name: list directory
-      #   run: ls
       - name: create-json
         id: create-json
         uses: jsdaniell/create-json@1.1.2
@@ -27,6 +25,8 @@ jobs:
         shell: bash
         env:
           SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: list directory
+        run: ls
       - name: build dockerfiles
         run: ./build.sh
       - name: run docker-compose
