@@ -251,6 +251,7 @@ def write_stream(df, subreddit):
         .outputMode("update") \
         .format("console") \
         .option("truncate", "true") \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}_console".format(subreddit)) \
         .queryName(subreddit + "_console") \
         .start()
 
