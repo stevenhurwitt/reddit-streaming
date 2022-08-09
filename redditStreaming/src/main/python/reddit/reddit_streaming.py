@@ -247,11 +247,11 @@ def write_stream(df, subreddit):
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
         .select("subreddit", "title", "score", "created_utc") \
         .writeStream \
-        .trigger(processingTime='60 seconds') \
-        .outputMode("update") \
-        .format("console") \
+        .trigger(processingTime='180 seconds') \
         .option("truncate", "true") \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}_console".format(subreddit)) \
+        .outputMode("update") \
+        .format("console") \
         .queryName(subreddit + "_console") \
         .start()
 
