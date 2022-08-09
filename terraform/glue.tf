@@ -1,3 +1,4 @@
+################### glue jobs ####################
 resource "aws_glue_job" "news" {
   name     = "news-curation"
   role_arn = aws_iam_role.glue.arn
@@ -99,5 +100,46 @@ resource "aws_glue_job" "ProgrammerHumor" {
     # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
     "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
+  }
+}
+
+################### glue schedule ####################
+resource "aws_glue_trigger" "nightly_news" {
+  name     = "nightly_news"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.news.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_worldnews" {
+  name     = "nightly_worldnews"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.worldnews.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_technology" {
+  name     = "nightly_technology"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.technology.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_ProgrammerHumor" {
+  name     = "nightly_ProgrammerHumor"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.ProgrammerHumor.name
   }
 }
