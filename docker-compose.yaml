@@ -1,9 +1,9 @@
 version: "3"
 secrets:
   aws_access_key_id: 
-    file: ./aws_access_key.txt
+    file: aws_access_key.txt
   aws_secret_access_key: 
-    file: ./aws_secret.txt
+    file: aws_secret.txt
 volumes:
   shared-workspace:
     driver: local
