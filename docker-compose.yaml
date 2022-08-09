@@ -42,7 +42,7 @@ services:
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4096m
+      - SPARK_WORKER_MEMORY=8192m
     ports:
       - 4041:4040
       - 8083:8081
@@ -59,7 +59,7 @@ services:
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4096m
+      - SPARK_WORKER_MEMORY=8192m
     ports:
       - 4042:4040
       - 8082:8082
