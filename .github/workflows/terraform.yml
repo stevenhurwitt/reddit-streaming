@@ -7,7 +7,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: change directory
-        run: cd ./redditStreaming/terraform
+        run: cd redditStreaming/terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
