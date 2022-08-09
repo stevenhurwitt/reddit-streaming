@@ -29,8 +29,8 @@ jobs:
           aws-region: us-east-2
           # role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           # role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
-          role-duration-seconds: 1200
-          role-session-name: pytest
+          # role-duration-seconds: 1200
+          # role-session-name: pytest
       # - name: aws access key id
       #   run: 'echo "$ACCESS_KEY" > ./aws_access_key.txt'
       #   shell: bash
