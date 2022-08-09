@@ -4,6 +4,7 @@ FROM cluster-base
 
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
+# ARG psutil_version=5.9.0
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
