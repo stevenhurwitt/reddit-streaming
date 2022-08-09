@@ -4,16 +4,8 @@ FROM cluster-base
 
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
-# ARG psutil_version=5.9.0
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
-# COPY ./redditStreaming/creds.json ${SHARED_WORKSPACE}
-# COPY ./redditStreaming/fairscheduler.xml ${SHARED_WORKSPACE}
-# COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
-# COPY ./redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl ${SHARED_WORKSPACE}/redditStreaming/src/main/python/reddit/dist/
-
-# RUN apt-get install awscli && \
-  #   snap install terraform
 
 # base python
 RUN apt-get update -y && \
