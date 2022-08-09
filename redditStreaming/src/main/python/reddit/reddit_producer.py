@@ -4,7 +4,7 @@ import datetime as dt
 import requests
 import kafka
 import pprint
-import boto3
+# import boto3
 import yaml
 import time
 import json
