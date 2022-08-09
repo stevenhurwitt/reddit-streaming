@@ -11,25 +11,11 @@ import os
 
 def test_aws_creds():
 
-    # set environment variables
-    os.environ["subreddit"] = "technology"
-    os.environ["AWS_ACCESS_KEY_ID"] = "AKIA6BTEPFALMZ7ZHAYU"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = ""
-
-    # set local vars
-    # subreddit = os.environ["subreddit"]
-    # aws_client = os.environ["AWS_ACCESS_KEY_ID"]
-    # aws_secret = os.environ["AWS_SECRET_ACCESS_KEY"]
-    subreddit = "technology"
-    aws_client = "AKIA6BTEPFALMZ7ZHAYU"
-    aws_secret = ""
-
     # aws
     secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    client = secrets.getSecretValue("AWS_ACCESS_KEY_ID")
-    secret = secrets.getSecretValue("AWS_SECRET_ACCESS_KEY")
-    # print("client: {}, secret: {}.".format(client, secret))
-    assert True == True
+    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    assert type(aws_client) == str
 
 
 def test_spark_session():
@@ -37,15 +23,14 @@ def test_spark_session():
 
     # add to path
     sys.path.append(base + "/src/test/python")
-    sys.path.append(base + "/src/test/python/test/test_reddit_streaming")
 
-    # set environment variables
-    os.environ["subreddit"] = "technology"
-    aws_client = "AKIA6BTEPFALMZ7ZHAYU"
-    aws_secret = ""
+    # set secret variables
+    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
  
     # set local vars
-    subreddit = os.environ["subreddit"]
+    subreddit = "technology"
     print("subreddit: {}".format(os.environ["subreddit"]))
 
     spark_host = "spark-master"
@@ -85,7 +70,7 @@ def test_spark_session():
 
 def read_raw_s3(spark, subreddit):
     # set s3 filepaths
-    bucket = "reddit-stevenhurwitt"
+    bucket = "reddit-streaming-stevenhurwitt"
     folder = subreddit
     filepath = "s3a://{}/{}/".format(bucket, folder)
 
@@ -98,7 +83,7 @@ def read_raw_s3(spark, subreddit):
 
 def read_clean_s3(spark, subreddit):
     # set s3 filepaths
-    bucket = "reddit-stevenhurwitt"
+    bucket = "reddit-streaming-stevenhurwitt"
     clean_folder = subreddit + "_clean"
     clean_filepath = "s3a://{}/{}/".format(bucket, clean_folder)
 
