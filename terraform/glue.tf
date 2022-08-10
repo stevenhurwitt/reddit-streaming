@@ -21,7 +21,7 @@ resource "aws_glue_job" "news" {
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
     # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
-    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
+    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log/"
   }
 }
 
@@ -47,7 +47,7 @@ resource "aws_glue_job" "technology" {
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
     # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
-    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
+    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log/"
   }
 }
 
@@ -73,7 +73,7 @@ resource "aws_glue_job" "worldnews" {
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
     # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
-    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
+    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log/"
   }
 }
 
@@ -99,7 +99,7 @@ resource "aws_glue_job" "ProgrammerHumor" {
     "--extra-py-files"              = "s3://${var.s3_bucket_name}/jars/delta.zip"
     # "--user-jars-first"             = "true"
     "--enable-spark-ui"            = "true"
-    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log"
+    "--spark-event-logs-path"     = "s3://${var.s3_bucket_name}/spark_event_log/"
   }
 }
 
