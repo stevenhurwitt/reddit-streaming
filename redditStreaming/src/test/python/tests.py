@@ -50,7 +50,7 @@ def test_spark_session():
             .config("spark.eventLog.enabled", "true") \
             .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
             .config("spark.sql.debug.maxToStringFields", 1000) \
-            .config("spark.jars.packages", extra_jar_list[0]) \
+            .config("spark.jars.packages", extra_jar_list) \
             .config("spark.hadoop.fs.s3a.access.key", aws_client) \
             .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
