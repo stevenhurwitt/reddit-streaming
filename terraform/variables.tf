@@ -59,6 +59,48 @@ variable "folder_worldnews_clean" {
     type = string
 }
 
+# more subreddits
+
+variable "folder_blackpeopletwitter" {
+    default = "blackpeopletwitter"
+    type = string
+}
+
+variable "folder_whitepeopletwitter" {
+    default = "whitepeopletwitter"
+    type = string
+}
+
+variable "folder_bikinibottomtwitter" {
+    default = "bikinibottomtwitter"
+    type = string
+}
+
+variable "folder_aws" {
+    default = "aws"
+    type = string
+}
+
+variable "folder_blackpeopletwitter_clean" {
+    default = "blackpeopletwitter_clean"
+    type = string
+}
+
+variable "folder_whitepeopletwitter_clean" {
+    default = "whitepeopletwitter_clean"
+    type = string
+}
+
+variable "folder_bikinibottomtwitter_clean" {
+    default = "bikinibottomtwitter_clean"
+    type = string
+}
+
+variable "folder_aws_clean" {
+    default = "aws_clean"
+    type = string
+}
+
 variable "folder_jars" {
     default = "jars"
     type = string
