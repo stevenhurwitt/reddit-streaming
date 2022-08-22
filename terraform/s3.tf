@@ -4,10 +4,10 @@ resource "aws_s3_bucket" "reddit_stevenhurwitt" {
     bucket        = "${var.s3_bucket_name}"
 }
 
-resource "aws_s3_bucket_acl" "reddit_stevenhurwitt" {
-    bucket        = aws_s3_bucket.reddit_stevenhurwitt.id
-    acl         = "private"
-}
+# resource "aws_s3_bucket_acl" "reddit_stevenhurwitt" {
+#     bucket        = aws_s3_bucket.reddit_stevenhurwitt.id
+#     acl         = "private"
+# }
 
 # raw folders
 # resource "aws_s3_object" "news" {
@@ -111,15 +111,15 @@ resource "aws_s3_object" "aws_clean" {
   content_type = "application/x-directory"
 }
 
-# jar folder
-resource "aws_s3_object" "jars" {
-  bucket       = "${aws_s3_bucket.reddit_stevenhurwitt.id}"
-  key          = "${var.folder_jars}/"
-  content_type = "application/x-directory"
-}
+# # jar folder
+# resource "aws_s3_object" "jars" {
+#   bucket       = "${aws_s3_bucket.reddit_stevenhurwitt.id}"
+#   key          = "${var.folder_jars}/"
+#   content_type = "application/x-directory"
+# }
 
-resource "aws_s3_object" "scripts" {
-  bucket       = "${aws_s3_bucket.reddit_stevenhurwitt.id}"
-  key          = "${var.folder_scripts}/"
-  content_type = "application/x-directory"
-}
+# resource "aws_s3_object" "scripts" {
+#   bucket       = "${aws_s3_bucket.reddit_stevenhurwitt.id}"
+#   key          = "${var.folder_scripts}/"
+#   content_type = "application/x-directory"
+# }
