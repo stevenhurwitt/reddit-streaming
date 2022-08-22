@@ -1,5 +1,6 @@
-<<<<<<< HEAD
+import os
 import sys
+import json
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
@@ -57,4 +58,3 @@ athena.start_query_execution(
          })
 
 job.commit()
->>>>>>> 345dc93a034d9a24d5b9e8e648345c5c3d93ee28
