@@ -25,6 +25,8 @@ Go to docker directory and run build script.
 
 `docker rmi $(docker images | grep "^<none>" | awk "{print $3}")`
 
+`docker system prune && docker volume prune && docker container prune && docker image prune`
+
 ### Note on versions
 
 When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `pom.xml`, `requirements.txt` and `reddit_streaming.py`.

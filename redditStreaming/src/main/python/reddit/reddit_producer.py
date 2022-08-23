@@ -50,7 +50,7 @@ def get_bearer():
         print("credentials file not found.")
         sys.exit()
 
-    auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
+    auth = requests.auth.HTTPBasicAuth(creds["client_id"], creds["secret_id"])
     data = {
             'grant_type': 'password',
             'username': creds["user"],
