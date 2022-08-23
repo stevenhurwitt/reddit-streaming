@@ -25,6 +25,8 @@ jobs:
         shell: bash
         env:
           SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: upload_scripts
+        run: aws s3 sync scripts/. s3://reddit-streaming-stevenhurwitt/scripts
       - name: build dockerfiles
         run: ./build.sh
       - name: python dependencies
