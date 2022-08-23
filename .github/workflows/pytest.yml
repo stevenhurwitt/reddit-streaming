@@ -40,8 +40,8 @@ jobs:
         run: pip install -r redditStreaming/requirements.txt
       - name: versions
         run: python --version && pip --version
-      - name: pytest versions
-        run: python pytest --version
+      # - name: pytest versions
+      #   run: python pytest --version
       # - name: Configure AWS Credentials
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
