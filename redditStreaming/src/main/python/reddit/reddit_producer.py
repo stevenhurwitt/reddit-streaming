@@ -36,7 +36,7 @@ def get_bearer():
     """
     base = os.getcwd()
 
-    creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
+    # creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
     # creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(base, "creds.json")
@@ -47,9 +47,10 @@ def get_bearer():
             f.close()
 
     except FileNotFoundError:
-        with open(creds_path_container, "r") as f:
-            creds = json.load(f)
-            f.close()
+        print("failed to find creds.json")
+        # with open(creds_path_container, "r") as f:
+        #     creds = json.load(f)
+        #     f.close()
 
     except:
         print("credentials file not found.")
