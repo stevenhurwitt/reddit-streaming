@@ -38,8 +38,8 @@ def get_bearer():
 
     creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
-    creds_dir = "/".join(base.split("/")[:-3])
-    creds_path = os.path.join(creds_dir, "creds.json")
+    # creds_dir = "/".join(base.split("/")[:-3])
+    creds_path = os.path.join(base, "creds.json")
 
     try:
         with open(creds_path, "r") as f:
