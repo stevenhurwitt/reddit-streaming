@@ -22,12 +22,6 @@ except:
 
 pp = pprint.PrettyPrinter(indent = 1)
 
-# def aws():
-#     s3_client = boto3.client("s3")
-#     athena_client = boto3.client("athena")
-#     secret_client = boto3.client("secrets")
-#     return(s3_client, athena_client, secret_client)
-
 def get_bearer():
     """
     gets bearer token from reddit.
@@ -36,7 +30,7 @@ def get_bearer():
     """
     base = os.getcwd()
 
-    # creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
+    creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
     # creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(base, "creds.json")
@@ -48,9 +42,9 @@ def get_bearer():
 
     except FileNotFoundError:
         print("failed to find creds.json")
-        # with open(creds_path_container, "r") as f:
-        #     creds = json.load(f)
-        #     f.close()
+        with open(creds_path_container, "r") as f:
+            creds = json.load(f)
+            f.close()
 
     except:
         print("credentials file not found.")
