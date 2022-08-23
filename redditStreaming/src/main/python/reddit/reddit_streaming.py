@@ -12,9 +12,9 @@ def read_files():
     """
 
     base = os.getcwd()
-    creds_path_container = os.path.join(base, "creds.json")
+    # creds_path_container = os.path.join(base, "creds.json")
 
-    creds_dir = "/".join(base.split("/")[:-3])
+    # creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(base, "creds.json")
 
     try:
@@ -26,7 +26,7 @@ def read_files():
     except FileNotFoundError:
         # print("couldn't find: {}.".format(creds_path))
         try:
-            with open(creds_path_container, "r") as f:
+            with open(creds_path, "r") as f:
                 creds = json.load(f)
                 f.close()
 
