@@ -1,5 +1,5 @@
 name: docker
-on: [push]
+on: [push, pull_request]
 jobs:
   docker:
     runs-on: ubuntu-latest
