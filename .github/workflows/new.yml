@@ -1,0 +1,58 @@
+name: new
+on: [push, pull_request]
+jobs:
+  new:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: '/'
+      - name: create txt files
+        run: touch aws_access_key.txt && touch aws_secret.txt
+      - name: aws access key id
+        run: 'echo "$ACCESS_KEY" > aws_access_key.txt'
+        shell: bash
+        env:
+          ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
+      - name: aws secret key
+        run: 'echo "$SECRET_KEY" > aws_secret.txt'
+        shell: bash
+        env:
+          SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: build dockerfiles
+        run: ./build.sh
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip
+      - name: pip dependencies
+        run: pip install pytest pytest-md pytest-emoji
+      - name: requirements
+        run: pip install -r redditStreaming/requirements.txt
+      - name: versions
+        run: python --version && pip --version
+      - name: pytest versions
+        run: python pytest --version
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+          role-duration-seconds: 1200
+          role-session-name: pytest
+      - name: Run pytest
+        uses: pavelzw/pytest-action@v1
+        with:
+          verbose: true
+          emoji: false
+          job_summary: false
+          custom_arguments: 'redditStreaming/src/test/python/tests.py -vq'
+      # - name: pytest
+      #   run: pytest redditStreaming/src/test/python/tests.py -v
