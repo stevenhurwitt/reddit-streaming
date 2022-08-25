@@ -49,12 +49,12 @@ jobs:
           role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
           role-duration-seconds: 1200
           role-session-name: pytest
-      - name: Run pytest
-        uses: pavelzw/pytest-action@v1
-        with:
-          verbose: true
-          emoji: false
-          job_summary: false
-          custom_arguments: 'redditStreaming/src/test/python/tests.py -vq'
+      # - name: Run pytest
+      #   uses: pavelzw/pytest-action@v1
+      #   with:
+      #     verbose: true
+      #     emoji: false
+      #     job_summary: false
+      #     custom_arguments: 'redditStreaming/src/test/python/tests.py -vq'
       # - name: pytest
       #   run: pytest redditStreaming/src/test/python/tests.py -v
