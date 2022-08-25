@@ -14,4 +14,4 @@ jobs:
       - name: versions
         run: mvn -version && java -version
       - name: build uberjar
-        run: cd ./redditStreaming && mvn clean package
+        run: cd ./redditStreaming && mvn clean install
