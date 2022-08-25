@@ -58,8 +58,7 @@ def get_bearer():
             }
     headers = {'User-Agent': 'reddit-streaming/0.0.1'}
 
-    response = requests.post('https://www.reddit.com/api/v1/access_token',
-                    auth=auth, data=data, headers=headers)
+    response = requests.post('https://www.reddit.com/api/v1/access_token', auth=auth, data=data, headers=headers)
 
     try:
         token = response.json()["access_token"]
@@ -274,8 +273,8 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            # debug = config["debug"]
-            debug = True
+            debug = config["debug"]
+            # debug = True
             f.close()
     
     except:

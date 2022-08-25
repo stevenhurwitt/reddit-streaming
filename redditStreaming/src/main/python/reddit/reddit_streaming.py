@@ -70,9 +70,9 @@ def init_spark(subreddit, index):
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "4096m") \
+                    .config("spark.executor.memory", "4g") \
                     .config("spark.executor.cores", "4") \
-                    .config("spark.streaming.concurrentJobs", "4") \
+                    .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
                     .config("spark.eventLog.enabled", "true") \
@@ -105,7 +105,7 @@ def init_spark(subreddit, index):
 
     return(spark, sc)
     
-def read_kafka_stream(spark, sc, subreddit):
+def read_kafka_stream(spark, sc, subreddit, index):
     """
     reads streaming data from kafka producer
 
@@ -221,6 +221,13 @@ def read_kafka_stream(spark, sc, subreddit):
         StructField("is_video", BooleanType(), False),
     ])
 
+    # index i
+    index = 0
+    sc = spark.sparkContext
+    sc.setLogLevel('WARN')
+    sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
+    index += 1
+
     # read json from kafka and select all columns
     df = spark \
             .readStream \
@@ -276,7 +283,7 @@ def main():
     for i, s in enumerate(subreddit_list):
         spark, sc = init_spark(s, i)
 
-        stage_df = read_kafka_stream(spark, sc, s)
+        stage_df = read_kafka_stream(spark, sc, s, i)
 
         try:
             write_stream(stage_df, s)
