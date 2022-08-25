@@ -13,5 +13,5 @@ jobs:
       - uses: olafurpg/setup-scala@v11
       - name: versions
         run: mvn -version && java -version
-      - name: build uberjar
+      - name: mvn clean install
         run: cd ./redditStreaming && mvn clean install
