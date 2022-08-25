@@ -1,4 +1,4 @@
-name: wheel files
+name: python
 on: [push, pull_request]
 jobs:
   reddit:
