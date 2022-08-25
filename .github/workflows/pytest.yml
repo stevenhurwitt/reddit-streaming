@@ -38,8 +38,8 @@ jobs:
         run: pip install pytest pytest-md pytest-emoji
       - name: requirements
         run: pip install -r redditStreaming/requirements.txt
-      - name: versions
-        run: python --version && pip --version
+      # - name: versions
+      #   run: python --version && pip --version
       # - name: pytest versions
       #   run: python pytest --version
       # - name: Configure AWS Credentials
