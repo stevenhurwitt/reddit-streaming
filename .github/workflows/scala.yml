@@ -14,4 +14,4 @@ jobs:
       - name: versions
         run: mvn -version && java -version
       - name: mvn clean install
-        run: cd ./redditStreaming && mvn clean install
+        run: cd ./redditStreaming && mvn clean package
