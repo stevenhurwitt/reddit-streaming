@@ -69,4 +69,10 @@ s3 artifact directory.
 
 configure aws cli first.
 
+### upload
+
 `aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/`
+
+### download
+
+`aws s3 sync s3://reddit-streaming-stevenhurwitt/scripts/ redditStreaming/src/main/python/scripts/.`
