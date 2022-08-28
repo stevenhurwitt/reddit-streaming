@@ -64,3 +64,9 @@ If there are kafka errors, run `docker-compose down`, delete `cluster_config/kaf
 s3 artifact directory.
 
 `s3://aws-glue-assets-965504608278-us-east-2/scripts/`
+
+### aws s3 sync
+
+configure aws cli first.
+
+`aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/`
