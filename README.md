@@ -1,4 +1,5 @@
 # reddit-streaming
+
 An attempt to stream data from the reddit api using kafka, process with spark, and store in s3 data lake.
 
 ## Build dockerfiles
@@ -7,15 +8,27 @@ Go to docker directory and run build script.
 
 `./build.sh`
 
+Run docker-compose.
+
 `docker-compose up -d --no-recreate`
 
 ## Start streaming data
 
+Activate the virtual environment.
+
+`source redditStreaming/reddit-env/bin/activate`
+
+Go to reddit directory.
+
 `cd redditStreaming/src/main/python/reddit`
+
+Start pyspark streaming application.
 
 `python3 -m reddit_streaming.py`
 
 ## Start kafka producer
+
+Start the kafka producer.
 
 `python3 -m reddit_producer.py`
 
@@ -23,7 +36,11 @@ Go to docker directory and run build script.
 
 ### Remove untagged docker images
 
+Remove untagged docker images.
+
 `docker rmi $(docker images | grep "^<none>" | awk "{print $3}")`
+
+Prune docker system volumes, containers & images.
 
 `docker system prune && docker volume prune && docker container prune && docker image prune`
 
@@ -43,5 +60,7 @@ If there are kafka errors, run `docker-compose down`, delete `cluster_config/kaf
 
 
 ## S3
+
+s3 artifact directory.
 
 `s3://aws-glue-assets-965504608278-us-east-2/scripts/`
