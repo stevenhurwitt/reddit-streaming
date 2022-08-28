@@ -17,7 +17,7 @@ RUN apt-get update -y && \
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
+# RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
