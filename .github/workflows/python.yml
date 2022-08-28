@@ -13,6 +13,24 @@ jobs:
           name: "creds.json"
           json: ${{ secrets.CREDS }}
           dir: '/redditStreaming'
+      - name: create txt files
+        run: touch aws_access_key.txt && touch aws_secret.txt
+      - name: aws access key id
+        run: 'echo "$ACCESS_KEY" > aws_access_key.txt'
+        shell: bash
+        env:
+          ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
+      - name: aws secret key
+        run: 'echo "$SECRET_KEY" > aws_secret.txt'
+        shell: bash
+        env:
+          SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: list directory
+        run: ls
+      - name: cat access_key
+        run: cat aws_access_key.txt
+      - name: build dockerfiles
+        run: ./build.sh
       - name: python dependencies
         run: sudo apt-get install python3 python3-pip python3-virtualenv
       - name: versions
@@ -24,4 +42,4 @@ jobs:
       - name: version check
         run: python3 --version && pip --version && pytest --version
       - name: pytest
-        run: pytest -vq redditStreaming/src/test/python/tests.py
+        run: docker exec -it jupyterlab "pytest -vq redditStreaming/src/test/python/tests.py"
