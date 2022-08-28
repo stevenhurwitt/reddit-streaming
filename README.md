@@ -76,3 +76,28 @@ configure aws cli first.
 ### download
 
 `aws s3 sync s3://reddit-streaming-stevenhurwitt/scripts/ redditStreaming/src/main/python/scripts/.`
+
+## github actions
+
+### pipelines
+
+- `scala.yml`
+- `python.yml`
+- `docker.yml`
+- `terraform.yml`
+
+### scala
+
+scala.
+
+### python
+
+python.
+
+### docker
+
+docker.
+
+### terraform
+
+terraform.
