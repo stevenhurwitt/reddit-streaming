@@ -4,6 +4,8 @@ secrets:
     file: aws_access_key.txt
   aws_secret_access_key: 
     file: aws_secret.txt
+  tf_api_token:
+    file: tf_api_token.txt
 volumes:
   shared-workspace:
     driver: local
@@ -20,6 +22,7 @@ services:
       - JUPYTER_TOKEN=easy
       - AWS_ACCESS_KEY_ID=aws_access_key_id
       - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+      - TF_API_TOKEN=tf_api_token
     ports:
       - 8899:8888
     volumes:
