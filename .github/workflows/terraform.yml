@@ -6,6 +6,31 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: 'redditStreaming/'
+      - name: create txt files
+        run: touch aws_access_key.txt && touch aws_secret.txt
+      - name: aws access key id
+        run: 'echo "$ACCESS_KEY" > aws_access_key.txt'
+        shell: bash
+        env:
+          ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
+      - name: aws secret key
+        run: 'echo "$SECRET_KEY" > aws_secret.txt'
+        shell: bash
+        env:
+          SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: list directory
+        run: ls
+      - name: cat access_key
+        run: cat aws_access_key.txt
+      - name: build dockerfiles
+        run: ./build.sh
       - name: change directory
         run: cd terraform
       - name: Setup Terraform
