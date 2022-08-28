@@ -100,23 +100,31 @@ def write_console(df):
 
 def main():
 
-    print("running tests...")
+    try:
+        print("running tests...")
 
-    test_aws_creds()
+        test_aws_creds()
 
-    spark, subreddit = test_spark_session()
+        spark, subreddit = test_spark_session()
 
-    df_raw = read_raw_s3(spark, subreddit)
+        df_raw = read_raw_s3(spark, subreddit)
 
-    df_clean = read_clean_s3(spark, subreddit)
+        df_clean = read_clean_s3(spark, subreddit)
 
-    write_console(df_raw)
+        write_console(df_raw)
 
-    write_console(df_clean)
+        write_console(df_clean)
 
-    print("tests completed.")
+        print("tests completed.")
+
+    except Exception as e:
+        print("exception: {}".format(e))
 
 
 if __name__ == "__main__":
 
-    main()
+    try:
+        main()
+
+    except Exception as e:
+        print("main exception: {}".format(e))
