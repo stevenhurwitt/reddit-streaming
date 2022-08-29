@@ -9,16 +9,16 @@ object producer {
     def main(args:Array[String]):Unit= {
 
         val aws_client = ""
-        val aws_secret = ""
+        val aws_secret = "abc"
         
         val spark = SparkSession.builder
                                 .master("spark://spark-master:7077")
                                 .appName("producer")
                                 .config("spark.scheduler.mode", "FAIR")
                                 .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml")
-                                .config("spark.executor.memory", "2048m")
+                                .config("spark.executor.memory", "4096m")
                                 .config("spark.executor.cores", "1")
-                                .config("spark.streaming.concurrentJobs", "4")
+                                .config("spark.streaming.concurrentJobs", "8")
                                 .config("spark.local.dir", "/opt/workspace/tmp/driver/twitter/")
                                 .config("spark.worker.dir", "/opt/workspace/tmp/executor/twitter/")
                                 .config("spark.eventLog.enabled", "true")

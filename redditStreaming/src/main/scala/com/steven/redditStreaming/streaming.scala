@@ -9,8 +9,8 @@ object streaming {
 
 def streaming(args:Array[String]):Unit= {
 
-  // val aws_client = ""
-  // val aws_secret = "abc"
+  val aws_client = ""
+  val aws_secret = "abc"
 
   val spark: SparkSession = SparkSession.builder()
       .master("spark://xanaxprincess.asuscomm.com:7077")
@@ -55,40 +55,40 @@ val kafka_df = spark.readStream
         .option("includeHeaders", "true")
         .load()
 
-// println("read kafka.")
+println("read kafka.")
 
-// val json_schema = 
-//   new ArrayType(
-//     new StructType()
-//       .add("topic", StringType)
-//       .add("body", StringType)
-//   )
+val json_schema = 
+  new ArrayType(
+    new StructType()
+      .add("topic", StringType)
+      .add("body", StringType)
+  )
 
-// val json_schema = new ArrayType(new StructType().add("topic", StringType))
+val json_schema = new ArrayType(new StructType().add("topic", StringType))
 
-// println("created schema.")
+println("created schema.")
 
-// val json_schema = new ArrayType( new StructType().add("json", StringType))
+val json_schema = new ArrayType( new StructType().add("json", StringType))
 
 val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-// df.show()
+df.show()
 
-// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-//             .select(from_json(col("json"), json_schema)
-//             .alias("data"))
-//             .select("data.*")
+val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
+            .select(from_json(col("json"), json_schema)
+            .alias("data"))
+            .select("data.*")
 
-// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-//             .select(from_json(col("json"), json_schema).alias("data"))
-//             .select("data.*")
+val df2 = kafka_df.selectExpr("CAST(body AS STRING) as json")
+            .select(from_json(col("json"), json_schema).alias("data"))
+            .select("data.*")
 
-// println("created df.")
-// df.show()
+println("created df.")
+df.show()
 
 // write to console.
 
-// df.write.format("console").option("header", "true").option("truncate", "true").load()
-// df.writeStream.format("console").queryName("twitter-console").start()
+df.write.format("console").option("header", "true").option("truncate", "true").load()
+df.writeStream.format("console").queryName("twitter-console").start()
 
 // write to spark delta table.
 
@@ -127,11 +127,11 @@ jdbcDF.select("*").write.format("jdbc")
   .option("password", password)
   .save()
 
-// df.write.format("jdbc").option("header", "true)").
+df.write.format("jdbc").option("header", "true)")
 
 // allow continuous parallel streaming applications...
 
-// spark.streaming.awaitAnyTermination
+spark.streaming.awaitAnyTermination
 
 // print
 println("streaming...")
