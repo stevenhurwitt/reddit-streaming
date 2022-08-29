@@ -21,7 +21,7 @@ def streaming(args:Array[String]):Unit= {
       .config("spark.scheduler.allocation.file", "file:///opt/workspace/twitter-ingestion/fairscheduler.xml")
       .config("spark.executor.memory", "2048m")
       .config("spark.executor.cores", "1")
-      .config("spark.streaming.concurrentJobs", "4")
+      .config("spark.streaming.concurrentJobs", "8")
       .config("spark.local.dir", "/opt/workspace/tmp/driver/twitter/")
       .config("spark.worker.dir", "/opt/workspace/tmp/executor/twitter/")
       .config("spark.eventLog.enabled", "true")
