@@ -1,4 +1,4 @@
-package com.steven.reddit
+package com.steven.redditStreaming
 
 import org.apache.spark._
 import org.apache.spark.sql._
