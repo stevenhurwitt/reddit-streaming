@@ -101,7 +101,9 @@ print("wrote df to delta table.")
 val database = "twitter"
 val src_table = "dbo.twitter"
 val user = "postgres"
-val password  = "Secret!12345"
+// val password  = ""
+
+// Secret!12345
 
 val connection_str = ""
 val jdbcUrl = f"jdbc:postgresql://xanaxprincess.asuscomm.com:1433;databaseName={database}"
