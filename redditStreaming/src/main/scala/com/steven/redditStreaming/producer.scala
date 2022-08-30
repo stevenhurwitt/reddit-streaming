@@ -8,6 +8,11 @@ object producer {
 
     def main(args:Array[String]):Unit= {
 
+        // aws secrets...
+        
+        val aws_client = ""
+        val aws_secret = ""
+
         val aws_client = ""
         val aws_secret = "abc"
         
