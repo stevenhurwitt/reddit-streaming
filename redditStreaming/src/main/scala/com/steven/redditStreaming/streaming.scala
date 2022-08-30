@@ -36,7 +36,7 @@ def streaming(args:Array[String]):Unit= {
       .appName("streaming")
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file", "file:///opt/workspace/twitter-ingestion/fairscheduler.xml")
-      .config("spark.executor.memory", "2048m")
+      .config("spark.executor.memory", "4096m")
       .config("spark.executor.cores", "1")
       .config("spark.streaming.concurrentJobs", "8")
       .config("spark.local.dir", "/opt/workspace/tmp/driver/twitter/")
