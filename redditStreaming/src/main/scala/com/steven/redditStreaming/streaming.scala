@@ -9,11 +9,28 @@ object streaming {
 
 def streaming(args:Array[String]):Unit= {
 
-  val aws_client = ""
-  val aws_secret = "abc"
+  // aws secrets...
+  import scala.io.Source
+
+  val filename = "aws_access_key.txt"
+  val filename2 = "aws_secret.txt"
+  for (line <- Source.fromFile(filename).getLines) {
+      aws_client = line[0]
+      println("aws client: " + aws_client)
+
+  for (line <- Source.fromFile(filename2).getLines) {
+      // println(line)
+      aws_secret = line[0]
+      println("aws secret: ***")
+}
+  // val aws_client = ""
+  // val aws_secret = ""
+
+  if aws_client or aws_secret is None:
+      print("aws client or secret is None")
 
   val spark: SparkSession = SparkSession.builder()
-      .master("spark://xanaxprincess.asuscomm.com:7077")
+      .master("spark://spark-master:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
       .appName("streaming")
@@ -50,7 +67,7 @@ import spark.implicits._
 
 val kafka_df = spark.readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", "xanaxprincess.asuscomm.com:9092")
+        .option("kafka.bootstrap.servers", "kafka:9092")
         .option("subscribe", "twitter")
         .option("includeHeaders", "true")
         .load()

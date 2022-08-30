@@ -9,12 +9,24 @@ object producer {
     def main(args:Array[String]):Unit= {
 
         // aws secrets...
-        
-        val aws_client = ""
-        val aws_secret = ""
+        import scala.io.Source
 
-        val aws_client = ""
-        val aws_secret = "abc"
+        val filename = "aws_access_key.txt"
+        val filename2 = "aws_secret.txt"
+        for (line <- Source.fromFile(filename).getLines) {
+            aws_client = line[0]
+            println("aws client: " + aws_client)
+
+        for (line <- Source.fromFile(filename2).getLines) {
+            // println(line)
+            aws_secret = line[0]
+            println("aws secret: ***")
+}
+        // val aws_client = ""
+        // val aws_secret = ""
+
+        if aws_client or aws_secret is None:
+            print("aws client or secret is None")
         
         val spark = SparkSession.builder
                                 .master("spark://spark-master:7077")
