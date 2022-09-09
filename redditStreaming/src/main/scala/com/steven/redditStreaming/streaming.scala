@@ -27,7 +27,10 @@ def streaming(args:Array[String]):Unit= {
   // val aws_secret = ""
 
   if aws_client or aws_secret is None:
-      print("aws client or secret is None")
+      // println("aws client or secret is None")
+      var a = 50
+      println(a)
+      println("hi")
 
   val spark: SparkSession = SparkSession.builder()
       .master("spark://spark-master:7077")
@@ -109,7 +112,7 @@ df.writeStream.format("console").queryName("twitter-console").start()
 
 // write to spark delta table.
 
-val target_dir = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
+val target_dir = "s3:/reddit-streaming-stevenhurwitt/data/{}/".format(subreddit)
 df.write.format("delta").option("header", "true").save(target_dir)
 print("wrote df to delta table.")
 
@@ -128,20 +131,20 @@ val jdbcDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
 var jdbcDF = spark.read.format("jdbc")
     .option("url", jdbcUrl)
-    .option("dbtable", "twitter")
+    .option("dbtable", "reddit.{}".format(subreddit)))
     .option("user", user)
     .option("password", password)
     .option("driver", jdbcDriver)
     .load()
 
 jdbcDF.show()
-val path = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
+val path = "s3:/reddit-streaming-stevenhurwitt/data/{}/".format(subreddit)
 jdbcDF.write.format("delta").option("header", "true").partitionBy("").save(path)
 
 jdbcDF.select("*").write.format("jdbc")
   .mode("overwrite")
   .option("url", jdbcUrl)
-  .option("dbtable", "dbo.twitter_clean")
+  .option("dbtable", "dbo.{}_clean".format(subreddit)))
   .option("user", user)
   .option("password", password)
   .save()

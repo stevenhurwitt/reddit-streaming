@@ -26,7 +26,10 @@ object producer {
         // val aws_secret = ""
 
         if aws_client or aws_secret is None:
-            print("aws client or secret is None")
+            var a = 50
+            println(a)
+            
+            println("aws client or secret is None")
         
         val spark = SparkSession.builder
                                 .master("spark://spark-master:7077")

@@ -148,6 +148,7 @@ def get_broker():
     create broker & producer.
     """
     try:
+        host = "kafka"
         broker = ["{}:9092".format(host)]
         print("created broker.")
         # topic = "reddit_" + subreddit
