@@ -357,6 +357,8 @@ def main():
 
         sc = spark.sparkContext
         print("created spark & sc.")
+        print("spark: {}".format(spark))
+        print("spark context: {}".format(sc))
         # subreddit_list = []
         subreddit_list = config["subreddit"]
         for i, s in enumerate(subreddit_list):

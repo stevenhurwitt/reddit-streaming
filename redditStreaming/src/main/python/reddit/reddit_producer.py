@@ -143,6 +143,29 @@ def subset_response(response):
 
     return(data, after_token)
 
+def get_broker():
+    """
+    create broker & producer.
+    """
+    try:
+        broker = ["{}:9092".format(host)]
+        print("created broker.")
+        # topic = "reddit_" + subreddit
+
+        producer = KafkaProducer(
+                    bootstrap_servers=broker,
+                    value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
+                )
+        print("intialized producer.")
+    
+    except kafka.errors.NoBrokersAvailable:
+        print("no kafka broker available.")
+        sys.exit()
+
+    return(broker, producer)
+
+
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     infinite loop to poll api & push new responses to kafka
@@ -158,6 +181,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     try:
         broker = ["{}:9092".format(host)]
+        print("created broker.")
         # topic = "reddit_" + subreddit
 
         producer = KafkaProducer(
@@ -165,6 +189,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     value_serializer=my_serializer
                     # api_version = (0, 10, 2)
                 )
+        print("intialized producer.")
     
     except kafka.errors.NoBrokersAvailable:
         print("no kafka broker available.")
@@ -173,13 +198,18 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
     topic = params["topic"][index]
+    print("created topics.")
 
     token_list = []
 
     for i, s in enumerate(subreddit):
+        print("subreddit: {}".format(subreddit))
         my_response = get_subreddit(s, 1, post_type, "", header)
+        print("got response.")
         my_data, after_token = subset_response(my_response)
+        print("got data.")
         token_list.append(after_token)
+        print("got token")
         # with open("sample_response.json", "w") as f:
         #     json.dump(my_data, f, indent = 1)
 
@@ -293,5 +323,23 @@ def main():
 
 if __name__ == "__main__":
     # time.sleep(600)
-    print("reading from api to kafka...")
-    main()
+    try:
+        print("reading from api to kafka...")
+        main()
+
+    except Exception as e:
+        print(e)
+
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            subreddit = config["subreddit"]
+            post_type = config["post_type"]
+            kafka_host = config["kafka_host"]
+            debug = config["debug"]
+            # debug = True
+            f.close()
+
+        print("read config.yaml.")
+        my_header = get_bearer()
+        print("authenticated w/ bearer token good for 24 hrs.")
+        poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
