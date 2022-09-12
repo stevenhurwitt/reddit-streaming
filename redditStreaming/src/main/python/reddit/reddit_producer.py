@@ -204,7 +204,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     token_list = []
 
     for i, s in enumerate(subreddit):
-        print("subreddit: {}".format(subreddit))
+        # print("subreddit: {}".format(subreddit))
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
