@@ -182,7 +182,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     try:
         broker = ["{}:9092".format(host)]
-        print("created broker.")
+        # print("created broker.")
         # topic = "reddit_" + subreddit
 
         producer = KafkaProducer(
@@ -199,18 +199,16 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
     topic = params["topic"][index]
-    print("created topics.")
+    # print("created topics.")
 
     token_list = []
 
     for i, s in enumerate(subreddit):
         print("subreddit: {}".format(subreddit))
         my_response = get_subreddit(s, 1, post_type, "", header)
-        print("got response.")
         my_data, after_token = subset_response(my_response)
-        print("got data.")
         token_list.append(after_token)
-        print("got token")
+        
         # with open("sample_response.json", "w") as f:
         #     json.dump(my_data, f, indent = 1)
 
