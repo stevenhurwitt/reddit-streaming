@@ -378,8 +378,6 @@ def main():
     except Exception as e:
         print("inner exception: {}".format(e))
 
-    
-
 if __name__ == "__main__":
 
     try:
