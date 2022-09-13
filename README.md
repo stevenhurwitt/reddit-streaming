@@ -1,6 +1,6 @@
 # reddit-streaming
 
-An attempt to stream data from the reddit api using kafka, process with spark, and store in s3 data lake.
+An attempt to stream multiple subreddits from the reddit api using kafka & spark, and store in s3 data lake as delta tables. nightly glue jobs processes raw data into clean data partitioned by year/month/day.
 
 ## Build dockerfiles
 
@@ -11,6 +11,10 @@ Go to docker directory and run build script.
 Run docker-compose.
 
 `docker-compose up -d --no-recreate`
+
+Access jupyterlab shell.
+
+`docker exec -it jupyterlab bash`
 
 ## Start streaming data
 
@@ -31,8 +35,6 @@ Start pyspark streaming application.
 Start the kafka producer.
 
 `python3 -m reddit_producer.py`
-
-## Etc.
 
 ### Remove untagged docker images
 
@@ -68,8 +70,6 @@ s3 artifact directory.
 ### aws s3 sync
 
 configure aws cli first.
-
-`aws help`
 
 `aws configure`
 
