@@ -83,6 +83,8 @@ configure aws cli first.
 
 ## github actions
 
+https://github.com/stevenhurwitt/reddit-streaming/actions
+
 ### pipelines
 
 - `scala.yml`
