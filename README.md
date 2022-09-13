@@ -69,6 +69,10 @@ s3 artifact directory.
 
 configure aws cli first.
 
+`aws help`
+
+`aws configure`
+
 ### upload
 
 `aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/`
@@ -88,16 +92,26 @@ configure aws cli first.
 
 ### scala
 
-scala.
+Install dependencies, package uberjar.
+
+`cd redditStreaming && mvn clean install && mvn clean package`
 
 ### python
 
-python.
+Build wheel file.
+
+`cd redditStreaming/src/main/python/reddit && python3 setup.py bdist_wheel`
 
 ### docker
 
-docker.
+Docker Compose.
+
+`docker-compose down && ./build.sh && docker-compose up -d`
+
+jupyterlab shell.
+
+`docker exec -it jupyterlab bash`
 
 ### terraform
 
-terraform.
+`cd terraform && tf plan -out tfplan && tf apply tfplan`
