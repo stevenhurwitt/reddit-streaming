@@ -29,8 +29,8 @@ jobs:
         run: ls
       - name: cat access_key
         run: cat aws_access_key.txt
-      - name: build dockerfiles
-        run: ./build.sh
+      # - name: build dockerfiles
+      #   run: ./build.sh
       - name: change directory
         run: cd terraform
       - name: Setup Terraform
