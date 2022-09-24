@@ -33,8 +33,8 @@ jobs:
         run: ./build.sh
       # - name: aws s3 download scripts
       #   run: aws s3 sync s3://reddit-streaming-stevenhurwitt/scripts/ redditStreaming/src/main/python/scripts/
-      - name: aws s3 upload scripts
-        run: aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/
+      # - name: aws s3 upload scripts
+      #   run: aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/
       # - name: run docker-compose
       #   uses: sudo-bot/action-docker-compose@latest
       #   with:
