@@ -15,5 +15,5 @@ jobs:
         run: mvn -version && java -version
       - name: mvn clean install
         run: cd ./redditStreaming && mvn clean package
-      - name: push jar to s3
-        run: aws s3 sync ./redditStreaming/target/uber-reddit-1.0-SNAPSHOT.jar s3://reddit-streaming-stevenhurwitt/jars
+      # - name: push jar to s3
+      #   run: aws s3 sync ./redditStreaming/target/uber-reddit-1.0-SNAPSHOT.jar s3://reddit-streaming-stevenhurwitt/jars
