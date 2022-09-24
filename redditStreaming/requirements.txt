@@ -18,7 +18,7 @@ cryptography==35.0.0
 debugpy==1.4.1
 decorator==5.1.1
 defusedxml==0.7.1
-delta==0.4.2
+delta
 distlib==0.3.5
 entrypoints==0.4
 fastjsonschema==2.15.3
@@ -68,8 +68,8 @@ prometheus-client==0.14.1
 prompt-toolkit==3.0.30
 ptyprocess==0.7.0
 py==1.11.0
-py4j==0.10.9.2
-pyarrow==5.0.0
+py4j
+pyarrow
 pycparser==2.21
 Pygments==2.12.0
 pyOpenSSL==22.0.0

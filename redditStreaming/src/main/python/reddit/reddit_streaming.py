@@ -1,10 +1,13 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
+import pprint
 import yaml
 import json
 import sys
 import os
+
+pp = pprint.PrettyPrinter(indent = 1)
 
 def read_files():
     """
@@ -70,9 +73,9 @@ def init_spark(subreddit, index):
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "4096m") \
-                    .config("spark.executor.cores", "4") \
-                    .config("spark.streaming.concurrentJobs", "4") \
+                    .config("spark.executor.memory", "8g") \
+                    .config("spark.executor.cores", "8") \
+                    .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
                     .config("spark.eventLog.enabled", "true") \
@@ -105,7 +108,7 @@ def init_spark(subreddit, index):
 
     return(spark, sc)
     
-def read_kafka_stream(spark, sc, subreddit):
+def read_kafka_stream(spark, sc, subreddit, index):
     """
     reads streaming data from kafka producer
 
@@ -221,6 +224,13 @@ def read_kafka_stream(spark, sc, subreddit):
         StructField("is_video", BooleanType(), False),
     ])
 
+    # index i
+    index = 0
+    sc = spark.sparkContext
+    sc.setLogLevel('WARN')
+    sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
+    index += 1
+
     # read json from kafka and select all columns
     df = spark \
             .readStream \
@@ -266,28 +276,107 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start()
 
+    # jdbc write to postgres config
+    postgres_host = "postgres"
+    postgres_db = "reddit"
+    postgres_user = "postgres"
+    postgres_password = "secret!123"
+
+    # write to postgres
+    # df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+    #     .select("subreddit", "title", "score", "created_utc") \
+    #     .writeStream \
+    #     .format("jdbc") \
+    #     .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
+    #     .option("dbtable", subreddit) \
+    #     .option("user", postgres_user) \
+    #     .option("password", postgres_password) \
+    #     .option("driver", "org.postgresql.Driver") \
+    #     .outputMode("append") \
+    #     .queryName(subreddit + "_postgres") \
+    #     .start()
+
+    # .select("subreddit", "title", "score", "created_utc") \
+    # .trigger(processingTime="180 seconds") \
+    # .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}_postgres".format(subreddit)) \
+
 def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
-    creds, config = read_files()
-    # subreddit_list = []
-    subreddit_list = config["subreddit"]
-    for i, s in enumerate(subreddit_list):
-        spark, sc = init_spark(s, i)
-
-        stage_df = read_kafka_stream(spark, sc, s)
+    try:
+        creds, config = read_files()
 
         try:
-            write_stream(stage_df, s)
-        
-        except KeyboardInterrupt:
-            spark.stop
-            sys.exit()
+            subreddit = os.environ["subreddit"]
+        except:
+            subreddit = "technology"
 
-    spark.streams.awaitAnyTermination()
+        spark_host = config["spark_host"]
+        kafka_host = config["kafka_host"]
+        subreddit = config["subreddit"]
+        post_type = config["post_type"]
+        debug = config["debug"]
+        aws_client = creds["aws_client"]
+        aws_secret = creds["aws_secret"]
+        reddit_client = creds["client_id"]
+        reddit_secret = creds["secret_id"]
+        reddit_user = creds["user"]
+        reddit_password = creds["password"]
+        print("read creds & config.")
 
-    
+        if debug:
+            # print("CREDS: ")
+            # pp.pprint(creds)
+            print("CONFIG: ")
+            pp.pprint(config)
+
+        spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
+                    .master("spark://{}:7077".format(spark_host)) \
+                    .config("spark.scheduler.mode", "FAIR") \
+                    .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
+                    .config("spark.executor.memory", "8g") \
+                    .config("spark.executor.cores", "8") \
+                    .config("spark.streaming.concurrentJobs", "8") \
+                    .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
+                    .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
+                    .config("spark.eventLog.enabled", "true") \
+                    .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
+                    .config("spark.sql.debug.maxToStringFields", 1000) \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:2.1.0") \
+                    .config("spark.hadoop.fs.s3a.access.key", aws_client) \
+                    .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
+                    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+                    .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
+                    .config('spark.hadoop.fs.s3a.buffer.dir', '/opt/workspace/tmp/blocks') \
+                    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+                    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+                    .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+                    .enableHiveSupport() \
+                    .getOrCreate()
+
+        sc = spark.sparkContext
+        print("created spark & sc.")
+        print("spark: {}".format(spark))
+        print("spark context: {}".format(sc))
+        # subreddit_list = []
+        subreddit_list = config["subreddit"]
+        for i, s in enumerate(subreddit_list):
+            spark, sc = init_spark(s, i)
+
+            stage_df = read_kafka_stream(spark, sc, s, i)
+
+            try:
+                write_stream(stage_df, s)
+            
+            except KeyboardInterrupt:
+                spark.stop
+                sys.exit()
+
+        spark.streams.awaitAnyTermination()
+
+    except Exception as e:
+        print("inner exception: {}".format(e))
 
 if __name__ == "__main__":
 
@@ -296,5 +385,5 @@ if __name__ == "__main__":
         main()
 
     except Exception as e:
-        print(e)
+        print("exception: {}".format(e))
         sys.exit()

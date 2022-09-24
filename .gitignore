@@ -1,17 +1,17 @@
-redditStreaming/creds.json
-redditStreaming/src/main/python/reddit/creds.json
-redditStreaming/src/test/python/creds.json
-redditStreaming/src/main/python/s3/creds.json
+# redditStreaming/creds.json
+# redditStreaming/src/main/python/reddit/creds.json
+# redditStreaming/src/test/python/creds.json
+# redditStreaming/src/main/python/s3/creds.json
 redditStreaming/src/test/python/__pycache__
-# redditStreaming/src/test/*/*/__pycache__
-redditStreaming/src/main/python/*/__init__.py
+redditStreaming/src/test/*/*/__pycache__
+# redditStreaming/src/main/python/*/__init__.py
 redditStreaming/src/main/python/reddit/__pycache__
-redditStreaming/src/main/python/s3/__init__.py
-redditStreaming/src/main/python/s3/__pycache__
-redditStreaming/src/main/python/s3/s3.egg-info
-redditStreaming/src/main/python/reddit/reddit-env
-redditStreaming/src/main/python/glue/env/glue
-redditStreaming/src/main/python/wheels/*.whl
+# redditStreaming/src/main/python/s3/__init__.py
+# redditStreaming/src/main/python/s3/__pycache__
+# redditStreaming/src/main/python/s3/s3.egg-info
+# redditStreaming/src/main/python/reddit/reddit-env
+# redditStreaming/src/main/python/glue/env/glue
+# redditStreaming/src/main/python/wheels/*.whl
 redditStreaming/target/*.jar
 redditStreaming/target
 redditStreaming/build_files
@@ -31,15 +31,18 @@ logs
 plugins
 gh/*
 gh
+jars
 pat.json
 ./pat.json
-aws_access_key.txt
-aws_secret.txt
-src/test/python/__pycache__
-src/test/python/.pytest_cache
+# aws_access_key.txt
+# aws_secret.txt
+# tf_api_token.txt
+*.txt
+# src/test/python/__pycache__
+# src/test/python/.pytest_cache
 cluster_config
 build_files
-redditStreaming/redditstreaming
+# redditStreaming/redditstreaming
 target/maven-archiver
 target/maven-status
 *.json
@@ -50,5 +53,5 @@ target/maven-status
 redditStreaming/*.json
 terraform/.terraform*
 terraform/*.tfstate*
-# terraform/*.tfvars
+terraform/*.tfvars
 

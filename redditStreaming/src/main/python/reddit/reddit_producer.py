@@ -22,12 +22,6 @@ except:
 
 pp = pprint.PrettyPrinter(indent = 1)
 
-# def aws():
-#     s3_client = boto3.client("s3")
-#     athena_client = boto3.client("athena")
-#     secret_client = boto3.client("secrets")
-#     return(s3_client, athena_client, secret_client)
-
 def get_bearer():
     """
     gets bearer token from reddit.
@@ -36,7 +30,7 @@ def get_bearer():
     """
     base = os.getcwd()
 
-    # creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
+    creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
 
     # creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(base, "creds.json")
@@ -48,15 +42,15 @@ def get_bearer():
 
     except FileNotFoundError:
         print("failed to find creds.json")
-        # with open(creds_path_container, "r") as f:
-        #     creds = json.load(f)
-        #     f.close()
+        with open(creds_path_container, "r") as f:
+            creds = json.load(f)
+            f.close()
 
     except:
         print("credentials file not found.")
         sys.exit()
 
-    auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
+    auth = requests.auth.HTTPBasicAuth(creds["client_id"], creds["secret_id"])
     data = {
             'grant_type': 'password',
             'username': creds["user"],
@@ -64,8 +58,7 @@ def get_bearer():
             }
     headers = {'User-Agent': 'reddit-streaming/0.0.1'}
 
-    response = requests.post('https://www.reddit.com/api/v1/access_token',
-                    auth=auth, data=data, headers=headers)
+    response = requests.post('https://www.reddit.com/api/v1/access_token', auth=auth, data=data, headers=headers)
 
     try:
         token = response.json()["access_token"]
@@ -150,6 +143,30 @@ def subset_response(response):
 
     return(data, after_token)
 
+def get_broker():
+    """
+    create broker & producer.
+    """
+    try:
+        host = "kafka"
+        broker = ["{}:9092".format(host)]
+        print("created broker.")
+        # topic = "reddit_" + subreddit
+
+        producer = KafkaProducer(
+                    bootstrap_servers=broker,
+                    value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
+                )
+        print("intialized producer.")
+    
+    except kafka.errors.NoBrokersAvailable:
+        print("no kafka broker available.")
+        sys.exit()
+
+    return(broker, producer)
+
+
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     infinite loop to poll api & push new responses to kafka
@@ -165,6 +182,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     try:
         broker = ["{}:9092".format(host)]
+        # print("created broker.")
         # topic = "reddit_" + subreddit
 
         producer = KafkaProducer(
@@ -172,6 +190,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     value_serializer=my_serializer
                     # api_version = (0, 10, 2)
                 )
+        print("intialized producer.")
     
     except kafka.errors.NoBrokersAvailable:
         print("no kafka broker available.")
@@ -180,13 +199,16 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
     topic = params["topic"][index]
+    # print("created topics.")
 
     token_list = []
 
     for i, s in enumerate(subreddit):
+        # print("subreddit: {}".format(subreddit))
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
+        
         # with open("sample_response.json", "w") as f:
         #     json.dump(my_data, f, indent = 1)
 
@@ -280,8 +302,8 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            # debug = config["debug"]
-            debug = True
+            debug = config["debug"]
+            # debug = True
             f.close()
     
     except:
@@ -300,5 +322,23 @@ def main():
 
 if __name__ == "__main__":
     # time.sleep(600)
-    print("reading from api to kafka...")
-    main()
+    try:
+        print("reading from api to kafka...")
+        main()
+
+    except Exception as e:
+        print(e)
+
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            subreddit = config["subreddit"]
+            post_type = config["post_type"]
+            kafka_host = config["kafka_host"]
+            debug = config["debug"]
+            # debug = True
+            f.close()
+
+        print("read config.yaml.")
+        my_header = get_bearer()
+        print("authenticated w/ bearer token good for 24 hrs.")
+        poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)

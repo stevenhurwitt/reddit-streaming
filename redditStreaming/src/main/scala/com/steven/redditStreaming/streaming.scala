@@ -1,4 +1,4 @@
-package com.steven.reddit
+package com.steven.redditStreaming
 
 import org.apache.spark._
 import org.apache.spark.sql._
@@ -9,19 +9,39 @@ object streaming {
 
 def streaming(args:Array[String]):Unit= {
 
+  // aws secrets...
+  import scala.io.Source
+
+  val filename = "aws_access_key.txt"
+  val filename2 = "aws_secret.txt"
+  for (line <- Source.fromFile(filename).getLines) {
+      aws_client = line[0]
+      println("aws client: " + aws_client)
+
+  for (line <- Source.fromFile(filename2).getLines) {
+      // println(line)
+      aws_secret = line[0]
+      println("aws secret: ***")
+}
   // val aws_client = ""
-  // val aws_secret = "abc"
+  // val aws_secret = ""
+
+  if aws_client or aws_secret is None:
+      // println("aws client or secret is None")
+      var a = 50
+      println(a)
+      println("hi")
 
   val spark: SparkSession = SparkSession.builder()
-      .master("spark://xanaxprincess.asuscomm.com:7077")
+      .master("spark://spark-master:7077")
       // .master("spark://spark-master:7077")
       // .master("spark://192.168.50.7:7077")
       .appName("streaming")
       .config("spark.scheduler.mode", "FAIR")
       .config("spark.scheduler.allocation.file", "file:///opt/workspace/twitter-ingestion/fairscheduler.xml")
-      .config("spark.executor.memory", "2048m")
+      .config("spark.executor.memory", "4096m")
       .config("spark.executor.cores", "1")
-      .config("spark.streaming.concurrentJobs", "4")
+      .config("spark.streaming.concurrentJobs", "8")
       .config("spark.local.dir", "/opt/workspace/tmp/driver/twitter/")
       .config("spark.worker.dir", "/opt/workspace/tmp/executor/twitter/")
       .config("spark.eventLog.enabled", "true")
@@ -50,49 +70,49 @@ import spark.implicits._
 
 val kafka_df = spark.readStream
         .format("kafka")
-        .option("kafka.bootstrap.servers", "xanaxprincess.asuscomm.com:9092")
+        .option("kafka.bootstrap.servers", "kafka:9092")
         .option("subscribe", "twitter")
         .option("includeHeaders", "true")
         .load()
 
-// println("read kafka.")
+println("read kafka.")
 
-// val json_schema = 
-//   new ArrayType(
-//     new StructType()
-//       .add("topic", StringType)
-//       .add("body", StringType)
-//   )
+val json_schema = 
+  new ArrayType(
+    new StructType()
+      .add("topic", StringType)
+      .add("body", StringType)
+  )
 
-// val json_schema = new ArrayType(new StructType().add("topic", StringType))
+val json_schema = new ArrayType(new StructType().add("topic", StringType))
 
-// println("created schema.")
+println("created schema.")
 
-// val json_schema = new ArrayType( new StructType().add("json", StringType))
+val json_schema = new ArrayType( new StructType().add("json", StringType))
 
 val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-// df.show()
+df.show()
 
-// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-//             .select(from_json(col("json"), json_schema)
-//             .alias("data"))
-//             .select("data.*")
+val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
+            .select(from_json(col("json"), json_schema)
+            .alias("data"))
+            .select("data.*")
 
-// val df = kafka_df.selectExpr("CAST(body AS STRING) as json")
-//             .select(from_json(col("json"), json_schema).alias("data"))
-//             .select("data.*")
+val df2 = kafka_df.selectExpr("CAST(body AS STRING) as json")
+            .select(from_json(col("json"), json_schema).alias("data"))
+            .select("data.*")
 
-// println("created df.")
-// df.show()
+println("created df.")
+df.show()
 
 // write to console.
 
-// df.write.format("console").option("header", "true").option("truncate", "true").load()
-// df.writeStream.format("console").queryName("twitter-console").start()
+df.write.format("console").option("header", "true").option("truncate", "true").load()
+df.writeStream.format("console").queryName("twitter-console").start()
 
 // write to spark delta table.
 
-val target_dir = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
+val target_dir = "s3:/reddit-streaming-stevenhurwitt/data/{}/".format(subreddit)
 df.write.format("delta").option("header", "true").save(target_dir)
 print("wrote df to delta table.")
 
@@ -101,7 +121,9 @@ print("wrote df to delta table.")
 val database = "twitter"
 val src_table = "dbo.twitter"
 val user = "postgres"
-val password  = "Secret!12345"
+// val password  = ""
+
+// Secret!12345
 
 val connection_str = ""
 val jdbcUrl = f"jdbc:postgresql://xanaxprincess.asuscomm.com:1433;databaseName={database}"
@@ -109,29 +131,29 @@ val jdbcDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
 var jdbcDF = spark.read.format("jdbc")
     .option("url", jdbcUrl)
-    .option("dbtable", "twitter")
+    .option("dbtable", "reddit.{}".format(subreddit)))
     .option("user", user)
     .option("password", password)
     .option("driver", jdbcDriver)
     .load()
 
 jdbcDF.show()
-val path = "s3:/twitter-stevenhurwitt/tweets/data/raw/twitter/"
+val path = "s3:/reddit-streaming-stevenhurwitt/data/{}/".format(subreddit)
 jdbcDF.write.format("delta").option("header", "true").partitionBy("").save(path)
 
 jdbcDF.select("*").write.format("jdbc")
   .mode("overwrite")
   .option("url", jdbcUrl)
-  .option("dbtable", "dbo.twitter_clean")
+  .option("dbtable", "dbo.{}_clean".format(subreddit)))
   .option("user", user)
   .option("password", password)
   .save()
 
-// df.write.format("jdbc").option("header", "true)").
+df.write.format("jdbc").option("header", "true)")
 
 // allow continuous parallel streaming applications...
 
-// spark.streaming.awaitAnyTermination
+spark.streaming.awaitAnyTermination
 
 // print
 println("streaming...")

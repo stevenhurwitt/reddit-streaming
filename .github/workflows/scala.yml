@@ -13,5 +13,7 @@ jobs:
       - uses: olafurpg/setup-scala@v11
       - name: versions
         run: mvn -version && java -version
-      - name: build uberjar
+      - name: mvn clean install
         run: cd ./redditStreaming && mvn clean package
+      # - name: push jar to s3
+      #   run: aws s3 sync ./redditStreaming/target/uber-reddit-1.0-SNAPSHOT.jar s3://reddit-streaming-stevenhurwitt/jars

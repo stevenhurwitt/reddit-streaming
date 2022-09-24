@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.2.0
+ARG spark_version=3.3.0
 ARG jupyterlab_version=3.2.5
 # ARG psutil_version=5.9.0
 
@@ -17,7 +17,7 @@ RUN apt-get update -y && \
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
+# RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
@@ -27,9 +27,11 @@ RUN rm -rf /var/lib/apt/lists/* && \
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
-RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
-    mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
-    wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
+RUN ls /usr/local/lib/python3.7/dist-packages/pyspark/jars/
+
+# RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
+#     mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
+#     wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
 
 
 # -- Runtime
