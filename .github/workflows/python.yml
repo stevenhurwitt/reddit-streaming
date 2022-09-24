@@ -37,8 +37,8 @@ jobs:
         run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
       - name: version check
         run: python3 --version && pip --version
-      - name: pytest version
-        run: pytest --version
+      # - name: pytest version
+      #   run: pytest --version
       # - name: pytest 
       #   run: pytest -vq src/test/python/tests.py
       # - name: pytest docker
