@@ -59,7 +59,7 @@ redditStreaming/src/main/python/secrets/__pycache__
 redditStreaming/src/main/python/secrets/secret-env
 redditStreaming/src/main/python/reddit/__pycache__ 
 redditStreaming/src/main/python/reddit/reddit-env
-redditStreaming/src/main/python/
+# redditStreaming/src/main/python/
 # redditStreaming/src/main/python/reddit/reddit.egg-info
 # redditStreaming/src/main/python/reddit
 
