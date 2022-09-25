@@ -26,7 +26,7 @@ resource "aws_lambda_error_group" "lambda_errors" {
 }
 
 # cloudwatch events
-resource "aws_cloudwatch_event" "cloudwatch_event" {
-  name = "event"
-  # ...
-}
+# resource "aws_cloudwatch_event" "cloudwatch_event" {
+#   name = "event"
+#   # ...
+# }
