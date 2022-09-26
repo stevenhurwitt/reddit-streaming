@@ -65,8 +65,8 @@ jobs:
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-      - name: Terraform Plan
-        run: cd terraform && terraform plan -out tfplan
+      # - name: Terraform Plan
+      #   run: cd terraform && terraform init && terraform plan -out tfplan
       # - name: Terraform Apply
       #   run: terraform apply "tfplan"
       # - name: Terraform Apply Push
