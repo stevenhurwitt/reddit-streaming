@@ -57,19 +57,19 @@ jobs:
       # - name: Terraform Validate
       #   id: validate
       #   run: cd terraform && terraform validate -no-color
-      # - name: Terraform Plan
-      #   id: plan
-      #   if: github.event_name == 'pull_request'
-      #   run: cd terraform && terraform plan -no-color -input=false
-        # continue-on-error: true
+      - name: Terraform Plan
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: cd terraform && terraform plan -no-color -input=false
+        continue-on-error: true
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-      # - name: Terraform Plan
-      #   run: cd terraform && terraform init && terraform plan -out tfplan
-      # - name: Terraform Apply
-      #   run: terraform apply "tfplan"
-      # - name: Terraform Apply Push
-      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      #   run: terraform apply -auto-approve -input=false
+      - name: Terraform Plan
+        run: cd terraform && terraform init && terraform plan -out tfplan
+      - name: Terraform Apply
+        run: terraform apply "tfplan"
+      - name: Terraform Apply Push
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false
         
