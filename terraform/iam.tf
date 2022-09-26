@@ -12,7 +12,7 @@ resource "aws_iam_policy" "s3_policy" {
         "s3:*"
       ],
       "Effect": "Allow",
-      "Resource": "${aws_s3_bucket.reddit_stevenhurwitt.arn}"
+      "Resource": "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}"
     }
   ]
 }
@@ -44,13 +44,13 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "glue_service" {
-    role = "${aws_iam_role.glue.id}"
+    role = aws_iam_role.glue.id
     policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
 resource "aws_iam_role_policy" "my_s3_policy" {
   name = "my_s3_policy"
-  role = "${aws_iam_role.glue.id}"
+  role = aws_iam_role.glue.id
   policy = <<EOF
 {
   "Version": "2012-10-17",
