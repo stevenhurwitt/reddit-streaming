@@ -90,3 +90,135 @@ resource "aws_iam_role_policy" "my_athena_policy" {
 }
 EOF
 }
+
+################### lambda ###################
+resource "aws_iam_role" "gps_lambda_secret_rotation_role" {
+  name                  = "${local.product}-lambda-secret-rotation-role${local.environment}"
+  assume_role_policy    = <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": "lambda.amazonaws.com"
+        },
+
+        "Sid": ""
+      }
+    ]
+  }
+EOF
+  tags                  = merge(local.product_tags, map("name", "lambda-iam-role"))
+}
+
+resource "aws_iam_role_policy" "gps_lambda_secret_rotation_role_policy" {
+  role    = aws_iam_role.gps_lambda_secret_rotation_role.id
+  policy  = <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": ["arn:aws:logs:*:*:log-group:/aws/lambda/${local.product}-*"]
+      },
+      {
+        "Sid": "SecretsManagerAccess",
+        "Effect": "Allow",
+        "Action": [
+          "secretsmanager:DescribeSecret",
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:UpdateSecretVersionStage"
+        ],
+        "Resource": "arn:aws:secretsmanager:*:*:secret:${local.product}-*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "secretsmanager:GetRandomPassword"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Action": [
+          "ec2:CreateNetworkInterface",
+          "ec2:DeleteNetworkInterface",
+          "ec2:DescribeNetworkInterfaces"
+        ],
+        "Resource": "*",
+        "Effect": "Allow"
+      },
+      {
+        "Sid": "RDSDataServiceAccess",
+        "Effect": "Allow",
+        "Action": [
+          "rds-data:BatchExecuteStatement",
+          "rds-data:BeginTransaction",
+          "rds-data:CommitTransaction",
+          "rds-data:ExecuteStatement",
+          "rds-data:RollbackTransaction"
+        ],
+        "Resource": "arn:aws:rds:${var.aws_region}:*:cluster:${local.product}-*"
+      }
+    ]
+  }
+  EOF
+}
+
+# delete project role
+resource "aws_iam_role" "gps_daily_delete_role" {
+  name = "${local.product}-daily-delete${local.environment}-lambda-policy"
+  assume_role_policy = <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": "sts:AssumeRole",
+        "Principal": {
+          "Service": [
+            "lambda.amazonaws.com",
+            "events.amazonaws.com"
+          ]
+        },
+        "Effect": "Allow",
+        "Sid": ""
+      }
+    ]
+  }
+EOF
+  tags = merge(local.product_tags, map("name", "gps-daily-delete-iam-role"))
+}
+
+resource "aws_iam_role_policy" "gps_daily_delete_policy" {
+  role = aws_iam_role.gps_daily_delete_role.id
+  policy = <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": "*"
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "events:PutRule"
+        ],
+        "Resource": "arn:aws:events:${var.aws_region}:${local.aws_account_id}:*/${local.product}*"
+      }
+    ]
+  }
+EOF
+}
