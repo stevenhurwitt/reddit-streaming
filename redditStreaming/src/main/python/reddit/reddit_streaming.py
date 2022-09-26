@@ -283,18 +283,18 @@ def write_stream(df, subreddit):
     postgres_password = "secret!1234"
 
     # write to postgres
-    # df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
-    #     .select("subreddit", "title", "score", "created_utc") \
-    #     .writeStream \
-    #     .format("jdbc") \
-    #     .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
-    #     .option("dbtable", subreddit) \
-    #     .option("user", postgres_user) \
-    #     .option("password", postgres_password) \
-    #     .option("driver", "org.postgresql.Driver") \
-    #     .outputMode("append") \
-    #     .queryName(subreddit + "_postgres") \
-    #     .start()
+    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+        .select("subreddit", "title", "score", "created_utc") \
+        .writeStream \
+        .format("jdbc") \
+        .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
+        .option("dbtable", subreddit) \
+        .option("user", postgres_user) \
+        .option("password", postgres_password) \
+        .option("driver", "org.postgresql.Driver") \
+        .outputMode("append") \
+        .queryName(subreddit + "_postgres") \
+        .start()
 
     # .select("subreddit", "title", "score", "created_utc") \
     # .trigger(processingTime="180 seconds") \
