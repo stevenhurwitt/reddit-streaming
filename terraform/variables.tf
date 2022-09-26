@@ -111,7 +111,7 @@ variable "folder_scripts" {
     type = string
 }
 
-variable "vault_uri" {
+variable "vault_url" {
     description = "Target address for Vault."
     type = string
 }
