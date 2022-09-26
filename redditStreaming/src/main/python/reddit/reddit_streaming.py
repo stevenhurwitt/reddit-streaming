@@ -280,7 +280,7 @@ def write_stream(df, subreddit):
     postgres_host = "postgres"
     postgres_db = "reddit"
     postgres_user = "postgres"
-    postgres_password = "secret!123"
+    postgres_password = "secret!1234"
 
     # write to postgres
     # df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
