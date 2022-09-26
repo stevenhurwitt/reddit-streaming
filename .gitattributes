@@ -1,2 +1,0 @@
-jars filter=lfs diff=lfs merge=lfs -text
-redditStreaming/jars/com.amazonaws_aws-java-sdk-bundle-1.11.901.jar filter=lfs diff=lfs merge=lfs -text
