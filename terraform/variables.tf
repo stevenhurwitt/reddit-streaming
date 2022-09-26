@@ -131,12 +131,6 @@ variable "vault_config_path" {
     type = string
 }
 
-variable "aws_region" {
-    description = "AWS region to which PAS will be deployed."
-    type = string
-    default = "us-east-2"
-}
-
 variable "docker_tag" {
     description = "docker tag for deployment from ecr"
     type = string
