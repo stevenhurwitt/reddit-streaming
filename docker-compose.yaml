@@ -1,0 +1,177 @@
+version: "3"
+secrets:
+  aws_access_key_id: 
+    file: aws_access_key.txt
+  aws_secret_access_key: 
+    file: aws_secret.txt
+  tf_api_token:
+    file: tf_api_token.txt
+volumes:
+  shared-workspace:
+    driver: local
+  postgres-db-volume:
+    driver: local
+services:
+  jupyterlab:
+    image: jupyterlab
+    container_name: jupyterlab
+    secrets:
+      - aws_access_key_id
+      - aws_secret_access_key
+    environment:
+      - JUPYTER_TOKEN=easy
+      - AWS_ACCESS_KEY_ID=aws_access_key_id
+      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+      - TF_API_TOKEN=tf_api_token
+    ports:
+      - 8899:8888
+    volumes:
+      - shared-workspace:/opt/workspace
+      - ./redditStreaming:/opt/workspace/redditStreaming
+  spark-master:
+    image: spark-master
+    container_name: spark-master
+    hostname: spark-master
+    ports:
+      - 8080:8080
+      - 7077:7077
+      - 4040:4040
+    volumes:
+      - shared-workspace:/opt/workspace
+  spark-worker-1:
+    image: spark-worker
+    container_name: spark-worker-1
+    environment:
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=8192m
+    ports:
+      - 4041:4040
+      - 8083:8081
+      - 18081:18080
+    volumes:
+      - shared-workspace:/opt/workspace
+    depends_on:
+      - spark-master
+  spark-worker-2:
+    image: spark-worker
+    container_name: spark-worker-2
+    environment:
+      - SPARK_WORKER_CORES=4
+      - SPARK_WORKER_MEMORY=8192m
+    ports:
+      - 4042:4040
+      - 8082:8082
+      - 18082:18080
+    volumes:
+      - shared-workspace:/opt/workspace
+    depends_on:
+      - spark-master
+  postgres:
+    image: postgres
+    container_name: postgres
+    hostname: postgres
+    ports: 
+      - "5432:5432"
+    environment: 
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret!1234
+  zookeeper:
+    # image: wurstmeister/zookeeper
+    image: ghcr.io/arm64-compat/confluentinc/cp-zookeeper:7.1.1
+    container_name: zookeeper
+    hostname: zookeeper
+    # networks:
+    #   - reddit_streaming
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    restart: always
+    volumes:
+      - ./cluster_config/zookeeper/data:/opt/zookeeper-3.4.13/data
+
+  kafka:
+    # image: wurstmeister/kafka
+    image: ghcr.io/arm64-compat/confluentinc/cp-kafka:7.1.1
+    container_name: kafka
+    hostname: kafka
+    # networks:
+    #   - reddit_streaming
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.12.176 #ip of local machine
+      # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LOG_DIRS: /kafka/kafka-logs
+      KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
+      # KAFKA_CREATE_TOPICS: "test-topic:5:2"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: always
+    depends_on:
+      - zookeeper
+    # entrypoint: /tmp/entrypoint.sh
+    volumes: 
+      - ./cluster_config/kafka/logs:/kafka/kafka-logs
+      - ./cluster_config/kafka/config:/opt/kafka/config
+      # - ./entrypoint.sh:/tmp/entrypoint.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  kowl:
+    image: docker.redpanda.com/vectorized/console:master-217260f
+    container_name: redpanda_console
+    restart: on-failure
+    entrypoint: /bin/sh
+    command: -c "echo \"$$CONSOLE_CONFIG_FILE\" > /tmp/config.yml; /app/console"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["192.168.12.176:9092"]
+    ports:
+      - "8085:8080"
+    depends_on:
+      - kafka
+
+  # # postgres:
+  # #   image: postgres:13
+  # #   environment:
+  # #     POSTGRES_USER: airflow
+  # #     POSTGRES_PASSWORD: ecret!12345
+  # #     POSTGRES_DB: airflow
+  # #   volumes:
+  # #     - postgres-db-volume:/var/lib/postgresql/data
+  # #   healthcheck:
+  # #     test: ["CMD", "pg_isready", "-U", "airflow"]
+  # #     interval: 5s
+  # #     retries: 5
+  # #   restart: always
+  # #   hostname: postgres
+  # #   ports: 
+  # #     - "5432:5432"
+
+  # ganglia:
+  #   image: kurthuwig/ganglia:latest
+  #   container_name: ganglia
+  #   restart: on-failure
+  #   ports:
+  #   - "127.0.0.1:80:80"
+  #   - "8649:8649"
+  #   - "8649:8649/udp"
+  #   volumes:
+  #   - ./cluster_config/ganglia/etc:/etc/ganglia
+  #   - ./cluster_config/ganglia/data:/var/lib/ganglia
+
+  # redis:
+  #     image: redis:latest
+  #     expose:
+  #       - 6379
+  #     healthcheck:
+  #       test: ["CMD", "redis-cli", "ping"]
+  #       interval: 5s
+  #       timeout: 30s
+  #       retries: 50
+  #     restart: always
