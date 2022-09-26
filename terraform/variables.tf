@@ -110,3 +110,40 @@ variable "folder_scripts" {
     default = "scripts"
     type = string
 }
+
+variable "vault_uri" {
+    description = "Target address for Vault."
+    type = string
+}
+
+variable "vault_username" {
+    description = "Username for Vault authentication."
+    type = string
+}
+
+variable "vault_password" {
+    description = "Password for Vault authentication."
+    type = string
+}
+
+variable "vault_config_path" {
+    description = "The path for Terraform to check in Vault for tfvars. This is declared in Vault should look something like concourse/aws-core/{your-pipeline-name}"
+    type = string
+}
+
+variable "aws_region" {
+    description = "AWS region to which PAS will be deployed."
+    type = string
+    default = "us-east-2"
+}
+
+variable "docker_tag" {
+    description = "docker tag for deployment from ecr"
+    type = string
+}
+
+variable "desired_task_number" {
+    description = "Desired task number in ECS service"
+    type = number
+    default = 1
+}
