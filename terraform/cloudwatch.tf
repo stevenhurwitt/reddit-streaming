@@ -15,12 +15,12 @@ resource "aws_cloudwatch_log_group" "glue_logs" {
 }
 
 # lambda logs
-resource "aws_lambda_log_group" "lambda_logs" {
+resource "aws_cloudwatch_log_group" "lambda_logs" {
   name = "/aws-lambda/jobs/logs/output"
   retention_in_days = 30
 }
 
-resource "aws_lambda_error_group" "lambda_errors" {
+resource "aws_cloudwatch_error_group" "lambda_errors" {
   name = "/aws-lambda/jobs/logs/error"
   retention_in_days = 30
 }
