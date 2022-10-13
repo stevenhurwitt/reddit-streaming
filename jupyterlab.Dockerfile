@@ -13,9 +13,8 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 RUN apt-get install debian-archive-keyring
 RUN wget -O - ports.debian.org/archive_2021.key | apt-key add -
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 
-RUN /apt/etc/sources.lists
-RUN cat "deb http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.lists
-RUN cat "deb-src http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.lists
+RUN cat "deb http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.list
+RUN cat "deb-src http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.list
 
 RUN apt-get update -y && \
     apt-get install -y python3-dev python3-distutils python3-setuptools && \
@@ -37,9 +36,9 @@ RUN rm -rf /var/lib/apt/lists/* && \
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
 RUN ls /usr/local/lib/python3.7/dist-packages/pyspark/jars/
 
-# RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
-#     mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
-#     wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
+RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
+    mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
+    wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
 
 
 # -- Runtime
