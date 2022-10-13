@@ -10,6 +10,13 @@ COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # base python
+RUN apt-get install debian-archive-keyring
+RUN wget -O - ports.debian.org/archive_2021.key | apt-key add -
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 
+RUN /apt/etc/sources.lists
+RUN cat "deb http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.lists
+RUN cat "deb-src http://deb.debian.org/debian/ buster/updates main contrib non-free" >> /apt/etc/sources.lists
+
 RUN apt-get update -y && \
     apt-get install -y python3-dev python3-distutils python3-setuptools && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
