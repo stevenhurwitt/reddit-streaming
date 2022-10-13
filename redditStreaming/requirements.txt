@@ -10,11 +10,11 @@ beautifulsoup4==4.11.1
 bleach==5.0.1
 boto3==1.24.21
 botocore==1.27.21
-brotlipy @ file:///Users/runner/miniforge3/conda-bld/brotlipy_1648854211613/work
+# brotlipy @ file:///Users/runner/miniforge3/conda-bld/brotlipy_1648854211613/work
 certifi==2022.6.15
 cffi==1.15.1
 charset-normalizer==2.1.0
-cryptography @ file:///Users/runner/miniforge3/conda-bld/cryptography_1652967055225/work
+# cryptography @ file:///Users/runner/miniforge3/conda-bld/cryptography_1652967055225/work
 cycler==0.11.0
 debugpy==1.6.0
 decorator==5.1.1
@@ -27,7 +27,7 @@ executing==0.8.3
 fastjsonschema==2.15.3
 filelock==3.7.1
 fonttools==4.33.3
-glue @ file:///Users/stevenhurwitt/Documents/reddit-streaming/redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl
+# glue @ file:///Users/stevenhurwitt/Documents/reddit-streaming/redditStreaming/src/main/python/glue/dist/glue-1.0.0-py3-none-any.whl
 idna==3.3
 importlib-metadata==4.12.0
 iniconfig==1.1.1
@@ -83,11 +83,11 @@ py4j==0.10.9.2
 pyarrow==8.0.0
 pycparser==2.21
 Pygments==2.12.0
-pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1643496850550/work
+# pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1643496850550/work
 pypandoc==1.7.2
 pyparsing==3.0.9
 pyrsistent==0.18.1
-PySocks @ file:///Users/runner/miniforge3/conda-bld/pysocks_1648857336012/work
+# PySocks @ file:///Users/runner/miniforge3/conda-bld/pysocks_1648857336012/work
 pyspark==3.2.0
 pytest==7.1.2
 python-dateutil==2.8.2
@@ -96,7 +96,7 @@ PyYAML==6.0
 pyzmq==23.2.0
 qtconsole==5.3.0
 QtPy==2.1.0
-reddit @ file:///Users/stevenhurwitt/Documents/reddit-streaming/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl
+# reddit @ file:///Users/stevenhurwitt/Documents/reddit-streaming/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl
 requests==2.28.1
 s3transfer==0.6.0
 Send2Trash==1.8.0
