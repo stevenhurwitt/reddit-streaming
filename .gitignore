@@ -34,10 +34,10 @@ gh
 jars
 pat.json
 ./pat.json
-# aws_access_key.txt
-# aws_secret.txt
-# tf_api_token.txt
-*.txt
+aws_access_key.txt
+aws_secret.txt
+tf_api_token.txt
+# *.txt
 # src/test/python/__pycache__
 # src/test/python/.pytest_cache
 cluster_config
