@@ -61,9 +61,9 @@ nbformat==5.4.0
 nest-asyncio==1.5.5
 notebook==6.4.12
 notebook-shim==0.1.0
-numpy==1.23.0
+numpy
 packaging==21.3
-pandas==1.4.3
+pandas
 pandocfilters==1.5.0
 parso==0.8.3
 pexpect==4.8.0
@@ -79,8 +79,8 @@ psycopg2==2.9.3
 ptyprocess==0.7.0
 pure-eval==0.2.2
 py==1.11.0
-py4j==0.10.9.2
-pyarrow==8.0.0
+py4j
+pyarrow
 pycparser==2.21
 Pygments==2.12.0
 pyOpenSSL==22.0.0
