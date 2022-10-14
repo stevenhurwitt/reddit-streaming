@@ -15,6 +15,7 @@ jobs:
           - TEST_NAME: "Specific v1"
             AWS_CLI_VERSION: "1.18.1"
           - TEST_NAME: "No Input"
+    name: "s3_sync"
     steps:
       - name: checkout
         uses: actions/checkout@v2
