@@ -1,7 +1,7 @@
 name: s3_sync
 on: [push, pull_request]
 jobs:
-  reddit:
+  s3_sync:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
