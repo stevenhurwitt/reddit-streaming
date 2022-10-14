@@ -74,6 +74,37 @@ resource "aws_iam_role_policy_attachment" "glue_service" {
     policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
 }
 
+# lambda
+resource "aws_iam_role" "lambda" {
+  name = "AWSLambdaServiceRoleDefault"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service":  [
+                      "glue.amazonaws.com",
+                      "events.amazonaws.com",
+                      "lambda.amazonaws.com
+                    ]
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_service" {
+    role = aws_iam_role.lambda.id
+    policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaServiceRole"
+}
+
+# s3
+
 resource "aws_iam_role_policy" "my_s3_policy" {
   name = "my_s3_policy"
   role = aws_iam_role.s3.id
@@ -95,6 +126,8 @@ resource "aws_iam_role_policy" "my_s3_policy" {
 }
 EOF
 }
+
+# glue policy
 
 resource "aws_iam_role_policy" "my_glue_policy" {
   name = "my_glue_policy"
@@ -118,6 +151,8 @@ resource "aws_iam_role_policy" "my_glue_policy" {
 }
 EOF
 }
+
+# athena policy
 
 resource "aws_iam_role_policy" "my_athena_policy" {
   name = "my_athena_policy"
