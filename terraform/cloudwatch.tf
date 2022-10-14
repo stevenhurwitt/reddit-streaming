@@ -20,12 +20,18 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
   retention_in_days = 30
 }
 
-resource "aws_cloudwatch_error_group" "lambda_errors" {
+resource "aws_cloudwatch_log_group" "lambda_errors" {
   name = "/aws-lambda/jobs/logs/error"
   retention_in_days = 30
 }
 
 # cloudwatch events
-resource "aws_cloudwatch_event" "example_event" {
-  name = "example event"
+resource "aws_cloudwatch_event_rule" "example_event" {
+  name = "example event rule"
+}
+
+resource "aws_cloudwatch_event_target" "example_target" {
+  name = "example event target"
+  source_arn = aws_lambda_function.example_lambda.arn
+  # target_id = 
 }
