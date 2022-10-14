@@ -48,14 +48,7 @@ jobs:
         run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
       - name: version check
         run: python3 --version && pip --version
-      # - name: pytest version
-      #   run: pytest --version
-      # - name: pytest 
-      #   run: pytest -vq src/test/python/tests.py
-      # - name: pytest docker
-      #   run: docker exec -it jupyterlab "pytest -vq redditStreaming/src/test/python/tests.py"
       - name: Test ${{ matrix.TEST_NAME }} ${{ matrix.AWS_CLI_VERSION }}
-      # - name: Test ${{ matrix.TEST_NAME }}
         id: install-aws-cli
         uses: unfor19/install-aws-cli-action@master
         with:
