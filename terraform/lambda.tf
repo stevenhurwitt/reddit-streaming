@@ -46,10 +46,10 @@ resource "aws_lambda_function" "example_lambda" {
         }
     }
 
-    vpc_config {
-        subnet_ids = data.aws_subnets.private_app_subnets.ids 
+    # vpc_config {
+        # subnet_ids = data.aws_subnets.private_app_subnets.ids 
         # security_group_ids = [data.aws_security_group.gps_rds_sg.id]
-    }
+    # }
 
     tags                    = merge(local.product_tags, map("name", "example-lambda"))
 }
