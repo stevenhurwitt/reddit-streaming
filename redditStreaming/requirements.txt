@@ -27,14 +27,13 @@ executing==0.8.3
 fastjsonschema==2.15.3
 filelock==3.7.1
 fonttools==4.33.3
-# glue==1.0.0
 idna==3.3
 importlib-metadata==4.12.0
 iniconfig==1.1.1
 ipykernel==6.15.0
-ipython==8.4.0
-ipython-genutils==0.2.0
-ipywidgets==7.7.0
+ipython
+ipython-genutils
+ipywidgets
 jedi==0.18.1
 Jinja2==3.1.2
 jmespath==1.0.1
@@ -97,7 +96,6 @@ PyYAML==6.0
 pyzmq==23.2.0
 qtconsole==5.3.0
 QtPy==2.1.0
-# reddit==0.1.0
 requests==2.28.1
 s3transfer==0.6.0
 Send2Trash==1.8.0
