@@ -32,6 +32,6 @@ resource "aws_cloudwatch_event_rule" "example_event" {
 
 resource "aws_cloudwatch_event_target" "example_target" {
   name = "example event target"
-  source_arn = aws_lambda_function.example_lambda.arn
+  # source_arn = aws_lambda_function.example_lambda.arn
   # target_id = 
 }

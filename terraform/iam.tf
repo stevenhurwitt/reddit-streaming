@@ -58,7 +58,7 @@ resource "aws_iam_role" "glue" {
         "Service":  [
                       "glue.amazonaws.com",
                       "events.amazonaws.com",
-                      "lambda.amazonaws.com
+                      "lambda.amazonaws.com"
                     ]
       },
       "Effect": "Allow",
@@ -87,7 +87,7 @@ resource "aws_iam_role" "lambda" {
         "Service":  [
                       "glue.amazonaws.com",
                       "events.amazonaws.com",
-                      "lambda.amazonaws.com
+                      "lambda.amazonaws.com"
                     ]
       },
       "Effect": "Allow",
