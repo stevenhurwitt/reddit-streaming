@@ -20,7 +20,7 @@ job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
 subreddit = "aws"
-bucket = "reddit-streaming-stevenhurwitt
+bucket = "reddit-streaming-stevenhurwitt"
 path = "s3a://" + bucket + "/" + subreddit
 print("aws path: {}".format(path))
 
