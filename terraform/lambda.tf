@@ -34,7 +34,7 @@ data "archive_file" "dummy" {
 # delete project lambda
 resource "aws_lambda_function" "example_lambda" {
     function_name           = "${local.product}-example-lambda${local.environment}"
-    role                    = aws_iam_role.gps_lambda_example_role.arn
+    role                    = aws_iam_role.lambda.arn
     filename                = data.archive_file.dummy.output_path
     handler                 = "example_handler.run_lambda"
     runtime                 = "python3.9"
