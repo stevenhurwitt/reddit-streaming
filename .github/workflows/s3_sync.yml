@@ -3,19 +3,19 @@ on: [push, pull_request]
 jobs:
   s3_sync:
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     include:
-    #       - TEST_NAME: "Latest v2"
-    #         AWS_CLI_VERSION: "2"
-    #       - TEST_NAME: "Specific v2"
-    #         AWS_CLI_VERSION: "2.0.30"
-    #       - TEST_NAME: "Latest v1"
-    #         AWS_CLI_VERSION: "1"
-    #       - TEST_NAME: "Specific v1"
-    #         AWS_CLI_VERSION: "1.18.1"
-    #       - TEST_NAME: "No Input"
-    # name: "s3_sync"
+    strategy:
+      matrix:
+        include:
+          - TEST_NAME: "Latest v2"
+            AWS_CLI_VERSION: "2"
+          - TEST_NAME: "Specific v2"
+            AWS_CLI_VERSION: "2.0.30"
+          - TEST_NAME: "Latest v1"
+            AWS_CLI_VERSION: "1"
+          - TEST_NAME: "Specific v1"
+            AWS_CLI_VERSION: "1.18.1"
+          - TEST_NAME: "No Input"
+    name: "s3_sync"
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -40,8 +40,6 @@ jobs:
           SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
       - name: cat access_key
         run: cat aws_access_key.txt
-      # - name: build dockerfiles
-      #   run: ./build.sh
       - name: python dependencies
         run: sudo apt-get install python3 python3-pip python3-virtualenv
       - name: build reddit
@@ -56,14 +54,12 @@ jobs:
       #   run: pytest -vq src/test/python/tests.py
       # - name: pytest docker
       #   run: docker exec -it jupyterlab "pytest -vq redditStreaming/src/test/python/tests.py"
-      # - name: install aws-cli
-      #   run: apt-get install aws-cli
-      # - name: Test ${{ matrix.TEST_NAME }} ${{ matrix.AWS_CLI_VERSION }}
-      - name: Test name
+      - name: Test ${{ matrix.TEST_NAME }} ${{ matrix.AWS_CLI_VERSION }}
+      # - name: Test ${{ matrix.TEST_NAME }}
         id: install-aws-cli
         uses: unfor19/install-aws-cli-action@master
         with:
-          version: "2"
+          version: ${{ matrix.AWS_CLI_VERSION }}
         run: aws --version
         shell: bash
       - name: aws s3 sync
