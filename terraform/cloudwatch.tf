@@ -24,3 +24,8 @@ resource "aws_cloudwatch_error_group" "lambda_errors" {
   name = "/aws-lambda/jobs/logs/error"
   retention_in_days = 30
 }
+
+# cloudwatch events
+resource "aws_cloudwatch_event" "example_event" {
+  name = "example event"
+}
