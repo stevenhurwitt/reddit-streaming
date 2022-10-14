@@ -1,0 +1,47 @@
+name: s3_sync
+on: [push, pull_request]
+jobs:
+  reddit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: '/redditStreaming'
+      - name: create txt files
+        run: touch aws_access_key.txt && touch aws_secret.txt
+      - name: aws access key id
+        run: 'echo "$ACCESS_KEY" > aws_access_key.txt'
+        shell: bash
+        env:
+          ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
+      - name: aws secret key
+        run: 'echo "$SECRET_KEY" > aws_secret.txt'
+        shell: bash
+        env:
+          SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: cat access_key
+        run: cat aws_access_key.txt
+      - name: build dockerfiles
+        run: ./build.sh
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip python3-virtualenv
+      - name: build reddit
+        run: python3 ./redditStreaming/src/main/python/reddit/setup.py bdist_wheel
+      - name: install reddit
+        run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+      - name: version check
+        run: python3 --version && pip --version
+      - name: pytest version
+        run: pytest --version
+      # - name: pytest 
+      #   run: pytest -vq src/test/python/tests.py
+      - name: pytest docker
+        run: docker exec -it jupyterlab "pytest -vq redditStreaming/src/test/python/tests.py"
+      - name: aws s3 sync
+        run: cd redditStreaming/scripts && aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
