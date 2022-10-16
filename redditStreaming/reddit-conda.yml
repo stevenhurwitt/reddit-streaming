@@ -161,7 +161,5 @@ dependencies:
   - zlib=1.2.12=h5a0b063_2
   - zstd=1.5.0=h861e0a7_0
   - pip:
-    - glue==1.0.0
     - reddit==0.1.0
-    - secrets==1.0.0
 prefix: /Users/stevenhurwitt/opt/miniconda3/envs/reddit
