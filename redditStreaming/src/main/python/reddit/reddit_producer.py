@@ -208,9 +208,6 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
-        
-        # with open("sample_response.json", "w") as f:
-        #     json.dump(my_data, f, indent = 1)
 
         if after_token is not None:
             producer.send(params["topic"][i], my_data)                          

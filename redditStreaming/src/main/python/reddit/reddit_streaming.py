@@ -34,7 +34,7 @@ def read_files():
                 f.close()
 
         except FileNotFoundError:
-            with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
+            with open("/opt/workspace/redditStreaming/creds.json", "r") as f:
                 creds = json.load(f)
                 f.close()
 
