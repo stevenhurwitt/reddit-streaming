@@ -56,7 +56,7 @@ def get_bearer():
             'username': creds["user"],
             'password': creds["password"]
             }
-    headers = {'User-Agent': 'reddit-streaming/0.0.1'}
+    headers = {'User-Agent': 'reddit-streaming/0.1.0'}
 
     response = requests.post('https://www.reddit.com/api/v1/access_token', auth=auth, data=data, headers=headers)
 
