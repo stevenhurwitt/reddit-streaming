@@ -34,6 +34,7 @@ ipykernel==6.15.0
 ipython
 ipython-genutils
 ipywidgets
+ipykernel
 jedi==0.18.1
 Jinja2==3.1.2
 jmespath==1.0.1
