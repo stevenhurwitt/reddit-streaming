@@ -53,7 +53,7 @@ jobs:
         uses: unfor19/install-aws-cli-action@master
         with:
           version: ${{ matrix.AWS_CLI_VERSION }}
-        run: aws --version
+        run: cd redditStreaming/scripts && aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
         shell: bash
       - name: aws s3 sync
-        run: cd redditStreaming/scripts && aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
+        run: aws --version
