@@ -228,7 +228,7 @@
         <dependency>
             <groupId>io.delta</groupId>
             <artifactId>delta-core_2.12</artifactId>
-            <version>2.1.0</version>
+            <version>1.2.1</version>
         </dependency>
 
         <!-- spark 3.3 -->
