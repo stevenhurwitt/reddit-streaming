@@ -1,4 +1,4 @@
-anyio==*
+anyio==3.6.2
 appnope==*
 argon2-cffi==*
 argon2-cffi-bindings==*
@@ -89,7 +89,7 @@ pypandoc==*
 pyparsing==*
 pyrsistent==*
 PySocks==*
-pyspark==*
+pyspark==3.2.2
 pytest==*
 python-dateutil==*
 pytz==*
