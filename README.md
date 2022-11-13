@@ -12,7 +12,7 @@ Run docker-compose.
 
 `docker-compose up -d --no-recreate`
 
-Access jupyterlab shell.
+Access jupyterlab shell. Can also attach VSCode to the jupyterlab container.
 
 `docker exec -it jupyterlab bash`
 
@@ -48,7 +48,7 @@ Prune docker system volumes, containers & images.
 
 ### Note on versions
 
-When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `pom.xml`, `requirements.txt` and `reddit_streaming.py`.
+When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `requirements.txt` and `reddit_streaming.py`.
 
 ### pyspark write stream to s3 error
 
