@@ -102,7 +102,7 @@ services:
     environment:
       # KAFKA_ADVERTISED_HOST_NAME: 192.168.12.176 #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
-      KAFKA_ADVERTISED_HOST_NAME: 10.166.235.215
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.50.248
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
@@ -130,7 +130,7 @@ services:
       CONFIG_FILEPATH: /tmp/config.yml
       CONSOLE_CONFIG_FILE: |
         kafka:
-          brokers: ["192.168.12.176:9092"]
+          brokers: ["192.168.50.248:9092"]
     ports:
       - "8085:8080"
     depends_on:
@@ -164,14 +164,3 @@ services:
   #   volumes:
   #   - ./cluster_config/ganglia/etc:/etc/ganglia
   #   - ./cluster_config/ganglia/data:/var/lib/ganglia
-
-  # redis:
-  #     image: redis:latest
-  #     expose:
-  #       - 6379
-  #     healthcheck:
-  #       test: ["CMD", "redis-cli", "ping"]
-  #       interval: 5s
-  #       timeout: 30s
-  #       retries: 50
-  #     restart: always

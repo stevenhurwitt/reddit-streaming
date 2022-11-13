@@ -1,6 +1,6 @@
 # reddit-streaming
 
-An attempt to stream multiple subreddits from the reddit api using kafka & spark, and store in s3 data lake as delta tables. nightly glue jobs processes raw data into clean data partitioned by year/month/day.
+An attempt to stream multiple subreddits from the reddit api using kafka & spark, and store in s3 data lake as delta tables. nightly glue jobs processes raw data into clean data partitioned by year/month/day in athena.x
 
 ## Build dockerfiles
 
@@ -91,6 +91,7 @@ https://github.com/stevenhurwitt/reddit-streaming/actions
 - `python.yml`
 - `docker.yml`
 - `terraform.yml`
+- `aws.yml`
 
 ### scala
 
@@ -110,10 +111,10 @@ Docker Compose.
 
 `docker-compose down && ./build.sh && docker-compose up -d`
 
-jupyterlab shell.
+## jupyterlab shell.
 
 `docker exec -it jupyterlab bash`
 
-### terraform
+## terraform
 
 `cd terraform && tf plan -out tfplan && tf apply tfplan`
