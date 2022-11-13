@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: Apache Spark
 
-ARG spark_version=3.2.2
+ARG spark_version=3.2.0
 ARG hadoop_version=3.2
 
 RUN apt-get update -y && \
@@ -20,6 +20,7 @@ ENV SPARK_MASTER_PORT 7077
 ENV SPARK_UI_PORT 4040
 ENV SPARK_PUBLIC_DNS localhost
 ENV PYSPARK_PYTHON python3
+ENV JAVA_HOME /usr/local/openjdk-8
 
 # -- Runtime
 

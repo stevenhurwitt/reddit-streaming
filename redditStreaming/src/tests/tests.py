@@ -9,12 +9,22 @@ import time
 import sys
 import os
 
+
 def test_aws_creds():
 
     # aws
-    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    # TO DO: set up boto3 creds on docker
+    # secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    # aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    # aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+
+    # local
+    with open('/opt/workspace/redditStreaming/creds.json', 'r') as f:
+        creds = json.load(f)
+    
+    aws_client = creds['aws_client']
+    aws_secret = creds['aws_secret']
+
     assert type(aws_client) == str
 
 
@@ -22,12 +32,18 @@ def test_spark_session():
     base = os.getcwd()
 
     # add to path
-    sys.path.append(base + "/src/test/python")
+    sys.path.append(base + "/src/tests")
 
     # set secret variables
-    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    # secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    # aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    # aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+
+    with open('/opt/workspace/redditStreaming/creds.json', 'r') as f:
+        creds = json.load(f)
+    
+    aws_client = creds['aws_client']
+    aws_secret = creds['aws_secret']
  
     # set local vars
     subreddit = "technology"
