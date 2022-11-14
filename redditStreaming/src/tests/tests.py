@@ -58,9 +58,9 @@ def test_spark_session():
             .master("spark://{}:7077".format(spark_host)) \
             .config("spark.scheduler.mode", "FAIR") \
             .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-            .config("spark.executor.memory", "2048m") \
-            .config("spark.executor.cores", "1") \
-            .config("spark.streaming.concurrentJobs", "4") \
+            .config("spark.executor.memory", "8g") \
+            .config("spark.executor.cores", "8") \
+            .config("spark.streaming.concurrentJobs", "8") \
             .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
             .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
             .config("spark.eventLog.enabled", "true") \
@@ -74,6 +74,7 @@ def test_spark_session():
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
             .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+            .config("spark.dynamicAllocation.enabled", True)
             .enableHiveSupport() \
             .getOrCreate()
 

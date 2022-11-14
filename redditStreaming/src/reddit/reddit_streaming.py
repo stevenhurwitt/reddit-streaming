@@ -92,7 +92,7 @@ def init_spark(subreddit, index):
                     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
                     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
                     .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
-                    .config("spark.dynamicAllocation.enabled", False) \
+                    .config("spark.dynamicAllocation.enabled", True) \
                     .enableHiveSupport() \
                     .getOrCreate()
 
@@ -284,7 +284,6 @@ def write_stream(df, subreddit):
 
     # write to postgres
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
-        .select("subreddit", "title", "score", "created_utc") \
         .writeStream \
         .format("jdbc") \
         .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
