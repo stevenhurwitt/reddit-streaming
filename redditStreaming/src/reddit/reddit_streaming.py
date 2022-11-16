@@ -70,13 +70,18 @@ def init_spark(subreddit, index):
 
 
     # initialize spark session
+
+    ## config:
+        # - fair scheduler (requires xml file) 
+        # - local & worker dirs
+        # - aws s3 access key/secret, set s3 as filesystem
+        # - enable spark delta support
+        # - ena
     try:
         spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "8g") \
-                    .config("spark.executor.cores", "8") \
                     .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
