@@ -19,8 +19,9 @@ ENV JAVA_HOME /usr/local/openjdk-8
 ENV SPARK_MASTER_HOST spark-master
 ENV SPARK_MASTER_PORT 7077
 ENV SPARK_UI_PORT 4040
-ENV SPARK_PUBLIC_DNS localhost
+# ENV SPARK_PUBLIC_DNS localhost
 ENV PYSPARK_PYTHON python3
+ENV JAVA_HOME /usr/local/openjdk-8
 
 # -- Runtime
 

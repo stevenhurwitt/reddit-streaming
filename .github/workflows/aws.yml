@@ -1,7 +1,7 @@
-name: s3_sync
+name: aws
 on: [push, pull_request]
 jobs:
-  s3_sync:
+  aws:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,7 +15,7 @@ jobs:
           - TEST_NAME: "Specific v1"
             AWS_CLI_VERSION: "1.18.1"
           - TEST_NAME: "No Input"
-    name: "s3_sync"
+    name: "aws"
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -55,5 +55,5 @@ jobs:
           version: ${{ matrix.AWS_CLI_VERSION }}
         run: cd redditStreaming/scripts && aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
         shell: bash
-      - name: aws s3 sync
+      - name: aws version
         run: aws --version

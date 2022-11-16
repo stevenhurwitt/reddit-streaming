@@ -175,14 +175,3 @@ services:
   #   volumes:
   #   - ./cluster_config/ganglia/etc:/etc/ganglia
   #   - ./cluster_config/ganglia/data:/var/lib/ganglia
-
-  # redis:
-  #     image: redis:latest
-  #     expose:
-  #       - 6379
-  #     healthcheck:
-  #       test: ["CMD", "redis-cli", "ping"]
-  #       interval: 5s
-  #       timeout: 30s
-  #       retries: 50
-  #     restart: always

@@ -32,9 +32,9 @@ jobs:
       - name: python dependencies
         run: sudo apt-get install python3 python3-pip python3-virtualenv
       - name: build reddit
-        run: python3 ./redditStreaming/src/main/python/reddit/setup.py bdist_wheel
+        run: python3 ./redditStreaming/src/reddit/setup.py bdist_wheel
       - name: install reddit
-        run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+        run: pip3 install redditStreaming/src/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
       - name: version check
         run: python3 --version && pip --version
       # - name: pytest version

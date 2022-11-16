@@ -9,12 +9,22 @@ import time
 import sys
 import os
 
+
 def test_aws_creds():
 
     # aws
-    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    # TO DO: set up boto3 creds on docker
+    # secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    # aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    # aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+
+    # local
+    with open('/opt/workspace/redditStreaming/creds.json', 'r') as f:
+        creds = json.load(f)
+    
+    aws_client = creds['aws_client']
+    aws_secret = creds['aws_secret']
+
     assert type(aws_client) == str
 
 
@@ -22,18 +32,24 @@ def test_spark_session():
     base = os.getcwd()
 
     # add to path
-    sys.path.append(base + "/src/test/python")
+    sys.path.append(base + "/src/tests")
 
     # set secret variables
-    secrets = boto3.client("secretsmanager", region_name = "us-east-2")
-    aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-    aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    # secrets = boto3.client("secretsmanager", region_name = "us-east-2")
+    # aws_client = json.loads(secrets.get_secret_value(SecretId = "AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    # aws_secret = json.loads(secrets.get_secret_value(SecretId = "AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+
+    with open('/opt/workspace/redditStreaming/creds.json', 'r') as f:
+        creds = json.load(f)
+    
+    aws_client = creds['aws_client']
+    aws_secret = creds['aws_secret']
  
     # set local vars
     subreddit = "technology"
     spark_host = "spark-master"
     kafka_host = "kafka"
-    extra_jar_list = ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"]
+    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"
 
     print("attempting spark session...")
     spark = SparkSession \
@@ -42,9 +58,9 @@ def test_spark_session():
             .master("spark://{}:7077".format(spark_host)) \
             .config("spark.scheduler.mode", "FAIR") \
             .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-            .config("spark.executor.memory", "2048m") \
-            .config("spark.executor.cores", "1") \
-            .config("spark.streaming.concurrentJobs", "4") \
+            .config("spark.executor.memory", "8g") \
+            .config("spark.executor.cores", "8") \
+            .config("spark.streaming.concurrentJobs", "8") \
             .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
             .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
             .config("spark.eventLog.enabled", "true") \
@@ -58,6 +74,7 @@ def test_spark_session():
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
             .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+            .config("spark.dynamicAllocation.enabled", True)
             .enableHiveSupport() \
             .getOrCreate()
 

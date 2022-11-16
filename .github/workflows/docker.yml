@@ -29,12 +29,8 @@ jobs:
         run: ls
       - name: cat access_key
         run: cat aws_access_key.txt
-      # - name: build dockerfiles
-      #   run: ./build.sh
-      # - name: aws s3 download scripts
-      #   run: aws s3 sync s3://reddit-streaming-stevenhurwitt/scripts/ redditStreaming/src/main/python/scripts/
-      # - name: aws s3 upload scripts
-      #   run: aws s3 sync redditStreaming/src/main/python/scripts/ s3://reddit-streaming-stevenhurwitt/scripts/
+      - name: build dockerfiles
+        run: ./build.sh
       # - name: run docker-compose
       #   uses: sudo-bot/action-docker-compose@latest
       #   with:

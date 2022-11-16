@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.2.2
+ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
 # ARG psutil_version=5.9.0
 
@@ -41,8 +41,8 @@ RUN rm -rf /var/lib/apt/lists/* && \
 RUN ls /usr/local/lib/python3.7/dist-packages/pyspark/jars/
 
 RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
-    mv guava-14.0.1.jar guava-14.0.1.jar.bk && \
-    wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
+    rm guava-14.0.1.jar && \
+    wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
 
 # -- Runtime
 
