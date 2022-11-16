@@ -4,7 +4,6 @@ FROM cluster-base
 
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
-# ARG psutil_version=5.9.0
 
 COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
@@ -25,7 +24,7 @@ RUN apt-get update --allow-insecure-repositories -y && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
     
-RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+# RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
 # RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
