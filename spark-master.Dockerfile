@@ -7,7 +7,7 @@ EXPOSE ${spark_master_web_ui} ${SPARK_MASTER_PORT}
 
 COPY ./spark-defaults.conf conf/spark-defaults.conf
 
-COPY ./spark-env.sh conf/spark-env.sh
+COPY ./spark-env.conf conf/spark-env.conf
 
 #Create the workspace/events shared dir and start Spark Master
 
