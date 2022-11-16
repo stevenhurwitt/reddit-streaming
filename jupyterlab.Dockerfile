@@ -24,13 +24,13 @@ RUN apt-get update --allow-insecure-repositories -y && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
     
-# RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN python3 -m pip install --no-cache-dir pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
 # RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN python3 -m pip install --no-cache-dir -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
     
 RUN rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws
