@@ -19,7 +19,7 @@ glueContext = GlueContext(sc)
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
-subreddit = "whitepeopletwitter"
+subreddit = "WhitePeopleTwitter"
 
 spark = builder = SparkSession \
   .builder \
