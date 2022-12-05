@@ -10,22 +10,30 @@ def read_files():
     """
     initializes spark session using config.yaml and creds.json files.
     """
-    base = os.getcwd()
 
-    creds_path_container = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
+    base = os.getcwd()
+    creds_path_container = os.path.join(base, "creds.json")
 
     creds_dir = "/".join(base.split("/")[:-3])
-    creds_path = os.path.join(creds_dir, "creds.json")
+    creds_path = os.path.join(base, "creds.json")
 
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
+            print("read creds.json.")
             f.close()
 
     except FileNotFoundError:
-        with open(creds_path_container, "r") as f:
-            creds = json.load(f)
-            f.close()
+        # print("couldn't find: {}.".format(creds_path))
+        try:
+            with open(creds_path_container, "r") as f:
+                creds = json.load(f)
+                f.close()
+
+        except FileNotFoundError:
+            with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
+                creds = json.load(f)
+                f.close()
 
     except:
         print("failed to find creds.json.")
@@ -34,9 +42,11 @@ def read_files():
     try:
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
+            # print("read config file.")
+            f.close()
 
     except:
-        print("failed to find config.yaml")
+        print("failed to find config.yaml, exiting now.")
         sys.exit()
 
     return(creds, config)
@@ -49,8 +59,10 @@ def init_spark(subreddit, index):
     """
     creds, config = read_files()
     spark_host = config["spark_host"]
-    aws_client = creds["aws-client"]
-    aws_secret = creds["aws-secret"]
+    # spark_host = "spark-master"
+    aws_client = creds["aws_client"]
+    aws_secret = creds["aws_secret"]
+    index = 0
 
     # initialize spark session
     try:
@@ -58,22 +70,28 @@ def init_spark(subreddit, index):
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "512m") \
-                    .config("spark.executor.cores", "1") \
+                    .config("spark.executor.memory", "4096m") \
+                    .config("spark.executor.cores", "4") \
                     .config("spark.streaming.concurrentJobs", "4") \
+                    .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
+                    .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
                     .config("spark.eventLog.enabled", "true") \
-                    .config("spark.eventLog.dir", "file:///opt/workspace/events") \
+                    .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
                     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
                     .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
+                    .config('spark.hadoop.fs.s3a.buffer.dir', '/opt/workspace/tmp/blocks') \
                     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
                     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+                    .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
                     .enableHiveSupport() \
                     .getOrCreate()
+
         sc = spark.sparkContext
+        # .config('spark.hadoop.fs.s3a.fast.upload.buffer', 'bytebuffer') \
 
         sc.setLogLevel('WARN')
         sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
@@ -96,6 +114,9 @@ def read_kafka_stream(spark, sc, subreddit):
     """
     creds, config = read_files()
     kafka_host = config["kafka_host"]
+    spark_host = config["spark_host"]
+    aws_client = creds["aws_client"]
+    aws_secret = creds["aws_secret"]
 
     # define schema for payload data
     payload_schema = StructType([
@@ -222,41 +243,35 @@ def write_stream(df, subreddit):
     params: df
     """
 
-    # write to console
-    # df.writeStream \
-    #     .trigger(processingTime='30 seconds') \
-    #     .outputMode("update") \
-    #     .format("console") \
-    #     .option("truncate", "true") \
-    #     .start() \
-    #     .awaitTermination()   
+    # write subset of df to console
+    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+        .select("subreddit", "title", "score", "created_utc") \
+        .writeStream \
+        .trigger(processingTime='180 seconds') \
+        .option("truncate", "true") \
+        .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}_console".format(subreddit)) \
+        .outputMode("update") \
+        .format("console") \
+        .queryName(subreddit + "_console") \
+        .start()
 
     # write to s3 delta
     df.writeStream \
-        .trigger(processingTime="30 seconds") \
+        .trigger(processingTime="180 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-stevenhurwitt/{}".format(subreddit)) \
+        .option("path", "s3a://reddit-streaming-stevenhurwitt/{}".format(subreddit)) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
+        .queryName(subreddit + "_delta") \
         .start()
-
-    # test writing to csv
-    # df.writeStream \
-    #     .trigger(processingTime="30 seconds") \
-    #     .format("csv") \
-    #     .option("path", "s3a://reddit-stevenhurwitt/test_technology") \
-    #     .option("checkpointLocation", "file:///opt/workspace/checkpoints") \
-    #     .option("header", True) \
-    #     .outputMode("append") \
-    #     .start() \
-    #     .awaitTermination()
 
 def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
     creds, config = read_files()
+    # subreddit_list = []
     subreddit_list = config["subreddit"]
     for i, s in enumerate(subreddit_list):
         spark, sc = init_spark(s, i)

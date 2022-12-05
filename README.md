@@ -38,3 +38,16 @@ Likely caused by guava jar mismatch, follow steps here: https://kontext.tech/art
 https://github.com/wurstmeister/kafka-docker/issues/409
 
 If there are kafka errors, run `docker-compose down`, delete `cluster_config/kafka/logs` and `cluster_config/zookeeper/data/version-2` directories, run `docker-compose up -d`.
+
+
+## S3
+
+`s3://aws-glue-assets-965504608278-us-east-2/scripts/`
+
+# enhancements
+
+- lambda function to backup s3 to local daily (aws s3 sync...)
+- glue function for s3 to docker postgres (aws is $6 a day??? could use a smaller instance?)
+- airflow to gracefully restart streaming and producer jobs as needed
+- could move from docker-compose local streaming app to cloud based
+- kubernetes cluster w/ raspberry pis and local pc

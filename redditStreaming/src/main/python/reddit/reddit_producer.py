@@ -1,15 +1,32 @@
 from kafka import KafkaProducer
+from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
 import requests
 import kafka
 import pprint
+# import boto3
 import yaml
 import time
 import json
 import sys
 import os
+pp = pprint.PrettyPrinter(indent=1)
+
+try:
+    import reddit
+    print("imported reddit module.")
+
+except:
+    print("failed to import reddit module.")
+    pass
 
 pp = pprint.PrettyPrinter(indent = 1)
+
+# def aws():
+#     s3_client = boto3.client("s3")
+#     athena_client = boto3.client("athena")
+#     secret_client = boto3.client("secrets")
+#     return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """
@@ -49,9 +66,16 @@ def get_bearer():
     response = requests.post('https://www.reddit.com/api/v1/access_token',
                     auth=auth, data=data, headers=headers)
 
-    token = response.json()["access_token"]
-    headers = {**headers, **{'Authorization': f"bearer {token}"}}
-    return(headers)
+    try:
+        token = response.json()["access_token"]
+        headers = {**headers, **{'Authorization': f"bearer {token}"}}
+        return(headers)
+
+    except Exception as e:
+        print(e)
+        print(response.json())
+        pass
+
 
 def get_subreddit(subreddit, limit, post_type, before, headers):
     """
@@ -125,7 +149,7 @@ def subset_response(response):
 
     return(data, after_token)
 
-def poll_subreddit(subreddit, post_type, header, host, debug):
+def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
     infinite loop to poll api & push new responses to kafka
 
@@ -133,22 +157,28 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         subreddit (str) - name of subreddit
         post_type (str) - type of posts (new, hot, controversial, etc)
         header (dict) - request header w/ bearer token
+        host (str) - kafka host name
+        port (int) - kafka port num
         debug (bool) - debug mode (True/False)
 
     """
     try:
         broker = ["{}:9092".format(host)]
+        # topic = "reddit_" + subreddit
+
         producer = KafkaProducer(
                     bootstrap_servers=broker,
                     value_serializer=my_serializer
+                    # api_version = (0, 10, 2)
                 )
     
-    except kafka.errors.NoBrokerAvailable:
+    except kafka.errors.NoBrokersAvailable:
         print("no kafka broker available.")
         sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
+    topic = params["topic"][index]
 
     token_list = []
 
@@ -160,14 +190,17 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
         #     json.dump(my_data, f, indent = 1)
 
         if after_token is not None:
-            producer.send(params["topic"][i], my_data)
+            producer.send(params["topic"][i], my_data)                          
 
-        if debug:
-            print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
+            if debug:
+                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
-    print("-------------------------------------------")
-    time.sleep(1)
+    if None in token_list:
+        time.sleep(5)
+
+    else:
+        time.sleep(30)
 
     while True:
         token_list = []
@@ -176,7 +209,6 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
             try:
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
@@ -184,45 +216,53 @@ def poll_subreddit(subreddit, post_type, header, host, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-                    
-                time.sleep(1)
+                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                
+                token_list.append(after_token) 
+                
+                time.sleep(5)
 
             except json.decoder.JSONDecodeError:
                 # when the bearer token expires (after 24 hrs), we do not receive a response
                 print("bearer token expired, reauthenticating...")
                 header = get_bearer()
+                after_token = params["token"][i]
 
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
-                token_list.append(after_token)
 
                 if after_token is not None:
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"]))
-
-                time.sleep(1)
+                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                
+                token_list.append(after_token)
+                time.sleep(5)
                 pass
 
             except IndexError:
                 # this means empty response is returned, take a nap
                 # time.sleep(120)
-                print("no more data for subreddit: {}.".format(s))
+                # print("no more data for subreddit: {}.".format(s))
                 token_list.append(params["token"][i])
+                time.sleep(3)
                 pass
 
             except Exception as e:
                 # catch all for api exceptions (SSL errors, ConnectionError, etc)
                 print(e)
                 token_list.append(params["token"][i])
+                # pass
+                time.sleep(60)
                 pass
-                # time.sleep(150)
 
         params["token"] = token_list
-        print("-------------------------------------------")
-        time.sleep(120)
+        if None in token_list:
+            time.sleep(5)
+
+        else:
+            time.sleep(110)
     
 
 def main():
@@ -239,16 +279,25 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            debug = config["debug"]
+            # debug = config["debug"]
+            debug = True
+            f.close()
     
     except:
         print("failed to find config.yaml")
         sys.exit()
 
+    # s3, athena, secrets = aws()
+
+    # print("s3: {}".format(s3))
+    # print("athena: {}".format(athena))
+    # print("secrets: {}".format(secrets))
+
     my_header = get_bearer()
-    poll_subreddit(subreddit, post_type, my_header, kafka_host, debug)
+    print("authenticated w/ bearer token good for 24 hrs.")
+    poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
 
 if __name__ == "__main__":
-    time.sleep(600)
+    # time.sleep(600)
     print("reading from api to kafka...")
     main()
