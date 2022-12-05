@@ -52,7 +52,7 @@ deltaTable.generate("symlink_format_manifest")
 
 athena = boto3.client('athena')
 athena.start_query_execution(
-         QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
+         QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit.lower()),
          ResultConfiguration = {
              'OutputLocation': "s3://reddit-streaming-stevenhurwitt/_athena_results"
          })
