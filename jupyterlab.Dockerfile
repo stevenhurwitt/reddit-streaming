@@ -10,7 +10,7 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools && \
+    apt-get install -y python3-dev python3-distutils python3-setuptools libpq-dev && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
     
