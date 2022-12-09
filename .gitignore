@@ -37,6 +37,8 @@ pat.json
 ./pat.json
 aws_access_key.txt
 aws_secret.txt
+aws_session_token.txt
+tf_api_token.txt
 src/test/python/__pycache__
 src/test/python/.pytest_cache
 cluster_config
