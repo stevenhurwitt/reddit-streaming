@@ -66,6 +66,7 @@ platformdirs==2.5.2
 pluggy==1.0.0
 prometheus-client==0.14.1
 prompt-toolkit==3.0.30
+psycopg2
 ptyprocess==0.7.0
 py==1.11.0
 py4j==0.10.9.2
@@ -89,6 +90,7 @@ setuptools==61.2.0
 six==1.16.0
 sniffio==1.2.0
 soupsieve==2.3.1
+SQLAlchemy
 terminado==0.12.1
 tinycss2==1.1.1
 tomli==2.0.1
