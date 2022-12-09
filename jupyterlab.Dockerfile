@@ -13,6 +13,12 @@ RUN apt-get update -y && \
     apt-get install -y python3-dev python3-distutils python3-setuptools libpq-dev && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
+
+RUN pip3 install virtualenv -y
+
+RUN python3 -m venv reddit-env
+
+RUN source reddit-env/bin/activate
     
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
@@ -21,6 +27,8 @@ RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py
 
 # requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+
+RUN python3 -m ipykernel install --user --name=reddit-env
     
 RUN rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws

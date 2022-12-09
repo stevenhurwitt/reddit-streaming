@@ -18,6 +18,12 @@ job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
 subreddit = "technology"
+postgres_host = "reddit.cq1scsldhxxi.us-east-2.rds.amazonaws.com"
+postgres_user = "postgres"
+
+secretmanager_client = boto3.client("SecretManager")
+kwargs = {"SecretId": "postgres_password"}
+secretmanager_client.get_secret_value(kwargs)
 
 spark = builder = SparkSession \
   .builder \
@@ -47,6 +53,23 @@ df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").o
 deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt/{}_clean".format(subreddit))
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
+
+connect_str = "jdbc:postgresql://{}:5432/reddit".format(postgres_host)
+
+try:
+    df.write.format("jdbc") \
+        .mode("overwrite") \
+        .option("url", connect_str) \
+        .option("dbtable", "reddit.{}".format(subreddit)) \
+        .option("user", postgres_user) \
+        .option("password", postgres_password) \
+        .option("driver", "org.postgresql.Driver") \
+        .save()
+
+    print("wrote df to postgresql table.")
+
+except Exception as e:
+    print(e)
 
 athena = boto3.client('athena')
 athena.start_query_execution(
