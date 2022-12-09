@@ -15,7 +15,7 @@ RUN apt-get update -y && \
     python3 -m pip install --upgrade pip
 
 # virtualenv
-RUN pip3 install -y virtualenv && \
+RUN pip3 install virtualenv && \
     python3 -m virtualenv reddit-env && \
     source reddit-env/bin/activate
 
@@ -23,13 +23,13 @@ RUN pip3 install -y virtualenv && \
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
+# RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
 
 # add kernel to jupyter
-RUN python3 -m ipykernel install --user --name=reddit-env
+RUN python3 -m ipykernel install --user --name="reddit-env"
     
 # aws
 RUN rm -rf /var/lib/apt/lists/* && \
