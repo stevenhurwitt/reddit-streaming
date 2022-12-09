@@ -15,11 +15,9 @@ RUN apt-get update -y && \
     python3 -m pip install --upgrade pip
 
 # virtualenv
-RUN pip3 install virtualenv -y
-
-RUN python3 -m venv reddit-env
-
-RUN source reddit-env/bin/activate
+RUN pip3 install -y virtualenv && \
+    python3 -m virtualenv reddit-env && \
+    source reddit-env/bin/activate
 
 # pyspark & jupyterlab
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
