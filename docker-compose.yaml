@@ -97,7 +97,7 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.12.117  #ip of local machine
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.50.169  #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
       # KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
@@ -127,7 +127,7 @@ services:
       CONFIG_FILEPATH: /tmp/config.yml
       CONSOLE_CONFIG_FILE: |
         kafka:
-          brokers: ["192.168.12.117:9092"]
+          brokers: ["192.168.50.169:9092"]
     ports:
       - "8085:8080"
     depends_on:
