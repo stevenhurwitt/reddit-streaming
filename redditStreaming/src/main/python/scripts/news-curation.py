@@ -19,7 +19,7 @@ job.init(args["JOB_NAME"], args)
 
 subreddit = "news"
 
-secretmanager_client = boto3.client("secretmanager")
+secretmanager_client = boto3.client("secretsmanager")
 
 aws_client = secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")
 aws_secret = secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")
