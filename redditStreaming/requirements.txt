@@ -29,10 +29,10 @@ flit_core==3.7.1
 idna==3.4
 importlib-metadata==5.0.0
 importlib-resources==5.10.0
-ipykernel==6.17.0
-ipython==8.6.0
-ipython-genutils==0.2.0
-ipywidgets==8.0.2
+ipykernel
+ipython
+ipython-genutils
+ipywidgets
 jedi==0.18.1
 Jinja2==3.1.2
 jmespath==1.0.1
@@ -57,9 +57,9 @@ nbformat==5.7.0
 nest-asyncio==1.5.6
 notebook==6.4.12
 notebook_shim==0.2.0
-numpy==1.23.4
+numpy
 packaging==21.3
-pandas==1.5.1
+pandas
 pandocfilters==1.5.0
 parso==0.8.3
 pexpect==4.8.0

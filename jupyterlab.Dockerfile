@@ -14,8 +14,7 @@ RUN apt-get update -y && \
     python3 -m pip install --upgrade pip
 
 # virtualenv
-RUN pip3 install virtualenv && \
-    python3 -m venv /opt/workspace/reddit-env && \
+RUN python3 -m venv /opt/workspace/reddit-env && \
     source /opt/workspace/reddit-env/bin/activate
 
 # pyspark & jupyterlab
