@@ -9,14 +9,14 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools && \
+    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
 
 # virtualenv
 RUN pip3 install virtualenv && \
-    python3 -m virtualenv reddit-env && \
-    source reddit-env/bin/activate
+    python3 -m venv /opt/workspace/reddit-env && \
+    source /opt/workspace/reddit-env/bin/activate
 
 # pyspark & jupyterlab
 RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
