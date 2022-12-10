@@ -17,6 +17,7 @@ redditStreaming/target
 redditStreaming/build_files
 redditStreaming/src/main/python/reddit/config.yaml
 redditStreaming/src/main/python/config.yaml
+redditStreaming/src/reddit/__pycache__
 terraform/vars.tf
 .vscode
 .metals
