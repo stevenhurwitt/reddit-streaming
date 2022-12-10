@@ -19,7 +19,7 @@ RUN pip3 install virtualenv && \
     source reddit-env/bin/activate
 
 # pyspark & jupyterlab
-# RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
 RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
