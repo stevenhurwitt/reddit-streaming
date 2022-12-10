@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.2.0
+ARG spark_version=3.3.1
 ARG jupyterlab_version=3.2.5
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
@@ -15,10 +15,11 @@ RUN apt-get update -y && \
 
 # virtualenv
 RUN pip3 install virtualenv && \
-    python3 -m virtualenv reddit-env
+    python3 -m virtualenv reddit-env && \
+    source reddit-env/bin/activate
 
 # pyspark & jupyterlab
-RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+# RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
 RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
