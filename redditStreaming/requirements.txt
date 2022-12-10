@@ -7,8 +7,8 @@ backcall==0.2.0
 backports.functools-lru-cache==1.6.4
 beautifulsoup4==4.11.1
 bleach==5.0.1
-boto3==1.24.22
-botocore==1.27.22
+boto3
+botocore
 Bottleneck
 brotlipy==0.7.0
 certifi==2021.10.8
