@@ -11,7 +11,7 @@ RUN mkdir -p ${shared_workspace} && \
     apt-get update -y && \
 	apt install -y curl gcc zip unzip telnet &&\ 
 	apt install -y build-essential zlib1g-dev libncurses5-dev && \
-	apt install -y libsqlite3-dev && \
+	apt install -y libpq-dev awscli && \
 	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget libjpeg-dev && \
     apt install -y python3 && \
 	# curl -O https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz  && \

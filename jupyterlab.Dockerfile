@@ -9,32 +9,34 @@ COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools libpq-dev awscli && \
+    apt-get install -y python3-dev python3-distutils python3-setuptools && \
     curl https://bootstrap.pypa.io./get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
 
 # virtualenv
 RUN pip3 install virtualenv && \
-    python3 -m virtualenv reddit-env && \
-    source reddit-env/bin/activate
+    python3 -m virtualenv reddit-env
 
 # pyspark & jupyterlab
-RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN source reddit-env/bin/activate && \
+    pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+RUN source reddit-env/bin/activate && \
+    pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN source reddit-env/bin/activate && \
+    pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
 
 # add kernel to jupyter
 RUN python3 -m ipykernel install --user --name="reddit-env"
     
 # aws
 RUN rm -rf /var/lib/apt/lists/* && \
-    mkdir root/.aws && \
-    aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID} && \
-    aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+    mkdir root/.aws
+    # aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID} && \
+    # aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
