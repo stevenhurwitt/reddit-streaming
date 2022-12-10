@@ -18,16 +18,13 @@ RUN pip3 install virtualenv && \
     python3 -m virtualenv reddit-env
 
 # pyspark & jupyterlab
-RUN source reddit-env/bin/activate && \
-    pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN source reddit-env/bin/activate && \
-    pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN source reddit-env/bin/activate && \
-    pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
 
 # add kernel to jupyter
 RUN python3 -m ipykernel install --user --name="reddit-env"
