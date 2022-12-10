@@ -4,7 +4,6 @@ FROM cluster-base
 
 ARG spark_version=3.2.0
 ARG jupyterlab_version=3.2.5
-# ARG psutil_version=5.9.0
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
@@ -20,13 +19,13 @@ RUN pip3 install virtualenv && \
     source reddit-env/bin/activate
 
 # pyspark & jupyterlab
-RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+# RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
 # RUN python3 -m pip install /opt/workspace/redditStreaming/target/reddit-0.1.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
 
 # add kernel to jupyter
 RUN python3 -m ipykernel install --user --name="reddit-env"
@@ -36,7 +35,6 @@ RUN rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws && \
     aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID} && \
     aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
-
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
