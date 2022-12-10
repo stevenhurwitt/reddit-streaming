@@ -33,7 +33,10 @@ RUN python3 -m ipykernel install --user --name="reddit-env"
     
 # aws
 RUN rm -rf /var/lib/apt/lists/* && \
-    mkdir root/.aws
+    mkdir root/.aws && \
+    aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID} && \
+    aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
+
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
