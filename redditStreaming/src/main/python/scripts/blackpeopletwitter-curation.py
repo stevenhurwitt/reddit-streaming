@@ -11,6 +11,7 @@ from pyspark.sql.functions import *
 from delta import *
 from delta.tables import *
 import boto3
+import ast
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
@@ -23,8 +24,8 @@ subreddit = "BlackPeopleTwitter"
 
 secretmanager_client = boto3.client("secretsmanager")
 
-aws_client = secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")
-aws_secret = secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")
+aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0"
 
 spark = SparkSession \
@@ -65,17 +66,16 @@ deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt/{}_
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
-
-postgresql = secretmanager_client.get_secret_value(SecretId="dev/postgresql")
-connect_str = "jdbc:postgresql://{}:5432/reddit".format(postgresql["postgres_host"])
+db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+connect_str = "jdbc:postgresql://{}:5432/reddit".format(db_creds["host"])
 
 try:
     df.write.format("jdbc") \
         .mode("overwrite") \
         .option("url", connect_str) \
         .option("dbtable", "reddit.{}".format(subreddit)) \
-        .option("user", postgresql["postgres_user"]) \
-        .option("password", postgresql["postgres_password"]) \
+        .option("user", db_creds["username"]) \
+        .option("password", db_creds["password"]) \
         .option("driver", "org.postgresql.Driver") \
         .save()
 
