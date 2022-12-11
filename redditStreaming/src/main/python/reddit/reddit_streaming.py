@@ -78,7 +78,7 @@ def init_spark(subreddit, index):
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
-                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
