@@ -27,8 +27,62 @@ terraform/vars.tf
 .pytest_cache
 local
 .DS_Store
+.ipynb_checkpoints
+projects
+gh/share
+
+# creds
+*.json
+/*.json
+/*/*.json
+/*/*/*.json
+/*/*/*/*.json
+/*/*/*/*/*.json
+
+# redditStreaming
+redditStreaming/creds.json
+redditStreaming/*/*/*/__pycache__
+redditStreaming/*/*/*/*/__pycache__
+redditStreaming/*/*/python/__init__.py
+redditStreaming/*/*/*/glue/__init__.py
+redditStreaming/*/*/*/glue/__pycache__
+redditStreaming/*/*/*/glue/*.json
+redditStreaming/*/*/*/glue/*.egg-info
+redditStreaming/src/main/python/__init__.py
+redditStreaming/src/main/python/*.json
+redditStreaming/src/main/python/reddit/creds.json
+redditStreaming/*/*/*/reddit/__init__.py
+redditStreaming/src/main/glue/glue.json
+redditStreaming/src/main/glue/creds.json
+redditStreaming/src/main/python/reddit/creds.json
+redditStreaming/*/*/*/reddit/creds.json
+redditStreaming/*/*/*/reddit/*.egg-info
+redditStreaming/*/*/*/secrets/__init__.py
+redditStreaming/*/*/*/secrets/*.json
+redditStreaming/*/*/*/secrets/*.egg-info
+redditStreaming/*/*/*/__init__.py
+redditStreaming/*/*/*/*/__init__.py
+redditStreaming/*/*/*/reddit/__pycache__
+redditStreaming/src/test/python/__pycache__
+redditStreaming/src/test/python/__pycache__/
+redditStreaming/src/main/python/glue/__init__.py
 redditStreaming/.DS_Store
 cluster_config
+target
+
+# terrraform
+terraform/.terraform
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.hcl
+
+# python
+redditStreaming/*/*/*/__pycache__
+redditStreaming/src/test/python/__pycache__
+
+# airflow
 dags
 logs
 plugins
