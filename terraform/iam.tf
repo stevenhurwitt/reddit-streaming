@@ -12,7 +12,7 @@ resource "aws_iam_policy" "s3_policy" {
         "s3:*"
       ],
       "Effect": "Allow",
-      "Resource": "${aws_s3_bucket.reddit_stevenhurwitt.arn}"
+      "Resource": "${aws_s3_bucket.reddit_stevenhurwitt.arn}/*"
     }
   ]
 }
