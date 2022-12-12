@@ -42,6 +42,7 @@ spark = SparkSession \
     .enableHiveSupport() \
     .getOrCreate()
   
+print("created spark session.")
 # spark = configure_spark_with_delta_pip(builder).getOrCreate()
 # .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -65,6 +66,8 @@ df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").o
 deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt/{}_clean".format(subreddit))
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
+
+print("wrote clean df to delta.")
 
 db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
 connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
@@ -90,5 +93,7 @@ athena.start_query_execution(
          ResultConfiguration = {
              'OutputLocation': "s3://reddit-streaming-stevenhurwitt/_athena_results"
          })
+
+print("ran msck repair for athena.")
 
 job.commit()
