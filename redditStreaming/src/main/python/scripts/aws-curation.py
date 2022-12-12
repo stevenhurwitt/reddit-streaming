@@ -69,7 +69,7 @@ deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
 db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-connect_str = "jdbc:postgresql://{}:5432/reddit".format(db_creds["host"])
+connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
 
 try:
     df.write.format("jdbc") \
