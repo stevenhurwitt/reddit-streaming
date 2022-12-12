@@ -71,7 +71,7 @@ def init_spark(subreddit, index):
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "4096m") \
-                    .config("spark.executor.cores", "1") \
+                    .config("spark.executor.cores", "8") \
                     .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
