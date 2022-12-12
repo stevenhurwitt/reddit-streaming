@@ -68,6 +68,8 @@ deltaTable.generate("symlink_format_manifest")
 print("wrote clean df to delta.")
 
 # https://stackoverflow.com/questions/55508318/how-do-i-query-a-jdbc-database-within-aws-glue-using-a-where-clause-with-pyspark
+# https://docs.aws.amazon.com/glue/latest/ug/connectors-chapter.html#creating-custom-connectors
+# https://aws.amazon.com/blogs/big-data/building-aws-glue-spark-etl-jobs-by-bringing-your-own-jdbc-drivers-for-amazon-rds/
 
 db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
 connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
