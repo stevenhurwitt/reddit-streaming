@@ -6,6 +6,7 @@ ARG spark_version=3.3.1
 ARG jupyterlab_version=3.2.5
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
+COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
 
 # base python
 RUN apt-get update -y && \
