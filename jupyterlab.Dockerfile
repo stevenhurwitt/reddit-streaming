@@ -2,7 +2,7 @@ FROM cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.2.0
+ARG spark_version=3.3.1
 ARG jupyterlab_version=3.2.5
 
 COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
@@ -32,8 +32,11 @@ RUN python3 -m pip install --no-cache-dir pyspark==${spark_version} jupyterlab==
 # requirements
 RUN python3 -m pip install --no-cache-dir -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
     
+# aws
 RUN rm -rf /var/lib/apt/lists/* && \
     mkdir root/.aws
+    # aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID} && \
+    # aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}
     # ln -s /usr/local/bin/python3 /usr/bin/python
 
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
@@ -47,4 +50,5 @@ RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
 
 EXPOSE 8888
 WORKDIR ${SHARED_WORKSPACE}
-CMD jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=
+CMD jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=easy --NotebookApp.password=easy --notebook-dir=${SHARED_WORKSPACE}
+

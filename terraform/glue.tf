@@ -103,7 +103,7 @@ resource "aws_glue_job" "ProgrammerHumor" {
   }
 }
 
-################### glue schedule ####################
+# ################### glue schedule ####################
 resource "aws_glue_trigger" "nightly_news" {
   name     = "nightly_news"
   schedule = "cron(0 5 * * ? *)"

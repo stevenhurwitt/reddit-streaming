@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
 Name: reddit
 Version: 0.1.0
-Summary: reddit api kafka & pyspark
-Author: steven hurwitt
+Summary: Reddit API Kafka & Spark
+Author: Steven Hurwitt
 Author-email: stevenhurwitt@gmail.com
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License

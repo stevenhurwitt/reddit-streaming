@@ -10,6 +10,9 @@ subreddit: #limit to 4 b/c there are 4 cores on raspberry pi for spark to share
 post_type: new
 kafka_host: kafka
 spark_host: spark-master
+postgres_host: reddit.cq1scsldhxxi.us-east-2.rds.amazonaws.com
+postgres_user: postgres
+postgres_password: Secret!1234
 # kafka_host: kafka #kafka
 # spark_host: spark-master #spark-master
 debug: True
