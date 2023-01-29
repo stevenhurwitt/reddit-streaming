@@ -13,8 +13,8 @@ resource "aws_iam_policy" "s3_policy" {
       ],
       "Effect": "Allow",
       "Resource": [
-        "${aws_s3_bucket.reddit_stevenhurwitt.arn}/*",
-        "${aws_s3_bucket.reddit_stevenhurwitt.arn}"
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*",
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}"
         ]
     }
   ]
@@ -60,8 +60,8 @@ resource "aws_iam_role_policy" "my_s3_policy" {
         "s3:*"
       ],
       "Resource": [
-        "arn:aws:s3:::${var.s3_bucket_name}",
-        "arn:aws:s3:::${var.s3_bucket_name}/*"
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}",
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*"
       ]
     }
   ]
