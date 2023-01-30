@@ -1,10 +1,12 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
-import yaml
 import json
-import sys
 import os
+import sys
+
+import yaml
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
 
 def read_files():
     """

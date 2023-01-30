@@ -1,15 +1,17 @@
-from kafka import KafkaProducer
-from kafka.errors import NoBrokersAvailable, KafkaTimeoutError
 import datetime as dt
-import requests
-import kafka
+import json
+import os
 import pprint
+import sys
+import time
+
+import kafka
+import requests
 # import boto3
 import yaml
-import time
-import json
-import sys
-import os
+from kafka import KafkaProducer
+from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
+
 pp = pprint.PrettyPrinter(indent=1)
 
 try:
