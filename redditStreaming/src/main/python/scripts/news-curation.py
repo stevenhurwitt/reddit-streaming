@@ -47,7 +47,7 @@ print("created spark session.")
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
 # .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
 
-df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt/" + subreddit)
+df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt-new/" + subreddit)
 
 df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
@@ -59,38 +59,38 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("day", dayofmonth(col("date"))) \
                 .dropDuplicates(subset = ["title"])
                 
-filepath = "s3a://reddit-streaming-stevenhurwitt/" + subreddit + "_clean/"
+filepath = "s3a://reddit-streaming-stevenhurwitt-new/" + subreddit + "_clean/"
 df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("mergeSchema", "true").option("overwriteSchema", "true").option("header", True).save(filepath)
         
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt/{}_clean".format(subreddit))
+deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt-new/{}_clean".format(subreddit))
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
 print("wrote df to delta.")
 
-db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+# db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+# connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
 
-try:
-    df.write.format("jdbc") \
-        .mode("overwrite") \
-        .option("url", connect_str) \
-        .option("dbtable", "reddit.{}".format(subreddit)) \
-        .option("user", db_creds["username"]) \
-        .option("password", db_creds["password"]) \
-        .option("driver", "org.postgresql.Driver") \
-        .save()
+# try:
+#     df.write.format("jdbc") \
+#         .mode("overwrite") \
+#         .option("url", connect_str) \
+#         .option("dbtable", "reddit.{}".format(subreddit)) \
+#         .option("user", db_creds["username"]) \
+#         .option("password", db_creds["password"]) \
+#         .option("driver", "org.postgresql.Driver") \
+#         .save()
 
-    print("wrote df to postgresql table.")
+#     print("wrote df to postgresql table.")
 
-except Exception as e:
-    print(e)
+# except Exception as e:
+#     print(e)
 
 athena = boto3.client('athena')
 athena.start_query_execution(
          QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
          ResultConfiguration = {
-             'OutputLocation': "s3://reddit-streaming-stevenhurwitt/_athena_results"
+             'OutputLocation': "s3://reddit-streaming-stevenhurwitt-new/_athena_results"
          })
 
 print("ran msck repair for athena.")
