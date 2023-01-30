@@ -39,7 +39,7 @@ RUN rm -rf /var/lib/apt/lists/* && \
 # deal w/ outdated pyspark guava jar for hadoop-aws (check maven repo for hadoop-common version)
 RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
     rm guava-14.0.1.jar && \
-    wget https://repo1.maven.org/maven2/com/google/guava/guava/27.0-jre/guava-27.0-jre.jar
+    wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
 
 
 # -- Runtime
