@@ -25,6 +25,7 @@ services:
     volumes:
       - shared-workspace:/opt/workspace
       - ./redditStreaming:/opt/workspace/redditStreaming
+    read_only: false
   spark-master:
     image: spark-master
     container_name: spark-master
