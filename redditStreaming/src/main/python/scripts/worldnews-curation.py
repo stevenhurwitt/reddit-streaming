@@ -1,17 +1,18 @@
-import os
-import sys
 import ast
 import json
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+import os
+import sys
+
+import boto3
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.session import SparkSession
-from pyspark.sql.functions import *
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
 from delta import *
 from delta.tables import *
-import boto3
+from pyspark.context import SparkContext
+from pyspark.sql.functions import *
+from pyspark.sql.session import SparkSession
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
