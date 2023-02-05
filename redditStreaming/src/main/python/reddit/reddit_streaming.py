@@ -118,7 +118,10 @@ def read_kafka_stream(spark, sc, subreddit):
     params: spark, sc
     returns: df
     """
-    creds, config = read_files()
+    secretsmanager = boto3.client("secretsmanager", region_name="us-east-2")
+    creds = json.loads(secretsmanager.get_secret_value(SecretId="creds.json")["SecretString"])
+    config = yaml.safe_load(secretsmanager.get_secret_value(SecretId="config.yaml")["SecretString"])
+
     kafka_host = config["kafka_host"]
     spark_host = config["spark_host"]
     aws_client = creds["aws_client"]
@@ -249,7 +252,10 @@ def write_stream(df, subreddit):
     params: df
     """
 
-    creds, config = read_files()
+    secretsmanager = boto3.client("secretsmanager", region_name="us-east-2")
+    creds = json.loads(secretsmanager.get_secret_value(SecretId="creds.json")["SecretString"])
+    config = yaml.safe_load(secretsmanager.get_secret_value(SecretId="config.yaml")["SecretString"])
+
 
     bucket = config["bucket"]
     write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
