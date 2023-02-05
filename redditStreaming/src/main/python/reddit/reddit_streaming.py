@@ -287,7 +287,10 @@ def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
-    creds, config = read_files()
+    secretsmanager = boto3.client("secretsmanager", region_name="us-east-2")
+    creds = json.loads(secretsmanager.get_secret_value(SecretId="creds.json")["SecretString"])
+    config = yaml.safe_load(secretsmanager.get_secret_value(SecretId="config.yaml")["SecretString"])
+
     # subreddit_list = []
     subreddit_list = config["subreddit"]
     for i, s in enumerate(subreddit_list):
