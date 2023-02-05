@@ -72,25 +72,25 @@ deltaTable.generate("symlink_format_manifest")
 
 print("wrote clean df to delta.")
 
-# db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-# connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
 
-# try:
-#     df.write.format("jdbc") \
-#         .mode("overwrite") \
-#         .option("url", connect_str) \
-#         .option("dbtable", "reddit.{}".format(subreddit)) \
-#         .option("user", db_creds["username"]) \
-#         .option("password", db_creds["password"]) \
-#         .option("driver", "org.postgresql.Driver") \
-#         .save()
+try:
+    df.write.format("jdbc") \
+        .mode("overwrite") \
+        .option("url", connect_str) \
+        .option("dbtable", "reddit.{}".format(subreddit)) \
+        .option("user", db_creds["username"]) \
+        .option("password", db_creds["password"]) \
+        .option("driver", "org.postgresql.Driver") \
+        .save()
 
-#     print("wrote df to postgresql table.")
+    print("wrote df to postgresql table.")
 
-# except Exception as e:
-#     print(e)
+except Exception as e:
+    print(e)
 
-athena = boto3.client('athena')
+athena = boto3.client('athena', region = "us-east-2")
 athena.start_query_execution(
          QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
          ResultConfiguration = {

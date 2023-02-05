@@ -9,6 +9,7 @@ import yaml
 import time
 import json
 import sys
+import ast
 import os
 
 ################### database upload ###################
@@ -21,6 +22,12 @@ import os
 def main():
 
     pp = pprint.PrettyPrinter(indent = 1)
+    secretmanager_client = boto3.client("secretsmanager")
+
+    aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+    aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0"
+
     print("imported modules.")
 
     creds_path = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
@@ -52,7 +59,7 @@ def main():
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
-                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+                    .config("spark.jars.packages", extra_jar_list) \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
@@ -69,27 +76,44 @@ def main():
 
         sc.setLogLevel('WARN')
         sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
-        # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
-        # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
-        # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
         print("created spark successfully")
 
     except Exception as e:
         print(e)
 
     try:
-        df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt/" + subreddit + "_clean")
+        df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt-new/" + subreddit + "_clean")
         df.show()
 
     except Exception as e:
         print(e)
 
     try:
+        db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+        connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+
+        try:
+            df.write.format("jdbc") \
+                .mode("overwrite") \
+                .option("url", connect_str) \
+                .option("dbtable", "reddit.{}".format(subreddit)) \
+                .option("user", db_creds["username"]) \
+                .option("password", db_creds["password"]) \
+                .option("driver", "org.postgresql.Driver") \
+                .save()
+
+            print("wrote df to postgresql table.")
+
+        except Exception as e:
+            print(e)
         # jdbc_url = ""
         # jdbc_user = "postgres"
         # jdbc_password = creds["jdbc_password"]
         # df.write.format("jdbc")....
         # print("wrote table to postgres db.")
+
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
     main()

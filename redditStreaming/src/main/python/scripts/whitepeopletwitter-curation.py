@@ -89,7 +89,7 @@ print("wrote clean df to delta.")
 # except Exception as e:
 #     print(e)
 
-athena = boto3.client('athena')
+athena = boto3.client('athena', region = "us-east-2")
 athena.start_query_execution(
          QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit.lower()),
          ResultConfiguration = {
