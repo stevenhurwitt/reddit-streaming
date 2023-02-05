@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import boto3
 
 import yaml
 from pyspark.sql import SparkSession
@@ -8,49 +9,49 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
 
-def read_files():
-    """
-    initializes spark session using config.yaml and creds.json files.
-    """
+# def read_files():
+#     """
+#     initializes spark session using config.yaml and creds.json files.
+#     """
 
-    base = os.getcwd()
-    creds_path_container = os.path.join(base, "creds.json")
+#     base = os.getcwd()
+#     creds_path_container = os.path.join(base, "creds.json")
 
-    creds_dir = "/".join(base.split("/")[:-3])
-    creds_path = os.path.join(base, "creds.json")
+#     creds_dir = "/".join(base.split("/")[:-3])
+#     creds_path = os.path.join(base, "creds.json")
 
-    try:
-        with open(creds_path, "r") as f:
-            creds = json.load(f)
-            f.close()
+#     try:
+#         with open(creds_path, "r") as f:
+#             creds = json.load(f)
+#             f.close()
 
-    except FileNotFoundError:
-        # print("couldn't find: {}.".format(creds_path))
-        try:
-            with open(creds_path_container, "r") as f:
-                creds = json.load(f)
-                f.close()
+#     except FileNotFoundError:
+#         # print("couldn't find: {}.".format(creds_path))
+#         try:
+#             with open(creds_path_container, "r") as f:
+#                 creds = json.load(f)
+#                 f.close()
 
-        except FileNotFoundError:
-            with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
-                creds = json.load(f)
-                f.close()
+#         except FileNotFoundError:
+#             with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
+#                 creds = json.load(f)
+#                 f.close()
 
-    except:
-        print("failed to find creds.json.")
-        sys.exit()
+#     except:
+#         print("failed to find creds.json.")
+#         sys.exit()
 
-    try:
-        with open("config.yaml", "r") as f:
-            config = yaml.safe_load(f)
-            # print("read config file.")
-            f.close()
+#     try:
+#         with open("config.yaml", "r") as f:
+#             config = yaml.safe_load(f)
+#             # print("read config file.")
+#             f.close()
 
-    except:
-        print("failed to find config.yaml, exiting now.")
-        sys.exit()
+#     except:
+#         print("failed to find config.yaml, exiting now.")
+#         sys.exit()
 
-    return(creds, config)
+#     return(creds, config)
 
 def init_spark(subreddit, index):
     """
@@ -58,7 +59,10 @@ def init_spark(subreddit, index):
 
     returns: spark, sparkContext (sc)
     """
-    creds, config = read_files()
+    secretsmanager = boto3.client("secretsmanager", region_name="us-east-2")
+    creds = json.loads(secretsmanager.get_secret_value(SecretId="creds.json")["SecretString"])
+    config = yaml.safe_load(secretsmanager.get_secret_value(SecretId="config.yaml")["SecretString"])
+
     spark_host = config["spark_host"]
     # spark_host = "spark-master"
     aws_client = creds["aws_client"]
