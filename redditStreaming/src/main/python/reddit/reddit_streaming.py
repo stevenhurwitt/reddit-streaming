@@ -64,8 +64,8 @@ def init_spark(subreddit, index):
     # spark_host = "spark-master"
     aws_client = creds["aws_client"]
     aws_secret = creds["aws_secret"]
-    index = 0
     extra_jar_list = config["extra_jar_list"]
+    index = 0
 
     # initialize spark session
     try:
@@ -246,6 +246,11 @@ def write_stream(df, subreddit):
     params: df
     """
 
+    creds, config = read_files()
+
+    bucket = config["bucket"]
+    write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
+
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
         .select("subreddit", "title", "score", "created_utc") \
@@ -262,7 +267,7 @@ def write_stream(df, subreddit):
     df.writeStream \
         .trigger(processingTime="180 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-streaming-stevenhurwitt-new/{}".format(subreddit)) \
+        .option("path", write_path) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \
