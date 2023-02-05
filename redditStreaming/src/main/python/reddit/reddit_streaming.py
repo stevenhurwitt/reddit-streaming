@@ -65,7 +65,7 @@ def init_spark(subreddit, index):
     aws_client = creds["aws_client"]
     aws_secret = creds["aws_secret"]
     index = 0
-    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1,org.apache.hadoop:hadoop-common:3.3.4,org.apache.hadoop:hadoop-aws:3.3.4,org.apache.hadoop:hadoop-client:3.3.4,io.delta:delta-core_2.12:2.2.0,org.postgresql:postgresql:42.5.0"
+    extra_jar_list = config["extra_jar_list"]
 
     # initialize spark session
     try:

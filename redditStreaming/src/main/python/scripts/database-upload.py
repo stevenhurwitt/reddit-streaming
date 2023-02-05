@@ -19,15 +19,14 @@ import os
 #######################################################
 
 
-def main():
+def main(subreddit):
 
     pp = pprint.PrettyPrinter(indent = 1)
-    secretmanager_client = boto3.client("secretsmanager")
+    secretmanager_client = boto3.client("secretsmanager", region_name = "us-east-2")
 
     aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
     aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
-    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0"
-
+    
     print("imported modules.")
 
     creds_path = os.path.join("/opt", "workspace", "redditStreaming", "creds.json")
@@ -42,8 +41,9 @@ def main():
     # spark_host = "spark-master"
     aws_client = creds["aws_client"]
     aws_secret = creds["aws_secret"]
+    extra_jar_list = creds["extra_jar_list"]
     index = 0
-    subreddit = "technology"
+    # subreddit = "technology"
 
     # initialize spark session
     try:
@@ -91,6 +91,7 @@ def main():
     try:
         db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
         connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+        pp.pprint(db_creds)
 
         try:
             df.write.format("jdbc") \
@@ -116,4 +117,13 @@ def main():
         print(e)
 
 if __name__ == "__main__":
-    main()
+
+    pp = pprint.PrettyPrinter(indent = 1)
+
+    with open("./../config.yaml", "r") as h:
+        config = yaml.safe_load(h)
+        h.close()
+
+        for s in config["subreddit"]:
+            print(s)
+            main(s)
