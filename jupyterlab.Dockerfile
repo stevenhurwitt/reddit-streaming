@@ -3,7 +3,7 @@ FROM cluster-base
 # -- Layer: JupyterLab
 
 ARG spark_version=3.3.1
-ARG jupyterlab_version=3.2.5
+ARG jupyterlab_version=3.5.2
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
