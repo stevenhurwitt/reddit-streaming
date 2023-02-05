@@ -22,7 +22,6 @@ def read_files():
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
-            print("read creds.json.")
             f.close()
 
     except FileNotFoundError:
