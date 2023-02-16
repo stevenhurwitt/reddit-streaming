@@ -33,7 +33,10 @@ resource "aws_iam_policy" "s3_policy" {
         "s3:*"
       ],
       "Effect": "Allow",
-      "Resource": "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}"
+      "Resource": [
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*",
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}"
+        ]
     }
   ]
 }
@@ -69,10 +72,60 @@ resource "aws_iam_role" "glue" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "glue_service" {
-    role = aws_iam_role.glue.id
-    policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+resource "aws_iam_role_policy" "glue_policy" {
+  role=aws_iam_role.glue.id
+  policy=<<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:DeleteObject"
+      ],
+      "Resource": ${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt",
+        "kms:Encrypt",
+        "kms:GenerateDataKey",
+        "kms:ReEncrypt",
+        "kms:Describe"
+      ],
+      "Resource": "${aws_kms_alias.rds_cmk_alias.arn}/*"wbnnnnnnnbn     4444444444444444444444444444444
+    },
+  ]
 }
+EOF
+}
+
+# resource "aws_iam_role_policy_attachment" "glue_service" {
+#     role = "${aws_iam_role.glue.id}"
+#     policy_arn = "arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"
+# }
 
 # lambda
 resource "aws_iam_role" "lambda" {
@@ -118,8 +171,8 @@ resource "aws_iam_role_policy" "my_s3_policy" {
         "s3:*"
       ],
       "Resource": [
-        "arn:aws:s3:::${var.s3_bucket_name}",
-        "arn:aws:s3:::${var.s3_bucket_name}/*"
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}",
+        "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*"
       ]
     }
   ]

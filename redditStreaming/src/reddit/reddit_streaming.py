@@ -4,8 +4,14 @@ from pyspark.sql.functions import *
 import pprint
 import yaml
 import json
-import sys
 import os
+import sys
+
+import yaml
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
+
 
 pp = pprint.PrettyPrinter(indent = 1)
 
@@ -23,7 +29,6 @@ def read_files():
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
-            print("read creds.json.")
             f.close()
 
     except FileNotFoundError:
@@ -65,9 +70,10 @@ def init_spark(subreddit, index):
     # spark_host = "spark-master"
     aws_client = creds["aws_client"]
     aws_secret = creds["aws_secret"]
+    extra_jar_list = config["extra_jar_list"]
     index = 0
-    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"
-
+    # extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"
+    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:2.2.0,org.postgresql:postgresql:42.5.0"
 
     # initialize spark session
 
@@ -82,6 +88,8 @@ def init_spark(subreddit, index):
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
+                    .config("spark.executor.memory", "2048m") \
+                    .config("spark.executor.cores", "2") \
                     .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
@@ -258,6 +266,11 @@ def write_stream(df, subreddit):
     params: df
     """
 
+    creds, config = read_files()
+
+    bucket = config["bucket"]
+    write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
+
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
         .select("subreddit", "title", "score", "created_utc") \
@@ -274,7 +287,7 @@ def write_stream(df, subreddit):
     df.writeStream \
         .trigger(processingTime="180 seconds") \
         .format("delta") \
-        .option("path", "s3a://reddit-streaming-stevenhurwitt/{}".format(subreddit)) \
+        .option("path", write_path) \
         .option("checkpointLocation", "file:///opt/workspace/checkpoints/{}".format(subreddit)) \
         .option("header", True) \
         .outputMode("append") \

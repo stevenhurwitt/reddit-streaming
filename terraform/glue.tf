@@ -103,7 +103,7 @@ resource "aws_glue_job" "ProgrammerHumor" {
   }
 }
 
-################### glue schedule ####################
+# ################### glue schedule ####################
 resource "aws_glue_trigger" "nightly_news" {
   name     = "nightly_news"
   schedule = "cron(0 5 * * ? *)"
@@ -111,6 +111,36 @@ resource "aws_glue_trigger" "nightly_news" {
 
   actions {
     job_name = aws_glue_job.news.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_worldnews" {
+  name     = "nightly_worldnews"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.worldnews.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_technology" {
+  name     = "nightly_technology"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.technology.name
+  }
+}
+
+resource "aws_glue_trigger" "nightly_programmerhumor" {
+  name     = "nightly_programmerhumor"
+  schedule = "cron(0 5 * * ? *)"
+  type     = "SCHEDULED"
+
+  actions {
+    job_name = aws_glue_job.ProgrammerHumor.name
   }
 }
 

@@ -137,3 +137,12 @@ Docker Compose.
 ## terraform
 
 `cd terraform && tf plan -out tfplan && tf apply tfplan`
+`s3://aws-glue-assets-965504608278-us-east-2/scripts/`
+
+# enhancements
+
+- lambda function to backup s3 to local daily (aws s3 sync...)
+- glue function for s3 to docker postgres (aws is $6 a day??? could use a smaller instance?)
+- airflow to gracefully restart streaming and producer jobs as needed
+- could move from docker-compose local streaming app to cloud based
+- kubernetes cluster w/ raspberry pis and local pc

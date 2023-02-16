@@ -15,7 +15,7 @@ variable "aws_region" {
 }
 
 variable "s3_bucket_name" {
-    default = "reddit-streaming-stevenhurwitt"
+    default = "reddit-streaming-stevenhurwitt-new"
     type = string
 }
 

@@ -1,19 +1,18 @@
 ################### S3 #####################
 
 resource "aws_s3_bucket" "reddit_streaming_stevenhurwitt" {
-    bucket        = var.s3_bucket_name
+    bucket        = "reddit-streaming-stevenhurwitt-new"
 }
 
-# old bucket
-# resource "aws_s3_bucket_acl" "reddit_stevenhurwitt" {
-#     bucket        = aws_s3_bucket.reddit_stevenhurwitt.id
-#     acl         = "private"
-# }
+resource "aws_s3_bucket_acl" "reddit_streaming_stevenhurwitt" {
+    bucket        = aws_s3_bucket.reddit_streaming_stevenhurwitt.id
+    acl         = "private"
+}
 
 # raw folders
 resource "aws_s3_object" "news" {
-  bucket       = aws_s3_bucket.reddit_streaming_stevenhurwitt.id
-  key          = var.folder_news
+  bucket       = "${aws_s3_bucket.reddit_streaming_stevenhurwitt.id}"
+  key          = "${var.folder_news}/"
   content_type = "application/x-directory"
 }
 
