@@ -1,0 +1,59 @@
+name: aws
+on: [push, pull_request]
+jobs:
+  aws:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - TEST_NAME: "Latest v2"
+            AWS_CLI_VERSION: "2"
+          - TEST_NAME: "Specific v2"
+            AWS_CLI_VERSION: "2.0.30"
+          - TEST_NAME: "Latest v1"
+            AWS_CLI_VERSION: "1"
+          - TEST_NAME: "Specific v1"
+            AWS_CLI_VERSION: "1.18.1"
+          - TEST_NAME: "No Input"
+    name: "aws"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: create-json
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "creds.json"
+          json: ${{ secrets.CREDS }}
+          dir: '/redditStreaming'
+      - name: create txt files
+        run: touch aws_access_key.txt && touch aws_secret.txt
+      - name: aws access key id
+        run: 'echo "$ACCESS_KEY" > aws_access_key.txt'
+        shell: bash
+        env:
+          ACCESS_KEY : ${{secrets.AWS_ACCESS_KEY_ID}}
+      - name: aws secret key
+        run: 'echo "$SECRET_KEY" > aws_secret.txt'
+        shell: bash
+        env:
+          SECRET_KEY : ${{secrets.AWS_SECRET_ACCESS_KEY}}
+      - name: cat access_key
+        run: cat aws_access_key.txt
+      - name: python dependencies
+        run: sudo apt-get install python3 python3-pip python3-virtualenv
+      - name: build reddit
+        run: python3 ./redditStreaming/src/main/python/reddit/setup.py bdist_wheel
+      - name: install reddit
+        run: pip3 install redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+      - name: version check
+        run: python3 --version && pip --version
+      - name: Test ${{ matrix.TEST_NAME }} ${{ matrix.AWS_CLI_VERSION }}
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: ${{ matrix.AWS_CLI_VERSION }}
+        run: cd redditStreaming/scripts && aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
+        shell: bash
+      - name: aws version
+        run: aws --version

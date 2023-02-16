@@ -20,4 +20,24 @@
     <weight>1</weight>
     <minShare>1</minShare>
   </pool>
+  <pool name="pool4">
+    <schedulingMode>FAIR</schedulingMode>
+    <weight>1</weight>
+    <minShare>1</minShare>
+  </pool>
+  <pool name="pool5">
+    <schedulingMode>FAIR</schedulingMode>
+    <weight>1</weight>
+    <minShare>1</minShare>
+  </pool>
+  <pool name="pool6">
+    <schedulingMode>FAIR</schedulingMode>
+    <weight>1</weight>
+    <minShare>1</minShare>
+  </pool>
+  <pool name="pool7">
+    <schedulingMode>FAIR</schedulingMode>
+    <weight>1</weight>
+    <minShare>1</minShare>
+  </pool>
 </allocations>

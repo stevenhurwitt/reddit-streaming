@@ -8,7 +8,7 @@ ARG shared_workspace=/opt/workspace
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN mkdir -p ${shared_workspace} && \
-    apt-get update -y && \
+    apt-get update --allow-insecure-repositories -y && \
 	apt install -y curl gcc zip unzip telnet &&\ 
 	apt install -y build-essential zlib1g-dev libncurses5-dev && \
 	apt install -y libpq-dev awscli && \
