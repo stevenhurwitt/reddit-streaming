@@ -5,6 +5,7 @@ argon2-cffi-bindings==21.2.0
 asttokens==2.0.8
 attrs==22.1.0
 awscli==1.27.27
+# awsglue_local
 Babel==2.10.3
 backcall==0.2.0
 backports.functools-lru-cache==1.6.4
