@@ -149,43 +149,19 @@ services:
     depends_on:
       - kafka
 
-  # # postgres:
-  # #   image: postgres:13
-  # #   environment:
-  # #     POSTGRES_USER: airflow
-  # #     POSTGRES_PASSWORD: ecret!12345
-  # #     POSTGRES_DB: airflow
-  # #   volumes:
-  # #     - postgres-db-volume:/var/lib/postgresql/data
-  # #   healthcheck:
-  # #     test: ["CMD", "pg_isready", "-U", "airflow"]
-  # #     interval: 5s
-  # #     retries: 5
-  # #   restart: always
-  # #   hostname: postgres
-  # #   ports: 
-  # #     - "5432:5432"
+  glue:
+    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
+    container_name: glue
+    restart: on-failure
+    secrets:
+      - aws_access_key_id
+      - aws_secret_access_key
+    environment:
+      - AWS_ACCESS_KEY_ID=aws_access_key_id
+      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
 
-  # ganglia:
-  #   image: kurthuwig/ganglia:latest
-  #   container_name: ganglia
-  #   restart: on-failure
-  #   ports:
-  #   - "127.0.0.1:80:80"
-  #   - "8649:8649"
-  #   - "8649:8649/udp"
-  #   volumes:
-  #   - ./cluster_config/ganglia/etc:/etc/ganglia
-  #   - ./cluster_config/ganglia/data:/var/lib/ganglia
-
-  # redis:
-  #     image: redis:latest
-  #     expose:
-  #       - 6379
-  #     healthcheck:
-  #       test: ["CMD", "redis-cli", "ping"]
-  #       interval: 5s
-  #       timeout: 30s
-  #       retries: 50
-  #     restart: always
-
+      
+    ports:
+    - "8898:8888"
+    volumes:
+    - ./redditStreaming:/opt/workspace/redditStreaming
