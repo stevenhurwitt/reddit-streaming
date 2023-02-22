@@ -294,7 +294,6 @@ def main():
 
     spark.streams.awaitAnyTermination()
 
-    
 
 if __name__ == "__main__":
 
