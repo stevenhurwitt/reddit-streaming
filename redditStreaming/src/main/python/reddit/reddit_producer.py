@@ -281,8 +281,8 @@ def main():
             subreddit = config["subreddit"]
             post_type = config["post_type"]
             kafka_host = config["kafka_host"]
-            # debug = config["debug"]
-            debug = True
+            debug = config["debug"]
+            # debug = True
             f.close()
     
     except:
@@ -296,7 +296,9 @@ def main():
     # print("secrets: {}".format(secrets))
 
     my_header = get_bearer()
-    print("authenticated w/ bearer token good for 24 hrs.")
+    if debug:
+        print("authenticated w/ bearer token good for 24 hrs.")
+        
     poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
 
 if __name__ == "__main__":

@@ -116,9 +116,6 @@ def read_kafka_stream(spark, sc, subreddit):
     """
     creds, config = read_files()
     kafka_host = config["kafka_host"]
-    spark_host = config["spark_host"]
-    aws_client = creds["aws_client"]
-    aws_secret = creds["aws_secret"]
 
     # define schema for payload data
     payload_schema = StructType([
