@@ -22,7 +22,7 @@ RUN python3 -m venv /opt/workspace/reddit-env && \
 RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl --force-reinstall
+RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
 
 # requirements
 RUN pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
