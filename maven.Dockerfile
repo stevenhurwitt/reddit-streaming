@@ -8,7 +8,7 @@ COPY redditStreaming/requirements.txt /opt/workspace/requirements.txt
 # build wheel, copy
 WORKDIR /opt/workspace
 RUN python3 redditStreaming/src/main/python/reddit/setup.py bdist_wheel && \
-    cp redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl /opt/workspace/reddit-0.1.0-py3-none-any.whl
+    cp redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl /opt/workspace/reddit-1.0.0-py3-none-any.whl
 
 # build uber jar, copy
 RUN cd redditStreaming && \
