@@ -11,7 +11,7 @@ volumes:
     driver: local
 services:
   jupyterlab:
-    image: jupyterlab
+    image: stevenhurwitt/jupyterlab:latest
     container_name: jupyterlab
     secrets:
       - aws_access_key_id
@@ -28,7 +28,7 @@ services:
     read_only: false
 
   maven:
-    image: maven
+    image: stevenhurwitt/maven:latest
     container_name: maven
     secrets:
       - aws_access_key_id
@@ -44,7 +44,7 @@ services:
     read_only: false
 
   spark-master:
-    image: spark-master
+    image: stevenhurwitt/spark-master:latest
     container_name: spark-master
     hostname: spark-master
     ports:
@@ -55,7 +55,7 @@ services:
       - shared-workspace:/opt/workspace
 
   spark-worker-1:
-    image: spark-worker
+    image: stevenhurwitt/spark-worker:latest
     container_name: spark-worker-1
     environment:
       - SPARK_WORKER_CORES=4
@@ -70,7 +70,7 @@ services:
       - spark-master
 
   spark-worker-2:
-    image: spark-worker
+    image: stevenhurwitt/spark-worker:latest
     container_name: spark-worker-2
     environment:
       - SPARK_WORKER_CORES=4
@@ -171,7 +171,7 @@ services:
     - ./redditStreaming:/opt/workspace/redditStreaming
 
   glue_history:
-    image: glue_history
+    image: stevenhurwitt/glue_history:latest
     container_name: glue_history
     restart: on-failure
     secrets:
