@@ -183,4 +183,4 @@ services:
     ports:
     - "8898:8888"
     volumes:
-    - ./redditStreaming:/opt/workspace/redditStreaming
+    - ./glue_history:/tmp
