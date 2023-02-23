@@ -1,1 +1,1 @@
-aws s3 sync s3://reddit-streaming-stevenhurwitt /Volumes/samsung/reddit-streaming-stevenhurwitt/.
+aws s3 sync s3://reddit-streaming-stevenhurwitt-new /Volumes/samsung/reddit-streaming-stevenhurwitt/.

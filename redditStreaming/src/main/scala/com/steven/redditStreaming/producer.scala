@@ -8,8 +8,11 @@ object producer {
 
     def main(args:Array[String]):Unit= {
 
-        val aws_client = ""
-        val aws_secret = ""
+        val base = sys.env("HOME")
+        val aws_client = sys.env.get("AWS_ACCESS_KEY_ID") 
+        val aws_secret = sys.env.get("AWS_SECRET_ACCESS_KEY") 
+        // val aws_client = ""
+        // val aws_secret = ""
         
         val spark = SparkSession.builder
                                 .master("spark://spark-master:7077")

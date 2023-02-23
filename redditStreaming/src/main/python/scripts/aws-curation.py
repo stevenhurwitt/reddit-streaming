@@ -1,17 +1,18 @@
+import ast
+import json
 import os
 import sys
-import json
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+
+import boto3
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.session import SparkSession
-from pyspark.sql.functions import *
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
 from delta import *
 from delta.tables import *
-import boto3
-import ast
+from pyspark.context import SparkContext
+from pyspark.sql.functions import *
+from pyspark.sql.session import SparkSession
 
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
@@ -50,7 +51,7 @@ print("created spark session.")
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
 # .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
 
-df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt/" + subreddit)
+df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt-new/" + subreddit)
 
 df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
@@ -62,10 +63,10 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("day", dayofmonth(col("date"))) \
                 .dropDuplicates(subset = ["title"])
                 
-filepath = "s3a://reddit-streaming-stevenhurwitt/" + subreddit + "_clean/"
+filepath = "s3a://reddit-streaming-stevenhurwitt-new/" + subreddit + "_clean/"
 df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("overwriteSchema", "true").option("header", True).save(filepath)
         
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt/{}_clean".format(subreddit))
+deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt-new/{}_clean".format(subreddit))
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
@@ -93,7 +94,7 @@ athena = boto3.client('athena')
 athena.start_query_execution(
          QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
          ResultConfiguration = {
-             'OutputLocation': "s3://reddit-streaming-stevenhurwitt/_athena_results"
+             'OutputLocation': "s3://reddit-streaming-stevenhurwitt-new/_athena_results"
          })
 
 print("ran msck repair for athena.")
