@@ -27,21 +27,21 @@ services:
       - ./redditStreaming:/opt/workspace/redditStreaming
     read_only: false
 
-  maven:
-    image: stevenhurwitt/maven:latest
-    container_name: maven
-    secrets:
-      - aws_access_key_id
-      - aws_secret_access_key
-    environment:
-      - AWS_ACCESS_KEY_ID=aws_access_key_id
-      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
-    ports:
-      - 8899:8888
-    volumes:
-      - shared-workspace:/opt/workspace
-      - ./redditStreaming:/opt/workspace/redditStreaming
-    read_only: false
+  # maven:
+  #   image: stevenhurwitt/maven:latest
+  #   container_name: maven
+  #   secrets:
+  #     - aws_access_key_id
+  #     - aws_secret_access_key
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=aws_access_key_id
+  #     - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+  #   ports:
+  #     - 8899:8888
+  #   volumes:
+  #     - shared-workspace:/opt/workspace
+  #     - ./redditStreaming:/opt/workspace/redditStreaming
+  #   read_only: false
 
   spark-master:
     image: stevenhurwitt/spark-master:latest
