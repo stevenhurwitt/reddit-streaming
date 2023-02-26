@@ -26,10 +26,14 @@ subreddit = "aws"
 
 secretmanager_client = boto3.client("secretsmanager")
 
+delta_version = "2.0.2"
+spark_version = "3.3.2"
+hadoop_version = "3.3.4"
+postgres_version = "42.5.0"
 aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
-extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0"
-
+extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
+bucket = "reddit-streaming-stevenhurwitt-new"
 
 spark = builder = SparkSession \
   .builder \
@@ -51,7 +55,7 @@ print("created spark session.")
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
 # .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
 
-df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt-new/" + subreddit)
+df = spark.read.format("delta").option("header", True).load("s3a://" + bucket + "/" + subreddit)
 
 df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
@@ -63,25 +67,31 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("day", dayofmonth(col("date"))) \
                 .dropDuplicates(subset = ["title"])
                 
-filepath = "s3a://reddit-streaming-stevenhurwitt-new/" + subreddit + "_clean/"
+filepath = "s3a://" + bucket + "/" + subreddit + "_clean/"
 df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("overwriteSchema", "true").option("header", True).save(filepath)
         
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt-new/{}_clean".format(subreddit))
+deltaTable = DeltaTable.forPath(spark, f"s3a://{bucket}/{subreddit}_clean")
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
 print("wrote clean df to delta.")
 
 db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+host = db_creds['host']
+port = db_creds['port']
+dbname = db_creds['dbname']
+user = db_creds["username"]
+password = db_creds["password"]
+
+connect_str = f"jdbc:postgresql://{host}:{port}/{dbname}"
 
 try:
     df.write.format("jdbc") \
         .mode("overwrite") \
         .option("url", connect_str) \
-        .option("dbtable", "reddit.{}".format(subreddit)) \
-        .option("user", db_creds["username"]) \
-        .option("password", db_creds["password"]) \
+        .option("dbtable", f"reddit.{subreddit}") \
+        .option("user", user) \
+        .option("password", password) \
         .option("driver", "org.postgresql.Driver") \
         .save()
 
@@ -92,9 +102,9 @@ except Exception as e:
 
 athena = boto3.client('athena')
 athena.start_query_execution(
-         QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
+         QueryString = f"MSCK REPAIR TABLE reddit.{subreddit}",
          ResultConfiguration = {
-             'OutputLocation': "s3://reddit-streaming-stevenhurwitt-new/_athena_results"
+             'OutputLocation': f"s3://{bucket}/_athena_results"
          })
 
 print("ran msck repair for athena.")
