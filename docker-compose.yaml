@@ -122,8 +122,8 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: 192.168.50.20  #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
       # KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://xanaxprincess.asuscomm.com:9092
-      KAFKA_ZOOKEEPER_CONNECT: xanaxprincess.asuscomm.com:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://192.168.50.20:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
