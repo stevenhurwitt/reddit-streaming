@@ -89,7 +89,7 @@ services:
     container_name: postgres
     hostname: postgres
     ports: 
-      - "5432:5432"
+      - "5433:5432"
     environment: 
       - POSTGRES_USER=steven
       - POSTGRES_PASSWORD=secret!1234
