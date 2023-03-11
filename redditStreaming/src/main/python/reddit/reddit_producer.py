@@ -1,14 +1,14 @@
-import datetime as dt
-import json
 import os
-import pprint
 import sys
 import time
+import json
+import yaml
+import pprint
 
-import kafka
+import datetime as dt
 import requests
 # import boto3
-import yaml
+import kafka
 from kafka import KafkaProducer
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
