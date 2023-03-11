@@ -5,7 +5,7 @@ FROM maven:3.6-amazoncorretto-8
 RUN yum install -y procps
 
 WORKDIR /tmp/
-ADD glue_history_pom.xml /tmp/glue_history_pom.xml
+ADD glue_history_pom.xml /tmp/pom.xml
 RUN curl -o ./spark-3.1.1-bin-without-hadoop.tgz https://archive.apache.org/dist/spark/spark-3.1.1/spark-3.1.1-bin-without-hadoop.tgz
 RUN tar -xzf spark-3.1.1-bin-without-hadoop.tgz && \
     mv spark-3.1.1-bin-without-hadoop /opt/spark && \
