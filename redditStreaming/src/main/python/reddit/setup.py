@@ -2,7 +2,7 @@ import setuptools
  
 setuptools.setup(
     name="reddit",
-    version="0.1.0",
+    version="1.0.0",
     author="steven hurwitt",
     author_email="stevenhurwitt@gmail.com",
     description="reddit api kafka & pyspark",
