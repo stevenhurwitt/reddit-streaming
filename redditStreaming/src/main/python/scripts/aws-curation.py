@@ -23,7 +23,6 @@ job.init(args["JOB_NAME"], args)
 
 subreddit = "aws"
 
-
 secretmanager_client = boto3.client("secretsmanager")
 
 delta_version = "2.0.2"
@@ -33,7 +32,7 @@ postgres_version = "42.5.0"
 aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
-bucket = "reddit-streaming-stevenhurwitt-new"
+bucket = "reddit-streaming-stevenhurwitt-2"
 
 spark = builder = SparkSession \
   .builder \
@@ -76,29 +75,29 @@ deltaTable.generate("symlink_format_manifest")
 
 print("wrote clean df to delta.")
 
-db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-host = db_creds['host']
-port = db_creds['port']
-dbname = db_creds['dbname']
-user = db_creds["username"]
-password = db_creds["password"]
+# db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+# host = db_creds['host']
+# port = db_creds['port']
+# dbname = db_creds['dbname']
+# user = db_creds["username"]
+# password = db_creds["password"]
 
-connect_str = f"jdbc:postgresql://{host}:{port}/{dbname}"
+# connect_str = f"jdbc:postgresql://{host}:{port}/{dbname}"
 
-try:
-    df.write.format("jdbc") \
-        .mode("overwrite") \
-        .option("url", connect_str) \
-        .option("dbtable", f"reddit.{subreddit}") \
-        .option("user", user) \
-        .option("password", password) \
-        .option("driver", "org.postgresql.Driver") \
-        .save()
+# try:
+#     df.write.format("jdbc") \
+#         .mode("overwrite") \
+#         .option("url", connect_str) \
+#         .option("dbtable", f"reddit.{subreddit}") \
+#         .option("user", user) \
+#         .option("password", password) \
+#         .option("driver", "org.postgresql.Driver") \
+#         .save()
 
-    print("wrote df to postgresql table.")
+#     print("wrote df to postgresql table.")
 
-except Exception as e:
-    print(e)
+# except Exception as e:
+#     print(e)
 
 athena = boto3.client('athena')
 athena.start_query_execution(

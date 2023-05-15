@@ -28,6 +28,7 @@ secretmanager_client = boto3.client("secretsmanager")
 aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1,org.postgresql:postgresql:42.5.0"
+bucket = "reddit-streaming-stevenhurwitt-2"
 
 spark = SparkSession \
     .builder \
@@ -49,7 +50,7 @@ print("created spark session.")
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
 # .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
 
-df = spark.read.format("delta").option("header", True).load("s3a://reddit-streaming-stevenhurwitt-new/" + subreddit)
+df = spark.read.format("delta").option("header", True).load("s3a://" + bucket + "/" + subreddit)
 
 df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) \
                 .withColumn("banned_at_utc", col("banned_at_utc").cast("timestamp")) \
@@ -61,10 +62,10 @@ df = df.withColumn("approved_at_utc", col("approved_at_utc").cast("timestamp")) 
                 .withColumn("day", dayofmonth(col("date"))) \
                 .dropDuplicates(subset = ["title"])
                 
-filepath = "s3a://reddit-streaming-stevenhurwitt-new/" + subreddit + "_clean/"
+filepath = "s3a://" + bucket + "/" + subreddit + "_clean/"
 df.write.format("delta").partitionBy("year", "month", "day").mode("overwrite").option("mergeSchema", "true").option("overwriteSchema", "true").option("header", True).save(filepath)
         
-deltaTable = DeltaTable.forPath(spark, "s3a://reddit-streaming-stevenhurwitt-new/{}_clean".format(subreddit))
+deltaTable = DeltaTable.forPath(spark, "s3a://{}/{}_clean".format(bucket, subreddit))
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
@@ -92,7 +93,7 @@ athena = boto3.client('athena')
 athena.start_query_execution(
          QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
          ResultConfiguration = {
-             'OutputLocation': "s3://reddit-streaming-stevenhurwitt-new/_athena_results"
+             'OutputLocation': "s3://" + bucket + "/_athena_results"
          })
 
 print("ran msck repair for athena.")
