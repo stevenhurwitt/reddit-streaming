@@ -8,7 +8,7 @@ subreddit: #limit to 4 b/c there are 4 cores on raspberry pi for spark to share
   - WhitePeopleTwitter
   - aws
 post_type: new
-bucket: reddit-streaming-stevenhurwitt-new
+bucket: reddit-streaming-stevenhurwitt-2
 kafka_host: xanaxprincess.asuscomm.com
 spark_host: spark-master
 postgres_host: xanaxprincess.asuscomm.com
