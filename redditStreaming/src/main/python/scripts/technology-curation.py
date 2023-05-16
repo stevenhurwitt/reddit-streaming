@@ -16,6 +16,8 @@ args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
 glueContext = GlueContext(sc)
 # spark = glueContext.spark_session
+sc.setLogLevel('INFO')
+logger = glueContext.get_logger()
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
@@ -42,7 +44,7 @@ spark = SparkSession \
     .enableHiveSupport() \
     .getOrCreate()
   
-print("created spark session.")
+logger.info("created spark session.")
 # spark = configure_spark_with_delta_pip(builder).getOrCreate()
 # .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -67,7 +69,7 @@ deltaTable = DeltaTable.forPath(spark, "s3a://{}/{}_clean".format(bucket, subred
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
-print("wrote clean df to delta.")
+logger.info("wrote clean df to delta.")
 
 # https://stackoverflow.com/questions/55508318/how-do-i-query-a-jdbc-database-within-aws-glue-using-a-where-clause-with-pyspark
 # https://docs.aws.amazon.com/glue/latest/ug/connectors-chapter.html#creating-custom-connectors
@@ -93,11 +95,11 @@ print("wrote clean df to delta.")
 
 athena = boto3.client('athena')
 athena.start_query_execution(
-         QueryString = "MSCK REPAIR TABLE reddit.{}".format(subreddit),
+         QueryString = "MSCK REPAIR TABLE `reddit`.`{}`".format(subreddit),
          ResultConfiguration = {
              'OutputLocation': "s3://" + bucket + "/_athena_results"
          })
 
-print("ran msck repair for athena.")
+logger.info("ran msck repair for athena.")
 
 job.commit()

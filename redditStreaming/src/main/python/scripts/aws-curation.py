@@ -17,6 +17,8 @@ from pyspark.sql.session import SparkSession
 args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
 glueContext = GlueContext(sc)
+sc.setLogLevel('INFO')
+logger = glueContext.get_logger()
 # spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
@@ -34,7 +36,7 @@ aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AW
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
 
-spark = builder = SparkSession \
+spark = SparkSession \
   .builder \
   .config("spark.jars.packages", extra_jar_list) \
   .config("spark.hadoop.fs.s3a.access.key", aws_client) \
@@ -48,7 +50,7 @@ spark = builder = SparkSession \
   .enableHiveSupport() \
   .getOrCreate()
   
-print("created spark session.")
+logger.info("created spark session.")
 # spark = configure_spark_with_delta_pip(builder).getOrCreate()
 # .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
 # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -73,7 +75,7 @@ deltaTable = DeltaTable.forPath(spark, f"s3a://{bucket}/{subreddit}_clean")
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
-print("wrote clean df to delta.")
+logger.info("wrote clean df to delta.")
 
 # db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
 # host = db_creds['host']
@@ -101,11 +103,11 @@ print("wrote clean df to delta.")
 
 athena = boto3.client('athena')
 athena.start_query_execution(
-         QueryString = f"MSCK REPAIR TABLE reddit.{subreddit}",
+         QueryString = f"MSCK REPAIR TABLE `reddit`.`{subreddit}`",
          ResultConfiguration = {
              'OutputLocation': f"s3://{bucket}/_athena_results"
          })
 
-print("ran msck repair for athena.")
+logger.info("ran msck repair for athena.")
 
 job.commit()
