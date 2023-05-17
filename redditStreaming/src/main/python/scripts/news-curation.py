@@ -90,13 +90,13 @@ logger.info("wrote df to delta.")
 # except Exception as e:
 #     print(e)
 
-athena = boto3.client('athena')
-athena.start_query_execution(
-         QueryString = "MSCK REPAIR TABLE `reddit`.`{}`".format(subreddit),
-         ResultConfiguration = {
-             'OutputLocation': "s3://" + bucket + "/_athena_results"
-         })
+# athena = boto3.client('athena')
+# athena.start_query_execution(
+#          QueryString = "MSCK REPAIR TABLE `reddit`.`{}`".format(subreddit),
+#          ResultConfiguration = {
+#              'OutputLocation': "s3://" + bucket + "/_athena_results"
+#          })
 
-logger.info("ran msck repair for athena.")
+# logger.info("ran msck repair for athena.")
 
 job.commit()
