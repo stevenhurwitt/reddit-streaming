@@ -11,15 +11,17 @@ Go to docker directory and run build script.
 
 ## Start streaming data
 
+`docker exec -it jupyterlab`
+
 `cd redditStreaming/src/main/python/reddit`
 
 `python3 -m reddit_streaming.py`
 
 ## Start kafka producer
 
-`python3 -m reddit_producer.py`
+`docker exec -it jupyterlab`
 
-## Etc.
+`python3 -m reddit_producer.py`
 
 ### Remove untagged docker images
 
@@ -40,9 +42,11 @@ https://github.com/wurstmeister/kafka-docker/issues/409
 If there are kafka errors, run `docker-compose down`, delete `cluster_config/kafka/logs` and `cluster_config/zookeeper/data/version-2` directories, run `docker-compose up -d`.
 
 
-## S3
+## Glue
 
-`s3://aws-glue-assets-965504608278-us-east-2/scripts/`
+Glue scripts to transform epoch columns to timestamps and partition by month/day/year in `s3://reddit-streaming-stevenhurwitt-2/{subreddit}_clean/`
+
+`s3://reddit-streaming-stevenhurwitt-2/scripts/`
 
 # enhancements
 
