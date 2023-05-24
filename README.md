@@ -42,7 +42,7 @@ debug: True
 
 XXXXXX=?
 
-## Build dockerfiles
+# Build dockerfiles
 
 Go to docker directory and run build script.
 
@@ -54,33 +54,33 @@ Go to docker directory and run build script.
 
 `docker-compose up -d --no-recreate`
 
-## Start streaming data
+# Start streaming data
 
 `cd redditStreaming/src/main/python/reddit`
 
 `python3 -m reddit_streaming.py`
 
-## Start kafka producer
+# Start kafka producer
 
 `cd redditStreaming/src/main/python/reddit`
 
 `python3 -m reddit_producer.py`
 
-### Remove untagged docker images
+## Remove untagged docker images
 
 `docker rmi $(docker images | grep "^<none>" | awk "{print $3}")`
 
-### Note on versions
+## Note on versions
 
 When changing version of spark, hadoop, jupyterlab, etc, versions must be updated in `build.sh`, respective `*.Dockerfile`, `pom.xml`, `requirements.txt` and `reddit_streaming.py`.
 
-### pyspark write stream to s3 error
+## pyspark write stream to s3 error
 
 Likely caused by guava jar mismatch, follow steps here: https://kontext.tech/article/689/pyspark-read-file-in-google-cloud-storage
 
 - **fixed** in spark update 3.3.3/3.3.4
 
-### Kafka/zookeeper broker id mismatch
+## Kafka/zookeeper broker id mismatch
 
 https://github.com/wurstmeister/kafka-docker/issues/409
 
@@ -102,6 +102,8 @@ run `docker-compose up -d`.
 `s3://XXX/scripts/`
 
 XXX=?
+
+hello...
 
 # enhancements
 
