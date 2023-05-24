@@ -51,3 +51,19 @@ write streaming data to s3 bucket as delta table.
 5. main()
 
 main function to read spark streaming data and write to s3 delta table.
+
+# to-do
+
+1. airflow to restart producer gracefully every X min.
+
+2. docker-compose to aws cloud.
+
+3. web server? python flask api?
+
+4. databases...
+
+5. machine learning
+
+6. data analysis
+
+7. conclusions
