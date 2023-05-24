@@ -17,20 +17,19 @@ logger = logging.getLogger('reddit_streaming')
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
-subreddit = "aws"
-
 secretmanager_client = boto3.client("secretsmanager")
 
-delta_version = "2.0.2"
-spark_version = "3.3.2"
+spark_host = "spark-master" 
+kafka_host = "kafka" 
+subreddit = "cosmos"
+spark_version = "3.4.0"
 hadoop_version = "3.3.4"
-postgres_version = "42.5.0"
+delta_version = "1.2.1"
+postgres_version = "52.4.0"
 aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
-
-
 
 def read_files():
     """
@@ -46,32 +45,36 @@ def read_files():
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
+            logger.info("read credentials file from {}".format(creds_path))
             f.close()
 
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         # print("couldn't find: {}.".format(creds_path))
         try:
             with open(creds_path_container, "r") as f:
                 creds = json.load(f)
+                logger.warn(e)
                 f.close()
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
                 creds = json.load(f)
+                logger.warn(e)
                 f.close()
 
     except:
-        logger.info("failed to find creds.json.")
+        logger.warn("failed to find creds.json.")
         sys.exit()
 
     try:
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
-            # print("read config file.")
+            # print("read config file.")\
+            logger.info("read config.yaml file.")
             f.close()
 
     except:
-        logger.info("failed to find config.yaml, exiting now.")
+        logger.warn("failed to find config.yaml, exiting now.")
         sys.exit()
 
     return(creds, config)
@@ -324,11 +327,11 @@ def main():
         
         except KeyboardInterrupt:
             spark.stop
-            logger.info("stopping spark gracefully.")
+            logger.info("stopping spark gracefully....")
             sys.exit()
 
     spark.streams.awaitAnyTermination()
-    logger.info("streams stopped successfully.")
+    logger.info("all streams stopped successfully.")
 
 
 if __name__ == "__main__":
