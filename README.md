@@ -56,6 +56,8 @@ Go to docker directory and run build script.
 
 # Start streaming data
 
+`docker exec -it jupyterlab`
+
 `cd redditStreaming/src/main/python/reddit`
 
 `python3 -m reddit_streaming.py`
@@ -63,6 +65,8 @@ Go to docker directory and run build script.
 # Start kafka producer
 
 `cd redditStreaming/src/main/python/reddit`
+
+`docker exec -it jupyterlab`
 
 `python3 -m reddit_producer.py`
 
@@ -97,11 +101,13 @@ delete `cluster_config/kafka/logs`
 run `docker-compose up -d`.
 
 
+## Glue
+
+Glue scripts to transform epoch columns to timestamps and partition by month/day/year in `s3://reddit-streaming-stevenhurwitt-2/{subreddit}_clean/`
+
 ## S3
 
 `s3://XXX/scripts/`
-
-XXX=?
 
 hello...
 

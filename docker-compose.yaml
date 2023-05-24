@@ -58,8 +58,8 @@ services:
     image: stevenhurwitt/spark-worker:latest
     container_name: spark-worker-1
     environment:
-      - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4096m
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2048m
     ports:
       - 4041:4040
       - 8083:8081
@@ -73,8 +73,8 @@ services:
     image: stevenhurwitt/spark-worker:latest
     container_name: spark-worker-2
     environment:
-      - SPARK_WORKER_CORES=4
-      - SPARK_WORKER_MEMORY=4096m
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2048m
     ports:
       - 4042:4040
       - 8082:8082
@@ -171,17 +171,17 @@ services:
     volumes:
     - ./redditStreaming:/opt/workspace/redditStreaming
 
-  # glue_history:
-  #   image: stevenhurwitt/glue_history:latest
-  #   container_name: glue_history
-  #   restart: on-failure
-  #   secrets:
-  #     - aws_access_key_id
-  #     - aws_secret_access_key
-  #   environment:
-  #     - AWS_ACCESS_KEY_ID=aws_access_key_id
-  #     - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
-  #   ports:
-  #   - "8898:8888"
-  #   volumes:
-  #   - ./glue_history:/tmp
+  glue_history:
+    image: stevenhurwitt/glue_history:latest
+    container_name: glue_history
+    restart: on-failure
+    secrets:
+      - aws_access_key_id
+      - aws_secret_access_key
+    environment:
+      - AWS_ACCESS_KEY_ID=aws_access_key_id
+      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+    ports:
+    - "8892:8888"
+    volumes:
+    - ./glue_history:/tmp
