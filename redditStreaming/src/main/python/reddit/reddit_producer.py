@@ -14,12 +14,35 @@ from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
 pp = pprint.PrettyPrinter(indent=1)
 
+args = getResolvedOptions(sys.argv, ["JOB_NAME"])
+sc = SparkContext()
+glueContext = GlueContext(sc)
+sc.setLogLevel('INFO')
+logger = glueContext.get_logger()
+# spark = glueContext.spark_session
+job = Job(glueContext)
+job.init(args["JOB_NAME"], args)
+
+subreddit = "aws"
+
+secretmanager_client = boto3.client("secretsmanager")
+
+delta_version = "2.0.2"
+spark_version = "3.3.2"
+hadoop_version = "3.3.4"
+postgres_version = "42.5.0"
+aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
+bucket = "reddit-streaming-stevenhurwitt-2"
+
+
 try:
     import reddit
-    print("imported reddit module.")
+   logger.info("imported reddit module.")
 
 except:
-    print("failed to import reddit module.")
+    logger.info("failed to import reddit module.")
     pass
 
 pp = pprint.PrettyPrinter(indent = 1)
@@ -42,19 +65,22 @@ def get_bearer():
 
     creds_dir = "/".join(base.split("/")[:-3])
     creds_path = os.path.join(creds_dir, "creds.json")
+    logger.info("creds path: {}".format(creds_path))
 
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
             f.close()
+            logger.info("opened creds.json.")
 
     except FileNotFoundError:
         with open(creds_path_container, "r") as f:
             creds = json.load(f)
             f.close()
+            logger.warn(FileNotFoundError)
 
     except:
-        print("credentials file not found.")
+        logger.warn("credentials file not found.")
         sys.exit()
 
     auth = requests.auth.HTTPBasicAuth(creds["client-id"], creds["secret-id"])
@@ -73,8 +99,10 @@ def get_bearer():
         headers = {**headers, **{'Authorization': f"bearer {token}"}}
         return(headers)
 
+    logger.info("made initial authentication request.")
+
     except Exception as e:
-        print(e)
+        logger.warn(e)
         print(response.json())
         pass
 
@@ -93,6 +121,8 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
 
     request_url = "https://oauth.reddit.com/r/{}/{}".format(subreddit, post_type)
     options = {"limit":str(limit), "before":str(before)}
+
+    logger.info("requesting {}".format(request_url))
     try:
         response = requests.get(request_url, 
                             headers = headers,
@@ -105,6 +135,7 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
         pp.pprint(e)
 
 def my_serializer(message):
+    logger.info("serialized message to utf-8.")
     return json.dumps(message).encode('utf-8')
 
 def subset_response(response):
@@ -149,6 +180,7 @@ def subset_response(response):
         data.pop("treatment_tags")
         data.pop("mod_reports")
 
+    logger.info("subset df.")
     return(data, after_token)
 
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
@@ -173,9 +205,11 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     value_serializer=my_serializer
                     # api_version = (0, 10, 2)
                 )
+
+        logger.info("created kafka producer.")
     
     except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
+        logger.warn("no kafka broker available.")
         sys.exit()
 
     params = {}
@@ -185,6 +219,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     token_list = []
 
     for i, s in enumerate(subreddit):
+        logger.info("polling subreddit: {}".format(s))
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
@@ -195,14 +230,16 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
             producer.send(params["topic"][i], my_data)                          
 
             if debug:
-                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                logger.info("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
     params["token"] = token_list
     if None in token_list:
         time.sleep(5)
+        logger.info("sleeping 5 seconds...")
 
     else:
         time.sleep(30)
+        logger.info("sleeping 30 seconds...")
 
     while True:
         token_list = []
@@ -218,15 +255,16 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                        logger.info("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
                 token_list.append(after_token) 
                 
+                logger.info("sleeping 5 seconds...")
                 time.sleep(5)
 
             except json.decoder.JSONDecodeError:
                 # when the bearer token expires (after 24 hrs), we do not receive a response
-                print("bearer token expired, reauthenticating...")
+                logger.warn("bearer token expired, reauthenticating...")
                 header = get_bearer()
                 after_token = params["token"][i]
 
@@ -237,33 +275,39 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                        logger.info("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
                 
                 token_list.append(after_token)
+                logger.info("sleeping 5 seconds...")
                 time.sleep(5)
                 pass
 
-            except IndexError:
+            except IndexError as e:
                 # this means empty response is returned, take a nap
                 # time.sleep(120)
                 # print("no more data for subreddit: {}.".format(s))
+                logger.warn(e)
                 token_list.append(params["token"][i])
+                logger.info("sleeping 3 seconds...")
                 time.sleep(3)
                 pass
 
             except Exception as e:
                 # catch all for api exceptions (SSL errors, ConnectionError, etc)
-                print(e)
+                logger.warn(e)
                 token_list.append(params["token"][i])
                 # pass
+                logger.info("sleeping 60 seconds...")
                 time.sleep(60)
                 pass
 
         params["token"] = token_list
         if None in token_list:
+            logger.info("sleeping 5 seconds...")
             time.sleep(5)
 
         else:
+            logger.info("sleeping 110 seconds...")
             time.sleep(110)
     
 
@@ -284,9 +328,10 @@ def main():
             debug = config["debug"]
             # debug = True
             f.close()
+            logger.info("read config.yaml.")
     
     except:
-        print("failed to find config.yaml")
+        logger.warn("failed to find config.yaml")
         sys.exit()
 
     # s3, athena, secrets = aws()
@@ -297,11 +342,11 @@ def main():
 
     my_header = get_bearer()
     if debug:
-        print("authenticated w/ bearer token good for 24 hrs.")
+        logger.info("authenticated w/ bearer token good for 24 hrs.")
         
     poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
 
 if __name__ == "__main__":
     # time.sleep(600)
-    print("reading from api to kafka...")
+    logger.info("reading from api to kafka...")
     main()
