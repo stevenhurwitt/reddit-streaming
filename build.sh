@@ -1,4 +1,4 @@
-SPARK_VERSION="3.3.2"
+SPARK_VERSION="3.4.0"
 HADOOP_VERSION="3"
 JUPYTERLAB_VERSION="3.5.2"
 
@@ -18,9 +18,9 @@ JUPYTERLAB_VERSION="3.5.2"
 #   -f maven.Dockerfile \
 #   -t stevenhurwitt/maven:latest .
 
-docker build \
-  -f glue_history.Dockerfile \
-  -t stevenhurwitt/glue_history:latest .
+# docker build \
+#   -f glue_history.Dockerfile \
+#   -t stevenhurwitt/glue_history:latest .
 
 docker build \
   -f cluster-base.Dockerfile \
