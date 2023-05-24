@@ -7,6 +7,29 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
+args = getResolvedOptions(sys.argv, ["JOB_NAME"])
+sc = SparkContext()
+glueContext = GlueContext(sc)
+sc.setLogLevel('INFO')
+logger = glueContext.get_logger()
+# spark = glueContext.spark_session
+job = Job(glueContext)
+job.init(args["JOB_NAME"], args)
+
+subreddit = "aws"
+
+secretmanager_client = boto3.client("secretsmanager")
+
+delta_version = "2.0.2"
+spark_version = "3.3.2"
+hadoop_version = "3.3.4"
+postgres_version = "42.5.0"
+aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
+bucket = "reddit-streaming-stevenhurwitt-2"
+
+
 
 def read_files():
     """
@@ -37,7 +60,7 @@ def read_files():
                 f.close()
 
     except:
-        print("failed to find creds.json.")
+        logger.info("failed to find creds.json.")
         sys.exit()
 
     try:
@@ -47,7 +70,7 @@ def read_files():
             f.close()
 
     except:
-        print("failed to find config.yaml, exiting now.")
+        logger.info("failed to find config.yaml, exiting now.")
         sys.exit()
 
     return(creds, config)
@@ -100,10 +123,10 @@ def init_spark(subreddit, index):
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
-        print("created spark successfully")
+        logger.info("created spark successfully")
 
     except Exception as e:
-        print(e)
+        logger.warn(e)
 
     return(spark, sc)
     
@@ -233,6 +256,7 @@ def read_kafka_stream(spark, sc, subreddit):
                 .select(from_json(col("json"), payload_schema).alias("data")) \
                 .select("data.*") 
 
+    logger.info("read spark df.")
     return(df)
 
 def write_stream(df, subreddit):
@@ -245,7 +269,10 @@ def write_stream(df, subreddit):
     creds, config = read_files()
 
     bucket = config["bucket"]
-    write_path = "s3a://" + bucket + "/" + subreddit
+    logger.info("bucket: {}".format(bucket))
+    logger.info("subreddit: {}".format(subreddit))
+    write_path = f"s3a://{bucket}/{subreddit}"
+    logger.info("write path: {}".format(write_path))
 
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
@@ -259,6 +286,8 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_console") \
         .start()
 
+    logger.info("wrote console df.")
+
     # write to s3 delta
     df.writeStream \
         .trigger(processingTime="180 seconds") \
@@ -270,34 +299,43 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start()
 
+    logger.info("wrote delta df.")
+
 def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
     creds, config = read_files()
+    logger.info("read credentials & config files.")
     # subreddit_list = []
     subreddit_list = config["subreddit"]
+    logger.info("got subreddit list.")
     for i, s in enumerate(subreddit_list):
+        logger.info("creating spark...")
         spark, sc = init_spark(s, i)
 
         stage_df = read_kafka_stream(spark, sc, s)
+        logger.info("read staging df...")
 
         try:
             write_stream(stage_df, s)
+            logger.info("wrote streaming delta table...")
         
         except KeyboardInterrupt:
             spark.stop
+            logger.info("stopping spark gracefully.")
             sys.exit()
 
     spark.streams.awaitAnyTermination()
+    logger.info("streams stopped successfully.")
 
 
 if __name__ == "__main__":
 
     try:
-        print("starting spark streaming...")
+        logger.info("starting spark streaming...")
         main()
 
     except Exception as e:
-        print(e)
+        logger.warn(e)
         sys.exit()
