@@ -19,6 +19,7 @@ sc = SparkContext()
 glueContext = GlueContext(sc)
 sc.setLogLevel('INFO')
 logger = glueContext.get_logger()
+logger = logging.getLogger('reddit_producer')
 # spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
@@ -39,7 +40,7 @@ bucket = "reddit-streaming-stevenhurwitt-2"
 
 try:
     import reddit
-   logger.info("imported reddit module.")
+    logger.info("imported reddit module.")
 
 except:
     logger.info("failed to import reddit module.")
@@ -97,13 +98,12 @@ def get_bearer():
     try:
         token = response.json()["access_token"]
         headers = {**headers, **{'Authorization': f"bearer {token}"}}
+        logger.info("made initial authentication request.")
         return(headers)
-
-    logger.info("made initial authentication request.")
 
     except Exception as e:
         logger.warn(e)
-        print(response.json())
+        logger.info(response.json())
         pass
 
 

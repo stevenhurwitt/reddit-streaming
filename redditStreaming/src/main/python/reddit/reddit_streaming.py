@@ -12,6 +12,7 @@ sc = SparkContext()
 glueContext = GlueContext(sc)
 sc.setLogLevel('INFO')
 logger = glueContext.get_logger()
+logger = logging.getLogger('reddit_streaming')
 # spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
