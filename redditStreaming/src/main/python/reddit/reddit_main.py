@@ -12,7 +12,10 @@ spark = SparkSession.builder.appName("DataFrame to HTML").enableHiveSupport().ge
 df = spark.read.format("delta").load(read_path)
 sc = spark.SparkContext
 sc.setLogLevel("INFO")
-df.head()
+
+query = "select * from 'tweets' where user = 'ihearttyou2' and created_at > '2011-01-01T00:00:00Z' order by created_at desc;"
+spark_df = df.select(query)
+spark_df.head()
 
 logger.info(df.shape)
 
