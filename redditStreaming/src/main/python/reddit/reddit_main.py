@@ -3,18 +3,25 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 import pandas as pd
 from pyspark.sql import SparkSession
 
+logger = logging.getLogger("redditStreaming")
 bucket = "reddit-streaming-stevenhurwitt-2"
 subreddit = "technology"
 read_path = f"s3a://{bucket}/{subreddit}_clean/"
 # data = [("Alice", 25), ("Bob", 30), ("Charlie", 35)]
 spark = SparkSession.builder.appName("DataFrame to HTML").enableHiveSupport().getOrCreate()
 df = spark.read.format("delta").load(read_path)
+sc = spark.SparkContext
+sc.setLogLevel("INFO")
 df.head()
 
+logger.info(df.shape)
+
 pandas_df = df.toPandas()
+logger.info("transformed df to pandas.")
 # spark = SparkSession.builder.appName("DataFrame to HTML").enableHiveSupport().getOrCreate()
 
 html_table = pandas_df.to_html()
+logger.info("transformed pandas to html.")
 
 app = QApplication([])
 view = QWebEngineView()
