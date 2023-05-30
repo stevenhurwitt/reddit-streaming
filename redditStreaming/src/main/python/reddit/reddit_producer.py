@@ -7,7 +7,7 @@ import pprint
 
 import datetime as dt
 import requests
-# import boto3
+import boto3
 import kafka
 from kafka import KafkaProducer
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
@@ -24,11 +24,11 @@ except:
 
 pp = pprint.PrettyPrinter(indent = 1)
 
-# def aws():
-#     s3_client = boto3.client("s3")
-#     athena_client = boto3.client("athena")
-#     secret_client = boto3.client("secrets")
-#     return(s3_client, athena_client, secret_client)
+def aws():
+    s3_client = boto3.client("s3")
+    athena_client = boto3.client("athena")
+    secret_client = boto3.client("secrets")
+    return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """
