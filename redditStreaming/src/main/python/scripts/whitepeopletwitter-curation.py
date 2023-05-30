@@ -72,33 +72,39 @@ deltaTable = DeltaTable.forPath(spark, "s3a://{}/{}_clean".format(bucket, subred
 deltaTable.vacuum(168)
 deltaTable.generate("symlink_format_manifest")
 
-logger.info("wrote clean df to delta.")
+logger.info("wrote clean df to delta, vacuumed df.")
 
-# db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
-# connect_str = "jdbc:postgresql://{}:{}/{}".format(db_creds["host"], db_creds["port"], db_creds["dbname"])
+db_creds = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="dev/reddit/postgres")["SecretString"])
+host = db_creds['host']
+port = db_creds['port']
+dbname = db_creds['dbname']
+user = db_creds["username"]
+password = db_creds["password"]
 
-# try:
-#     df.write.format("jdbc") \
-#         .mode("overwrite") \
-#         .option("url", connect_str) \
-#         .option("dbtable", "reddit.{}".format(subreddit)) \
-#         .option("user", db_creds["username"]) \
-#         .option("password", db_creds["password"]) \
-#         .option("driver", "org.postgresql.Driver") \
-#         .save()
+connect_str = f"jdbc:postgresql://{host}:{port}/{dbname}"
 
-#     print("wrote df to postgresql table.")
+try:
+    df.write.format("jdbc") \
+        .mode("overwrite") \
+        .option("url", connect_str) \
+        .option("dbtable", f"reddit.{subreddit}") \
+        .option("user", user) \
+        .option("password", password) \
+        .option("driver", "org.postgresql.Driver") \
+        .save()
 
-# except Exception as e:
-#     print(e)
+    logger.info("wrote df to postgresql table.")
 
-# athena = boto3.client('athena')
-# athena.start_query_execution(
-#          QueryString = "MSCK REPAIR TABLE `reddit`.`{}`".format(subreddit.lower()),
-#          ResultConfiguration = {
-#              'OutputLocation': "s3://" + bucket + "/_athena_results"
-#          })
+except Exception as e:
+    logger.info("Exception: {}".format(e))
 
-# logger.info("ran msck repair for athena.")
+athena = boto3.client('athena')
+athena.start_query_execution(
+         QueryString = f"MSCK REPAIR TABLE `reddit`.`{subreddit}`",
+         ResultConfiguration = {
+             'OutputLocation': f"s3://{bucket}/_athena_results"
+         })
+
+logger.info("ran msck repair for athena.")
 
 job.commit()
