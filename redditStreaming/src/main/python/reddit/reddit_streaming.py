@@ -261,7 +261,7 @@ def read_kafka_stream(spark, sc, subreddit):
                 .select(from_json(col("json"), payload_schema).alias("data")) \
                 .select("data.*") 
 
-    logger.info("read spark df.")
+    logger.info(f"read spark df {df.shape}.")
     return(df)
 
 def write_stream(df, subreddit):
