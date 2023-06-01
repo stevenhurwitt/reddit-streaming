@@ -29,8 +29,8 @@ subreddit = "aws"
 
 secretmanager_client = boto3.client("secretsmanager")
 
-delta_version = "2.0.2"
-spark_version = "3.3.2"
+delta_version = "2.2.0"
+spark_version = "3.4.0"
 hadoop_version = "3.3.4"
 postgres_version = "42.5.0"
 aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
