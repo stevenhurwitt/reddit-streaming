@@ -6,12 +6,12 @@ An attempt to stream data from the reddit api using kafka, process with spark, a
 ```json
 {        
     "client-id": "tR3-Rx38Bt5_1H3Cy0fP5Q",          
-    "secret-id": "nKuZqRowUMP_neaHvbsKeDbqqdtr7A",          
+    "secret-id": "...",          
     "user": "SJH823",          
-    "password": "graycie123",          
+    "password": "...",          
     "subreddit": "technology",          
     "aws_client": "AKIAR6OXHD6L4X3XTNVE",          
-    "aws_secret": "XXX9HgP+GopSJvRj270xGiuhSilo4lGQErww7epX7Z"
+    "aws_secret": "..."
 }
 ```
 
