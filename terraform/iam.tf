@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "glue_policy" {
         "s3:DeleteBucket",
         "s3:DeleteObject"
       ],
-      "Resource": ${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}
+      "Resource": "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}"
     },
     {
       "Effect": "Allow",
@@ -75,18 +75,7 @@ resource "aws_iam_role_policy" "glue_policy" {
         "s3:DeleteObject"
       ],
       "Resource": "${aws_s3_bucket.reddit_streaming_stevenhurwitt.arn}/*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Decrypt",
-        "kms:Encrypt",
-        "kms:GenerateDataKey",
-        "kms:ReEncrypt",
-        "kms:Describe"
-      ],
-      "Resource": "${aws_kms_alias.rds_cmk_alias.arn}/*"wbnnnnnnnbn     4444444444444444444444444444444
-    },
+    }
   ]
 }
 EOF

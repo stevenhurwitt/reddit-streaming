@@ -1,19 +1,20 @@
 FROM stevenhurwitt/cluster-base:latest
 
+ARG shared_workspace=/opt/workspace
+
 # copy scala code
-COPY redditStreaming/src/main/scala /opt/workspace/src/main/scala
-COPY redditStreaming/pom.xml /opt/workspace/pom.xml
-COPY redditStreaming/requirements.txt /opt/workspace/requirements.txt
+COPY redditStreaming/src/main/scala {SHARED_WORKSPACE}/src/main/scala
+COPY redditStreaming/pom.xml {SHARED_WORKSPACE}/pom.xml
+COPY redditStreaming/requirements.txt {SHARED_WORKSPACE}/requirements.txt
+COPY redditStreaming/src/main/python/reddit/setup.py {SHARED_WORKSPACE}/setup.py
 
-# build wheel, copy
+
+# build wheel
 WORKDIR /opt/workspace
-RUN python3 redditStreaming/src/main/python/reddit/setup.py bdist_wheel && \
-    cp redditStreaming/src/main/python/reddit/dist/reddit-0.1.0-py3-none-any.whl /opt/workspace/reddit-0.1.0-py3-none-any.whl
+RUN python3 {SHARED_WORKSPACE}/setup.py bdist_wheel
 
-# build uber jar, copy
-RUN cd redditStreaming && \
-    mvn clean package && \
-    cp target/reddit-1.0-SNAPSHOT.jar /opt/workspace/reddit.jar && \
-    cp target/uber-reddit-1.0-SNAPSHOT.jar /opt/workspace/uber-reddit.jar
+# build uber jar
+RUN cd {SHARED_WORKSPACE} && \
+    mvn clean package
 
-ENTRYPOINT [ "python3 redditStreaming/src/main/python/reddit/reddit_streaming.py" ]
+# ENTRYPOINT [ "python3 redditStreaming/src/main/python/reddit/reddit_streaming.py" ]
