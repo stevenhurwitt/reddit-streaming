@@ -1,4 +1,4 @@
-SPARK_VERSION="3.4.0"
+SPARK_VERSION="3.3.2"
 HADOOP_VERSION="3"
 JUPYTERLAB_VERSION="3.5.2"
 
@@ -14,13 +14,9 @@ JUPYTERLAB_VERSION="3.5.2"
 
 # ,docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" -f jupyterlab.Dockerfile -t jupyterlab .
 
-# docker build \
-#   -f maven.Dockerfile \
-#   -t stevenhurwitt/maven:latest .
-
-# docker build \
-#   -f glue_history.Dockerfile \
-#   -t stevenhurwitt/glue_history:latest .
+docker build \
+  -f maven.Dockerfile \
+  -t stevenhurwitt/maven:latest .
 
 docker build \
   -f cluster-base.Dockerfile \

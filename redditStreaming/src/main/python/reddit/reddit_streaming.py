@@ -1,36 +1,12 @@
+import json
 import os
 import sys
-import ast
-import yaml
-import json
 
-from pyspark.sql import *
+import yaml
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
-sc = SparkContext()
-glueContext = GlueContext(sc)
-sc.setLogLevel('INFO')
-logger = glueContext.get_logger()
-logger = logging.getLogger('reddit_streaming')
-# spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
-
-secretmanager_client = boto3.client("secretsmanager")
-
-spark_host = "spark-master" 
-kafka_host = "kafka" 
-subreddit = "cosmos"
-spark_version = "3.4.0"
-hadoop_version = "3.3.4"
-delta_version = "1.2.1"
-postgres_version = "52.4.0"
-aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
-extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
-bucket = "reddit-streaming-stevenhurwitt-2"
 
 def read_files():
     """
@@ -46,36 +22,32 @@ def read_files():
     try:
         with open(creds_path, "r") as f:
             creds = json.load(f)
-            logger.info("read credentials file from {}".format(creds_path))
             f.close()
 
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         # print("couldn't find: {}.".format(creds_path))
         try:
             with open(creds_path_container, "r") as f:
                 creds = json.load(f)
-                logger.warn(e)
                 f.close()
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             with open("/opt/workspace//redditStreaming/creds.json", "r") as f:
                 creds = json.load(f)
-                logger.warn(e)
                 f.close()
 
     except:
-        logger.warn("failed to find creds.json.")
+        print("failed to find creds.json.")
         sys.exit()
 
     try:
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
-            # print("read config file.")\
-            logger.info("read config.yaml file.")
+            # print("read config file.")
             f.close()
 
     except:
-        logger.warn("failed to find config.yaml, exiting now.")
+        print("failed to find config.yaml, exiting now.")
         sys.exit()
 
     return(creds, config)
@@ -128,10 +100,10 @@ def init_spark(subreddit, index):
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsAccessKeyId", aws_client)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.awsSecretAccessKey", aws_secret)
         # sc._jsc.hadoopConfiguration().set("fs.s3a.endpoint", "s3.us-east-2.amazonaws.com")
-        logger.info("created spark successfully")
+        print("created spark successfully")
 
     except Exception as e:
-        logger.warn(e)
+        print(e)
 
     return(spark, sc)
     
@@ -166,7 +138,7 @@ def read_kafka_stream(spark, sc, subreddit):
         StructField("hide_score", BooleanType(), False),
         StructField("name", StringType(), False),
         StructField("quarantine", BooleanType(), False),
-        StructField("link_fla3.2ir_text_color", StringType(), True),
+        StructField("link_flair_text_color", StringType(), True),
         StructField("upvote_ratio", FloatType(), False),
         StructField("author_flair_background_color", StringType(), True),
         StructField("ups", IntegerType(), False),
@@ -175,7 +147,7 @@ def read_kafka_stream(spark, sc, subreddit):
         StructField("author_flair_template_id", StringType(), True),
         StructField("is_original_content", BooleanType(), False),
         StructField("secure_media", StringType(), True),
-        StructField("is_3.2reddit_media_domain", BooleanType(), False),
+        StructField("is_reddit_media_domain", BooleanType(), False),
         StructField("is_meta", BooleanType(), False),
         StructField("category", StringType(), True),
         StructField("link_flair_text", StringType(), True),
@@ -261,7 +233,6 @@ def read_kafka_stream(spark, sc, subreddit):
                 .select(from_json(col("json"), payload_schema).alias("data")) \
                 .select("data.*") 
 
-    logger.info(f"read spark df {df.shape}.")
     return(df)
 
 def write_stream(df, subreddit):
@@ -274,10 +245,7 @@ def write_stream(df, subreddit):
     creds, config = read_files()
 
     bucket = config["bucket"]
-    logger.info("bucket: {}".format(bucket))
-    logger.info("subreddit: {}".format(subreddit))
-    write_path = f"s3a://{bucket}/{subreddit}"
-    logger.info("write path: {}".format(write_path))
+    write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
 
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
@@ -291,8 +259,6 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_console") \
         .start()
 
-    logger.info("wrote console df.")
-
     # write to s3 delta
     df.writeStream \
         .trigger(processingTime="180 seconds") \
@@ -304,43 +270,34 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start()
 
-    logger.info("wrote delta df.")
-
 def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
     creds, config = read_files()
-    logger.info("read credentials & config files.")
     # subreddit_list = []
     subreddit_list = config["subreddit"]
-    logger.info("got subreddit list.")
     for i, s in enumerate(subreddit_list):
-        logger.info("creating spark...")
         spark, sc = init_spark(s, i)
 
         stage_df = read_kafka_stream(spark, sc, s)
-        logger.info("read staging df...")
 
         try:
             write_stream(stage_df, s)
-            logger.info("wrote streaming delta table...")
         
         except KeyboardInterrupt:
             spark.stop
-            logger.info("stopping spark gracefully....")
             sys.exit()
 
     spark.streams.awaitAnyTermination()
-    logger.info("all streams stopped successfully.")
 
 
 if __name__ == "__main__":
 
     try:
-        logger.info("starting spark streaming...")
+        print("starting spark streaming...")
         main()
 
     except Exception as e:
-        logger.warn(e)
+        print(e)
         sys.exit()

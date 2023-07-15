@@ -15,12 +15,7 @@ variable "aws_region" {
 }
 
 variable "s3_bucket_name" {
-    default = "reddit-streaming-stevenhurwitt-2"
-    type = string
-}
-
-variable "aws_account_id" {
-    default = "134132211607"
+    default = "reddit-streaming-stevenhurwitt-new"
     type = string
 }
 
@@ -67,17 +62,17 @@ variable "folder_worldnews_clean" {
 # more subreddits
 
 variable "folder_blackpeopletwitter" {
-    default = "BlackPeopleTwitter"
+    default = "blackpeopletwitter"
     type = string
 }
 
 variable "folder_whitepeopletwitter" {
-    default = "WhitePeopleTwitter"
+    default = "whitepeopletwitter"
     type = string
 }
 
 variable "folder_bikinibottomtwitter" {
-    default = "BikiniBottomTwitter"
+    default = "bikinibottomtwitter"
     type = string
 }
 
@@ -87,17 +82,17 @@ variable "folder_aws" {
 }
 
 variable "folder_blackpeopletwitter_clean" {
-    default = "BlackPeopleTwitter_clean"
+    default = "blackpeopletwitter_clean"
     type = string
 }
 
 variable "folder_whitepeopletwitter_clean" {
-    default = "WhitePeopleTwitter_clean"
+    default = "whitepeopletwitter_clean"
     type = string
 }
 
 variable "folder_bikinibottomtwitter_clean" {
-    default = "BikiniBottomTwitter_clean"
+    default = "bikinibottomtwitter_clean"
     type = string
 }
 
