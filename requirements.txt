@@ -1,0 +1,12 @@
+boto3
+botocore
+ipykernel
+ipython
+jupyter
+jupyterlab==3.5.2
+numpy
+pandas
+pyarrow
+pyspark==3.4.0
+requests
+kafka-python
