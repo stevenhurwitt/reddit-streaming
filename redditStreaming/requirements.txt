@@ -2,6 +2,7 @@ boto3
 botocore
 ipykernel
 ipython
+kafka-python
 jupyter
 jupyterlab==3.5.2
 numpy
