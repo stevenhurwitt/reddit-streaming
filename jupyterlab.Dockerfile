@@ -12,8 +12,8 @@ COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
 RUN apt-get update -y && \
     apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip
 
-RUN curl https://bootstrap.pypa.io./get-pip.py | python3 && \
-RUN python3 -m pip install --upgrade pip
+RUN curl https://bootstrap.pypa.io./pip/3.7/get-pip.py | python3 && \
+    python3 -m pip install --upgrade pip
 
 # virtualenv
 RUN python3 -m venv /opt/workspace/reddit-env && \
@@ -23,7 +23,7 @@ RUN python3 -m venv /opt/workspace/reddit-env && \
 RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-# RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
+RUN python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
 
 # requirements
 RUN python3 -m pip install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
