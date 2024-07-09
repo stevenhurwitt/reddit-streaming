@@ -119,11 +119,11 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.50.248  #ip of local machine
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.50.18  #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
       # KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_ZOOKEEPER_CONNECT: 192.168.50.32:2181
+      KAFKA_ZOOKEEPER_CONNECT: 192.168.50.18:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
@@ -150,38 +150,38 @@ services:
       CONFIG_FILEPATH: /tmp/config.yml
       CONSOLE_CONFIG_FILE: |
         kafka:
-          brokers: ["192.168.50.248:9092"]
+          brokers: ["192.168.50.18:9092"]
     ports:
       - "8085:8080"
     depends_on:
       - kafka
 
-  glue:
-    image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
-    container_name: glue
-    restart: on-failure
-    secrets:
-      - aws_access_key_id
-      - aws_secret_access_key
-    environment:
-      - AWS_ACCESS_KEY_ID=aws_access_key_id
-      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
-    ports:
-    - "8898:8888"
-    volumes:
-    - ./redditStreaming:/opt/workspace/redditStreaming
+  # glue:
+  #   image: amazon/aws-glue-libs:glue_libs_4.0.0_image_01
+  #   container_name: glue
+  #   restart: on-failure
+  #   secrets:
+  #     - aws_access_key_id
+  #     - aws_secret_access_key
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=aws_access_key_id
+  #     - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+  #   ports:
+  #   - "8898:8888"
+  #   volumes:
+  #   - ./redditStreaming:/opt/workspace/redditStreaming
 
-  glue_history:
-    image: stevenhurwitt/glue_history:latest
-    container_name: glue_history
-    restart: on-failure
-    secrets:
-      - aws_access_key_id
-      - aws_secret_access_key
-    environment:
-      - AWS_ACCESS_KEY_ID=aws_access_key_id
-      - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
-    ports:
-    - "8892:8888"
-    volumes:
-    - ./glue_history:/tmp
+  # glue_history:
+  #   image: stevenhurwitt/glue_history:latest
+  #   container_name: glue_history
+  #   restart: on-failure
+  #   secrets:
+  #     - aws_access_key_id
+  #     - aws_secret_access_key
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID=aws_access_key_id
+  #     - AWS_SECRET_ACCESS_KEY=aws_secret_access_key
+  #   ports:
+  #   - "8892:8888"
+  #   volumes:
+  #   - ./glue_history:/tmp
