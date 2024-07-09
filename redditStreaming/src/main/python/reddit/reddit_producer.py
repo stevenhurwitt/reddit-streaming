@@ -5,25 +5,23 @@ import time
 import json
 import yaml
 import pprint
+import logging
 
 import datetime as dt
 import requests
 import boto3
 import kafka
+from pyspark.sql import *
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 from kafka import KafkaProducer
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
 pp = pprint.PrettyPrinter(indent=1)
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
-glueContext = GlueContext(sc)
 sc.setLogLevel('INFO')
-logger = glueContext.get_logger()
 logger = logging.getLogger('reddit_producer')
-# spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
 
 subreddit = "aws"
 
@@ -48,12 +46,6 @@ except:
     pass
 
 pp = pprint.PrettyPrinter(indent = 1)
-
-def aws():
-    s3_client = boto3.client("s3")
-    athena_client = boto3.client("athena")
-    secret_client = boto3.client("secrets")
-    return(s3_client, athena_client, secret_client)
 
 def get_bearer():
     """

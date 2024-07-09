@@ -3,22 +3,15 @@ import sys
 import ast
 import yaml
 import json
+import logging
 
 from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-args = getResolvedOptions(sys.argv, ["JOB_NAME"])
 sc = SparkContext()
-glueContext = GlueContext(sc)
 sc.setLogLevel('INFO')
-logger = glueContext.get_logger()
 logger = logging.getLogger('reddit_streaming')
-# spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args["JOB_NAME"], args)
-
-secretmanager_client = boto3.client("secretsmanager")
 
 spark_host = "spark-master" 
 kafka_host = "kafka" 
@@ -27,8 +20,8 @@ spark_version = "3.4.0"
 hadoop_version = "3.3.4"
 delta_version = "1.2.1"
 postgres_version = "52.4.0"
-aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
-aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
+# aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
+# aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
 
@@ -89,8 +82,8 @@ def init_spark(subreddit, index):
     creds, config = read_files()
     spark_host = config["spark_host"]
     # spark_host = "spark-master"
-    aws_client = creds["aws_client"]
-    aws_secret = creds["aws_secret"]
+    # aws_client = creds["aws_client"]
+    # aws_secret = creds["aws_secret"]
     extra_jar_list = config["extra_jar_list"]
     index = 0
 
@@ -109,11 +102,6 @@ def init_spark(subreddit, index):
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
                     .config("spark.jars.packages", extra_jar_list) \
-                    .config("spark.hadoop.fs.s3a.access.key", aws_client) \
-                    .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
-                    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
-                    .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
-                    .config('spark.hadoop.fs.s3a.buffer.dir', '/opt/workspace/tmp/blocks') \
                     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
                     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
                     .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
@@ -273,10 +261,10 @@ def write_stream(df, subreddit):
 
     creds, config = read_files()
 
-    bucket = config["bucket"]
-    logger.info("bucket: {}".format(bucket))
+    # bucket = config["bucket"]
+    # logger.info("bucket: {}".format(bucket))
     logger.info("subreddit: {}".format(subreddit))
-    write_path = f"s3a://{bucket}/{subreddit}"
+    write_path = f"/Volumes/Extreme SSD/reddit-streaming-stevenhurwitt/{subreddit}"
     logger.info("write path: {}".format(write_path))
 
     # write subset of df to console

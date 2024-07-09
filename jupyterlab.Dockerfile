@@ -1,4 +1,4 @@
-FROM cluster-base
+FROM stevenhurwitt/cluster-base
 
 # -- Layer: JupyterLab
 
@@ -10,22 +10,23 @@ COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv && \
-    curl https://bootstrap.pypa.io./get-pip.py | python3 && \
-    python3 -m pip install --upgrade pip
+    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip
+
+RUN curl https://bootstrap.pypa.io./get-pip.py | python3
+# RUN python3 -m pip install --upgrade pip
 
 # virtualenv
 RUN python3 -m venv /opt/workspace/reddit-env && \
     source /opt/workspace/reddit-env/bin/activate
 
 # pyspark & jupyterlab
-RUN pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN python3 -m pip3 install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # custom .whl's
-RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
+# RUN pip3 install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
 
 # requirements
-RUN pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
+RUN python3 -m pip3 install -r /opt/workspace/redditStreaming/requirements.txt --ignore-installed
 
 # add kernel to jupyter
 RUN python3 -m ipykernel install --user --name="reddit-env"
