@@ -21,7 +21,7 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys
 
 RUN apt-get update --allow-insecure-repositories -y && \
     apt-get install -y python3-dev python3-distutils python3-setuptools && \
-    curl https://bootstrap.pypa.io./get-pip.py | python3 && \
+    curl https://bootstrap.pypa.io./pip/3.7/get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
     
 RUN python3 -m pip install --no-cache-dir pyspark==${spark_version} jupyterlab==${jupyterlab_version}
