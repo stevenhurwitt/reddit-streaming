@@ -15,6 +15,7 @@ from pyspark.sql import *
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from kafka import KafkaProducer
+import datetime as dt
 from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
 pp = pprint.PrettyPrinter(indent=1)
