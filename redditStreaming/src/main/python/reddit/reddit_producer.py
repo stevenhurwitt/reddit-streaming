@@ -205,6 +205,17 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     retries = 5
     while retries > 0:
         try:
+            # Get working Kafka host
+            working_host = check_kafka_connection(host)
+            if not working_host:
+                retries -= 1
+                if retries == 0:
+                    print("Failed to connect to Kafka after all attempts")
+                    sys.exit(1)
+                print(f"Retrying Kafka connection... ({retries} attempts left)")
+                time.sleep(5)
+                continue
+
             broker = [f"{host}:9092"]
             if not check_kafka_connection(host):
                 # Fallback to IP if hostname fails
@@ -223,17 +234,13 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 print(f"Connected to Kafka broker at {host}:9092")
             break
         
-        except kafka.errors.NoBrokersAvailable:
+        except Exception as e:
+            print(f"Error connecting to Kafka: {str(e)}")
             retries -= 1
             if retries == 0:
-                print(f"Failed to connect to Kafka after 5 attempts")
+                print("Failed to connect to Kafka after all attempts")
                 sys.exit(1)
-            
-            print(f"Retrying Kafka connection... ({retries} attempts left)")
             time.sleep(5)
-            print(f"Error connecting to Kafka broker at {host}:9092")
-            print(f"Error details: {str(e)}")
-            sys.exit(1)
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
@@ -339,10 +346,38 @@ def check_kafka_connection(host):
     Check if Kafka broker is accessible
     """
     import socket
-    import subprocess
+    import telnetlib
+    from kafka.admin import KafkaAdminClient
+
+     # List of possible Kafka addresses to try
+    hosts_to_try = [
+        host,                # Original hostname
+        "kafka:9092",            # Service name in docker-compose
+        "172.17.0.1:9092",       # Default Docker bridge
+        "localhost:9092"         # Local hostname
+    ]
 
     print(f"Checking Kafka connection to {host}...")
     
+    for test_host in hosts_to_try:
+        print(f"\nTrying {test_host}...")
+        try:
+            # Try admin client connection
+            admin_client = KafkaAdminClient(
+                bootstrap_servers=test_host,
+                client_id='test',
+                request_timeout_ms=5000
+            )
+            topics = admin_client.list_topics()
+            admin_client.close()
+            print(f"Successfully connected to Kafka at {test_host}:9092")
+            print(f"Available topics: {topics}")
+            return test_host.split(':')[0] # Return just the hostname
+            
+        except Exception as e:
+            print(f"Failed to connect to {test_host}: {str(e)}")
+            continue
+
     try:
         with open('/proc/1/cgroup', 'r') as f:
             is_docker = 'docker' in f.read()
@@ -357,28 +392,45 @@ def check_kafka_connection(host):
         print(f"Successfully resolved {host} to {ip_address}")
     except socket.gaierror as e:
         print(f"DNS resolution failed for {host}: {str(e)}")
+        return False
 
-        # Try ping
+    # Try TCP connection to Kafka port
+    try:
+        # Try telnet connection
+        tn = telnetlib.Telnet(host, 9092, timeout=5)
+        tn.close()
+        print(f"Successfully connected to Kafka at {host}:9092")
+        return True
+    except (socket.timeout, socket.error, EOFError) as e:
+        print(f"Failed to connect to Kafka at {host}:9092")
+        print(f"Error: {str(e)}")
+        
+        # If hostname fails, try IP directly
         try:
-            result = subprocess.run(['ping', '-c', '1', host], 
-                                capture_output=True, 
-                                text=True)
-            print(f"Ping result:\n{result.stdout}")
-        except subprocess.SubprocessError as e:
-            print(f"Ping failed: {str(e)}")
-            return False
-
-        # Try connection
-        try:
-            sock = socket.create_connection((host, 9092), timeout=5)
-            sock.close()
-            print(f"Successfully connected to Kafka at {host}:9092")
+            tn = telnetlib.Telnet(ip_address, 9092, timeout=5)
+            tn.close()
+            print(f"Successfully connected to Kafka at {ip_address}:9092")
             return True
-
-        except (socket.timeout, socket.error) as e:
-            print(f"Failed to connect to Kafka at {host}:9092")
+        except (socket.timeout, socket.error, EOFError) as e:
+            print(f"Failed to connect to Kafka at {ip_address}:9092")
             print(f"Error: {str(e)}")
             return False
+    print("\nFailed to connect to Kafka on all addresses")
+    return False
+
+def wait_for_kafka(host, max_retries=30):
+    """
+    Wait for Kafka to become available
+    """
+    retries = 0
+    while retries < max_retries:
+        if check_kafka_connection(host):
+            print("Kafka is ready!")
+            return True
+        print(f"Waiting for Kafka to become available... ({retries}/{max_retries})")
+        time.sleep(10)
+        retries += 1
+    return False
 
 def main():
     """
@@ -397,6 +449,11 @@ def main():
             debug = config["debug"]
             # debug = True
             f.close()
+
+         # Wait for Kafka to be ready
+        if not wait_for_kafka(kafka_host):
+            print("Kafka is not available after maximum retries")
+            sys.exit(1)
 
         # Validate configuration
         if not subreddit or not isinstance(subreddit, list):

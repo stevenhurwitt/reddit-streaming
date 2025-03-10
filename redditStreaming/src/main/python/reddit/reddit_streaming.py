@@ -11,6 +11,7 @@ import datetime as dt
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from delta import *
 
 # sc = SparkContext()
 # sc.setLogLevel('INFO')
@@ -36,16 +37,25 @@ delta_version = "2.3.0"
 postgres_version = "9.4.1212"
 # aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 # aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
-extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
+# Update jar list with proper versions
+extra_jar_list = ",".join([
+    f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version}",
+    f"org.apache.kafka:kafka-clients:3.3.1",
+    f"io.delta:delta-core_2.12:{delta_version}",
+    f"org.apache.hadoop:hadoop-aws:{hadoop_version}"
+])
 bucket = "reddit-streaming-stevenhurwitt-2"
 
-# import os
-# import sys
+import os
+import sys
 
 # Set Java environment variables
-# os.environ['JAVA_HOME'] = 'usr/local/openjdk-8/bin/java'
-# os.environ['PYSPARK_PYTHON'] = sys.executable
-# os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+os.environ['JAVA_HOME'] = '/usr/local/openjdk-8'
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+os.environ['SPARK_LOCAL_IP'] = 'localhost'
+os.environ['SPARK_LOCAL_DIRS'] = '/opt/workspace/tmp/spark'
+os.environ['SPARK_LOG_DIR'] = '/opt/workspace/events'
 
 def read_files():
     """
@@ -90,6 +100,7 @@ def read_files():
         sys.exit()
 
     return(creds, config)
+
 def init_spark(subreddit, index):
     """
     initialize spark given config and credential's files
@@ -101,50 +112,68 @@ def init_spark(subreddit, index):
     spark_host = config["spark_host"]
     extra_jar_list = config["extra_jar_list"]
 
+    # Get list of local JARs
+    jar_dir = "/opt/workspace/jars"
+    local_jars = ",".join([os.path.join(jar_dir, f) for f in os.listdir(jar_dir) if f.endswith('.jar')])
+    
     # Set Java specific configurations
     # os.environ['PYSPARK_PYTHON'] = sys.executable
     # os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
     
     
     # initialize spark session
-    spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
-                .master("spark://{}:7077".format(spark_host)) \
-                .config("spark.driver.host", "localhost") \
-                .config("spark.driver.bindAddress", "0.0.0.0") \
-                .config("spark.scheduler.mode", "FAIR") \
-                .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                .config("spark.executor.memory", "2048m") \
-                .config("spark.executor.cores", "2") \
-                .config("spark.streaming.concurrentJobs", "8") \
-                .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
-                .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
-                .config("spark.eventLog.enabled", "true") \
-                .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
-                .config("spark.sql.debug.maxToStringFields", 1000) \
-                .config("spark.jars.packages", extra_jar_list) \
-                .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-                .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
-                .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
-                .enableHiveSupport() \
-                .getOrCreate()
-
-    sc = spark.sparkContext
-    sc.setLogLevel('WARN')
-    sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
-    
-    print("Created Spark session successfully")
     try:
-        spark = SparkSession.builder.appName(subreddit).getOrCreate()
-            # ...existing configuration...
+        spark = SparkSession.builder.appName(f"reddit_{subreddit}") \
+                    .master("local[*]") \
+                    .config("spark.driver.host", "localhost") \
+                    .config("spark.driver.bindAddress", "0.0.0.0") \
+                    .config("spark.scheduler.mode", "FAIR") \
+                    .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
+                    .config("spark.driver.memory", "4g") \
+                    .config("spark.executor.memory", "4g") \
+                    .config("spark.executor.cores", "2") \
+                    .config("spark.streaming.concurrentJobs", "8") \
+                    .config("spark.local.dir", "/opt/workspace/tmp/spark") \
+                    .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
+                    .config("spark.eventLog.enabled", "true") \
+                    .config("spark.eventLog.dir", "file:///opt/workspace/events") \
+                    .config("spark.sql.debug.maxToStringFields", 1000) \
+                    .config("spark.jars", local_jars) \
+                    .config("spark.driver.extraClassPath", local_jars) \
+                    .config("spark.executor.extraClassPath", local_jars) \
+                    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+                    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+                    .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+                    .enableHiveSupport() \
+                    .getOrCreate()
+
+                    # .config("spark.jars.packages", extra_jar_list) \
+
         sc = spark.sparkContext
         sc.setLogLevel('WARN')
-        print("Created Spark successfully.")
+        sc.setLocalProperty("spark.scheduler.pool", "pool{}".format(str(index)))
+        
+        print("Created Spark session successfully")
+        return spark, sc
+
     except Exception as e:
         print(f"Failed to create Spark session: {str(e)}")
         raise
-
-    return spark, sc
     
+def test_kafka_connection(spark, kafka_host):
+    """Test Kafka connection before starting stream"""
+    try:
+        df = spark.read \
+            .format("kafka") \
+            .option("kafka.bootstrap.servers", f"{kafka_host}:9092") \
+            .option("subscribe", "test_topic") \
+            .load()
+        return True
+
+    except Exception as e:
+        print(f"Failed to connect to Kafka: {str(e)}")
+        return False
+
 def read_kafka_stream(spark, sc, subreddit):
     """
     reads streaming data from kafka producer
@@ -271,6 +300,11 @@ def read_kafka_stream(spark, sc, subreddit):
                 .select(from_json(col("json"), payload_schema).alias("data")) \
                 .select("data.*") 
 
+    # Add error handling
+    df.writeStream \
+        .foreachBatch(lambda df, epoch_id: print(f"Processing batch {epoch_id}")) \
+        .start()
+
     return(df)
 
 def write_stream(df, subreddit):
@@ -309,26 +343,56 @@ def write_stream(df, subreddit):
         .option("header", True) \
         .outputMode("append") \
         .queryName(subreddit + "_delta") \
-        .start()
+        .start(f"/opt/workspace/data/{subreddit}")
     
+def test_kafka_connection(kafka_host):
+    """Test Kafka connectivity"""
+    try:
+        # Try reading from Kafka to verify connection
+        test_df = spark.read \
+            .format("kafka") \
+            .option("kafka.bootstrap.servers", f"{kafka_host}:9092") \
+            .option("subscribe", "test") \
+            .option("failOnDataLoss", "false") \
+            .load()
+        return True
+
+    except Exception as e:
+        print(f"Failed to connect to Kafka: {str(e)}")
+        return False
+
 def main():
     """
     initialize spark, read stream from kafka, write stream to s3 parquet
     """
+    spark = None
+    streams = []
+
     try:
         creds, config = read_files()
         subreddit_list = config["subreddit"]
+        extra_jar_list = config["extra_jar_list"]
+
+        # Initialize Delta Lake (add this before creating SparkSession)
+        builder = SparkSession.builder \
+            .appName("reddit_streaming") \
+            .config("spark.jars.packages", extra_jar_list) \
+            .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
          # Validate configuration
         if not subreddit_list or not isinstance(subreddit_list, list):
             raise ValueError("Invalid subreddit configuration")
         
-        streams = []
-        
         for i, s in enumerate(subreddit_list):
             try:
                 print(f"Initializing Spark for subreddit: {s}")
                 spark, sc = init_spark(s, i)
+
+                # Test connection before proceeding
+                if not test_kafka_connection(kafka_host):
+                    raise Exception("Failed to connect to Kafka")
+                    
                 stage_df = read_kafka_stream(spark, sc, s)
                 write_stream(stage_df, s)
                 streams.append(stream)
@@ -337,8 +401,7 @@ def main():
                 continue
 
         if not streams:
-            print("No streams were successfully created")
-            sys.exit(1)
+            raise Exception("No streams were successfully created")
 
         print("All streams initialized, awaiting termination...")
         spark.streams.awaitAnyTermination()
@@ -363,6 +426,18 @@ def main():
         if 'spark' in locals():
             spark.stop()
         sys.exit(1)
+
+    finally:
+        for stream in streams:
+            try:
+                stream.stop()
+            except:
+                pass
+        if spark:
+            try:
+                spark.stop()
+            except:
+                pass
 
 if __name__ == "__main__":
 

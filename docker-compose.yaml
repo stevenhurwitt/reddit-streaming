@@ -10,7 +10,7 @@ volumes:
     driver: local
 services:
   jupyterlab:
-    image: jupyter/pyspark-notebook
+    image: stevenhurwitt/jupyterlab:latest
     container_name: jupyterlab
     secrets:
       - aws_access_key_id
@@ -131,7 +131,7 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: 10.0.0.123  #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
       # KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ZOOKEEPER_CONNECT: 10.0.0.123:2181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       # KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
