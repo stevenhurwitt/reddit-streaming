@@ -10,7 +10,8 @@ COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
 
 # base python
 RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip
+    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip && \
+    apt-get install -y openjdk-11-jdk
 
 RUN curl https://bootstrap.pypa.io./pip/3.7/get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
@@ -42,6 +43,7 @@ RUN rm -rf /var/lib/apt/lists/* && \
 # RUN cd /usr/local/lib/python3.7/dist-packages/pyspark/jars/ && \
 #     rm guava-14.0.1.jar && \
 #     wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar
+
 
 
 # -- Runtime

@@ -7,8 +7,6 @@ import yaml
 import pprint
 import requests
 import logging
-import sys
-import time
 
 import kafka
 from pyspark.sql import *
@@ -20,8 +18,14 @@ from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
 pp = pprint.PrettyPrinter(indent=1)
 
-sc = SparkContext()
-sc.setLogLevel('INFO')
+from pyspark.sql import SparkSession
+
+# Replace the existing SparkContext initialization with:
+spark = SparkSession.builder \
+    .appName("RedditProducer") \
+    .getOrCreate()
+sc = spark.sparkContext
+
 logger = logging.getLogger('reddit_producer')
 
 subreddit = "aws"
@@ -122,11 +126,21 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
                             headers = headers,
                             params = options)
 
+        # Check if request was successful
+        response.raise_for_status()
+
         response_json = response.json()
+        # Validate response structure
+        if "data" not in response_json:
+            print(f"Unexpected API response for {subreddit}:")
+            pp.pprint(response_json)
+            return None
+        
         return(response_json)
     
-    except Exception as e:
-        pp.pprint(e)
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data from Reddit API: {str(e)}")
+        return None
 
 def my_serializer(message):
     return json.dumps(message).encode('utf-8')
@@ -142,38 +156,38 @@ def subset_response(response):
         data (dict)
         after_token (str)
     """
-    data = response["data"]["children"][0]["data"] #subset for just the post data
-    after_token = response["data"]["after"] #save "after" token to get posts after this one
-    i = 0
+    if not response or "data" not in response:
+        return None, None
+    
+    try:
+        data = response["data"]["children"][0]["data"] #subset for just the post data
+        after_token = response["data"]["after"] #save "after" token to get posts after this one
+        i = 0
+
+    except (KeyError, IndexError) as e:
+        print(f"Error parsing Reddit response: {str(e)}")
+        print("Response structure:")
+        pp.pprint(response)
+        return None, None
 
     ## this looks really hacky, think of a better way to do this...
     try:
-        #exclude nested data for schema simplicity
-        data.pop("preview")
-        data.pop("link_flair_richtext")
-        data.pop("media_embed")
-        data.pop("user_reports")
-        data.pop("secure_media_embed")
-        data.pop("author_flair_richtext")
-        data.pop("gildings")
-        data.pop("all_awardings")
-        data.pop("awarders")
-        data.pop("treatment_tags")
-        data.pop("mod_reports")
+        # Remove nested fields
+        fields_to_remove = [
+            "preview", "link_flair_richtext", "media_embed", 
+            "user_reports", "secure_media_embed", "author_flair_richtext",
+            "gildings", "all_awardings", "awarders", 
+            "treatment_tags", "mod_reports"
+        ]
+        
+        for field in fields_to_remove:
+            data.pop(field, None)  # Use pop with None default to avoid KeyError
 
-    except:
-        data.pop("link_flair_richtext")
-        data.pop("media_embed")
-        data.pop("user_reports")
-        data.pop("secure_media_embed")
-        data.pop("author_flair_richtext")
-        data.pop("gildings")
-        data.pop("all_awardings")
-        data.pop("awarders")
-        data.pop("treatment_tags")
-        data.pop("mod_reports")
-
-    return(data, after_token)
+        return(data, after_token)
+    
+    except Exception as e:
+        print(f"Error cleaning response data: {str(e)}")
+        return None, None
 
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
     """
@@ -194,13 +208,21 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
 
         producer = KafkaProducer(
                     bootstrap_servers=broker,
-                    value_serializer=my_serializer
-                    # api_version = (0, 10, 2)
-                )
+                    value_serializer=my_serializer,
+                    retries=5,
+                    retry_backoff_ms=1000,
+                    request_timeout_ms=30000,
+                    api_version=(0, 10, 2)
+        )
+        
+        if debug:
+            print(f"Connected to Kafka broker at {host}:9092")
+    
     
     except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
-        sys.exit()
+        print(f"Error connecting to Kafka broker at {host}:9092")
+        print(f"Error details: {str(e)}")
+        sys.exit(1)
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
@@ -211,13 +233,24 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
     for i, s in enumerate(subreddit):
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
+        
+        if my_data is None:
+            print(f"Failed to get initial data for subreddit: {s}")
+            token_list.append(None)
+            continue
+
         token_list.append(after_token)
         # with open("sample_response.json", "w") as f:
         #     json.dump(my_data, f, indent = 1)
 
         if after_token is not None:
-            producer.send(params["topic"][i], my_data)                          
-
+            try:
+                producer.send(params["topic"][i], my_data)
+                if debug:
+                    print(f"subreddit: {s}, post date: {dt.datetime.fromtimestamp(my_data['created'])}, post title: {my_data['title']}, token: {after_token}.")
+            except Exception as e:
+                print(f"Error sending data to Kafka: {str(e)}")
+    
             if debug:
                 print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
 
@@ -289,7 +322,19 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
 
         else:
             time.sleep(110)
-    
+
+def check_kafka_connection(host):
+    """
+    Check if Kafka broker is accessible
+    """
+    import socket
+    try:
+        socket.create_connection((host, 9092), timeout=5)
+        return True
+    except (socket.timeout, socket.error) as e:
+        print(f"Failed to connect to Kafka at {host}:9092")
+        print(f"Error: {str(e)}")
+        return False    
 
 def main():
     """
@@ -308,22 +353,30 @@ def main():
             debug = config["debug"]
             # debug = True
             f.close()
-    
-    except:
-        print("failed to find config.yaml")
-        sys.exit()
 
-    # s3, athena, secrets = aws()
+        # Validate configuration
+        if not subreddit or not isinstance(subreddit, list):
+            raise ValueError("Invalid subreddit configuration")
+            
+        if not post_type in ["new", "hot", "rising", "controversial", "top"]:
+            raise ValueError(f"Invalid post_type: {post_type}")
 
-    # print("s3: {}".format(s3))
-    # print("athena: {}".format(athena))
-    # print("secrets: {}".format(secrets))
+        if not check_kafka_connection(kafka_host):
+            print("Kafka broker is not accessible")
+            sys.exit(1)
 
-    my_header = get_bearer()
-    if debug:
-        print("authenticated w/ bearer token good for 24 hrs.")
+        my_header = get_bearer()
+        if not my_header:
+            raise ValueError("Failed to get bearer token")
+            
+        if debug:
+            print("authenticated w/ bearer token good for 24 hrs.")
         
-    poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
+        poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
+    
+    except Exception as e:
+        print(f"Error in main: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     # time.sleep(600)
