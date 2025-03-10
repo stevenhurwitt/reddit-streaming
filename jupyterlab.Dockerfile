@@ -4,6 +4,7 @@ FROM stevenhurwitt/cluster-base
 
 ARG spark_version=3.3.2
 ARG jupyterlab_version=3.5.2
+ARG delta_spark_version=2.3.0
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
@@ -13,7 +14,7 @@ RUN apt-get update --allow-insecure-repositories -y
     
 RUN apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip
 
-RUN apt-get install -y openjdk-11-jdk
+# RUN apt-get install -y openjdk-11-jdk
 
 RUN curl https://bootstrap.pypa.io./pip/3.7/get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
@@ -23,7 +24,7 @@ RUN python3 -m venv /opt/workspace/reddit-env && \
     source /opt/workspace/reddit-env/bin/activate
 
 # pyspark & jupyterlab
-RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+RUN python3 -m pip install pyspark==${spark_version} jupyterlab==${jupyterlab_version} delta-spark==${delta_spark_version}
 
 # custom .whl's
 RUN python3 -m pip install /opt/workspace/redditStreaming/src/main/python/reddit/dist/reddit-1.0.0-py3-none-any.whl --force-reinstall
