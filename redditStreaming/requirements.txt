@@ -1,5 +1,6 @@
 boto3
 botocore
+delta-spark==2.3.0
 ipykernel
 ipython
 kafka-python

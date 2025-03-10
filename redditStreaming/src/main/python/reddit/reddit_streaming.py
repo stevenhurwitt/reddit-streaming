@@ -32,7 +32,7 @@ kafka_host = "kafka"
 subreddit = "aws"
 spark_version = "3.3.2"
 hadoop_version = "3.3.4"
-delta_version = "1.2.1"
+delta_version = "2.3.0"
 postgres_version = "9.4.1212"
 # aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 # aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]

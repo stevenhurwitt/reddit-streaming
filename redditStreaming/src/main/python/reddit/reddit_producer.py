@@ -202,27 +202,38 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    try:
-        broker = ["{}:9092".format(host)]
-        # topic = "reddit_" + subreddit
-
-        producer = KafkaProducer(
-                    bootstrap_servers=broker,
-                    value_serializer=my_serializer,
-                    retries=5,
-                    retry_backoff_ms=1000,
-                    request_timeout_ms=30000,
-                    api_version=(0, 10, 2)
-        )
+    retries = 5
+    while retries > 0:
+        try:
+            broker = [f"{host}:9092"]
+            if not check_kafka_connection(host):
+                # Fallback to IP if hostname fails
+                broker = ["172.17.0.1:9092"]  # Adjust IP as needed
+                
+            producer = KafkaProducer(
+                        bootstrap_servers=broker,
+                        value_serializer=my_serializer,
+                        retries=5,
+                        retry_backoff_ms=1000,
+                        request_timeout_ms=30000,
+                        api_version=(0, 10, 2)
+            )
+            
+            if debug:
+                print(f"Connected to Kafka broker at {host}:9092")
+            break
         
-        if debug:
-            print(f"Connected to Kafka broker at {host}:9092")
-    
-    
-    except kafka.errors.NoBrokersAvailable:
-        print(f"Error connecting to Kafka broker at {host}:9092")
-        print(f"Error details: {str(e)}")
-        sys.exit(1)
+        except kafka.errors.NoBrokersAvailable:
+            retries -= 1
+            if retries == 0:
+                print(f"Failed to connect to Kafka after 5 attempts")
+                sys.exit(1)
+            
+            print(f"Retrying Kafka connection... ({retries} attempts left)")
+            time.sleep(5)
+            print(f"Error connecting to Kafka broker at {host}:9092")
+            print(f"Error details: {str(e)}")
+            sys.exit(1)
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
@@ -328,13 +339,46 @@ def check_kafka_connection(host):
     Check if Kafka broker is accessible
     """
     import socket
+    import subprocess
+
+    print(f"Checking Kafka connection to {host}...")
+    
     try:
-        socket.create_connection((host, 9092), timeout=5)
-        return True
-    except (socket.timeout, socket.error) as e:
-        print(f"Failed to connect to Kafka at {host}:9092")
-        print(f"Error: {str(e)}")
-        return False    
+        with open('/proc/1/cgroup', 'r') as f:
+            is_docker = 'docker' in f.read()
+            print(f"Running in Docker container: {is_docker}")
+    except:
+        is_docker = False
+        print("Could not determine if running in Docker")
+
+    # Try DNS resolution first
+    try:
+        ip_address = socket.gethostbyname(host)
+        print(f"Successfully resolved {host} to {ip_address}")
+    except socket.gaierror as e:
+        print(f"DNS resolution failed for {host}: {str(e)}")
+
+        # Try ping
+        try:
+            result = subprocess.run(['ping', '-c', '1', host], 
+                                capture_output=True, 
+                                text=True)
+            print(f"Ping result:\n{result.stdout}")
+        except subprocess.SubprocessError as e:
+            print(f"Ping failed: {str(e)}")
+            return False
+
+        # Try connection
+        try:
+            sock = socket.create_connection((host, 9092), timeout=5)
+            sock.close()
+            print(f"Successfully connected to Kafka at {host}:9092")
+            return True
+
+        except (socket.timeout, socket.error) as e:
+            print(f"Failed to connect to Kafka at {host}:9092")
+            print(f"Error: {str(e)}")
+            return False
 
 def main():
     """
