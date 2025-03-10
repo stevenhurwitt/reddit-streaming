@@ -30,7 +30,7 @@ logger = logging.getLogger('spark_streaming')
 spark_host = "spark-master" 
 kafka_host = "kafka" 
 subreddit = "aws"
-spark_version = "3.4.0"
+spark_version = "3.3.2"
 hadoop_version = "3.3.4"
 delta_version = "1.2.1"
 postgres_version = "9.4.1212"
@@ -39,13 +39,13 @@ postgres_version = "9.4.1212"
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
 
-import os
-import sys
+# import os
+# import sys
 
 # Set Java environment variables
-os.environ['JAVA_HOME'] = 'usr/local/openjdk-8/bin/java'
-os.environ['PYSPARK_PYTHON'] = sys.executable
-os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+# os.environ['JAVA_HOME'] = 'usr/local/openjdk-8/bin/java'
+# os.environ['PYSPARK_PYTHON'] = sys.executable
+# os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 
 def read_files():
     """

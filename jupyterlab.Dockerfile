@@ -2,16 +2,18 @@ FROM stevenhurwitt/cluster-base
 
 # -- Layer: JupyterLab
 
-ARG spark_version=3.4.0
+ARG spark_version=3.3.2
 ARG jupyterlab_version=3.5.2
 
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 COPY ./creds.json ${SHARED_WORKSPACE}/redditStreaming/creds.json
 
 # base python
-RUN apt-get update -y && \
-    apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip && \
-    apt-get install -y openjdk-11-jdk
+RUN apt-get update --allow-insecure-repositories -y
+    
+RUN apt-get install -y python3-dev python3-distutils python3-setuptools python3-venv python3-pip
+
+RUN apt-get install -y openjdk-11-jdk
 
 RUN curl https://bootstrap.pypa.io./pip/3.7/get-pip.py | python3 && \
     python3 -m pip install --upgrade pip
