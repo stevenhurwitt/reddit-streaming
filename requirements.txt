@@ -7,6 +7,6 @@ jupyterlab==3.5.2
 numpy
 pandas
 pyarrow
-pyspark==3.4.0
+pyspark==3.4.4
 requests
 kafka-python

@@ -8,6 +8,7 @@ import logging
 
 import yaml
 import datetime as dt
+import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -46,16 +47,15 @@ extra_jar_list = ",".join([
 ])
 bucket = "reddit-streaming-stevenhurwitt-2"
 
-import os
-import sys
-
 # Set Java environment variables
-os.environ['JAVA_HOME'] = '/usr/local/openjdk-8'
+os.environ['SPARK_HOME'] = os.path.dirname(os.path.dirname(pyspark.__file__))
+os.environ['JAVA_HOME'] = '/usr/local/openjdk-11'
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 os.environ['SPARK_LOCAL_IP'] = 'localhost'
 os.environ['SPARK_LOCAL_DIRS'] = '/opt/workspace/tmp/spark'
 os.environ['SPARK_LOG_DIR'] = '/opt/workspace/events'
+# os.environ['PYSPARK_SUBMIT_ARGS'] = "--master local[2] pyspark-shell"
 
 def read_files():
     """
@@ -138,6 +138,12 @@ def init_spark(subreddit, index):
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
+                    .config("spark.jars.packages", extra_jar_list) \
+                    .config("spark.hadoop.fs.s3a.access.key", creds["aws_client"]) \
+                    .config("spark.hadoop.fs.s3a.secret.key", creds["aws_secret"]) \
+                    .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+                    .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
+                    .config("spark.hadoop.fs.s3a.path.style.access", "true") \
                     .config("spark.jars", local_jars) \
                     .config("spark.driver.extraClassPath", local_jars) \
                     .config("spark.executor.extraClassPath", local_jars) \

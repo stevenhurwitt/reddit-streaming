@@ -1,43 +1,34 @@
-SPARK_VERSION="3.3.2"
+SPARK_VERSION="3.4.4"
 HADOOP_VERSION="3"
-JUPYTERLAB_VERSION="3.5.2"
+JUPYTERLAB_VERSION="3.2.0"
 
 # -- Building the Images
 
-# docker build -f cluster-base.Dockerfile -t cluster-base .
-
-# docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg hadoop_version="${HADOOP_VERSION}" -f spark-base.Dockerfile -t spark-base .
-
-# docker build -f spark-master.Dockerfile -t spark-master .
-
-# docker build -f spark-worker.Dockerfile -t spark-worker .
-
-# ,docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" -f jupyterlab.Dockerfile -t jupyterlab .
-
-docker build \
-  -f maven.Dockerfile \
-  -t stevenhurwitt/maven:latest .
-
 docker build \
   -f cluster-base.Dockerfile \
-  -t stevenhurwitt/cluster-base:latest .
+  -t cluster-base .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg hadoop_version="${HADOOP_VERSION}" \
   -f spark-base.Dockerfile \
-  -t stevenhurwitt/spark-base:latest .
+  -t spark-base .
 
 docker build \
   -f spark-master.Dockerfile \
-  -t stevenhurwitt/spark-master:latest .
+  -t spark-master .
 
 docker build \
   -f spark-worker.Dockerfile \
-  -t stevenhurwitt/spark-worker:latest .
+  -t spark-worker .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" \
   -f jupyterlab.Dockerfile \
-  -t stevenhurwitt/jupyterlab:latest .
+  -t jupyterlab .
+
+# Local copy of Notebooks and job-submit scripts outside Git change tracking
+mkdir -p ./local/notebooks
+cp -R ./notebooks/* ./local/notebooks
+
