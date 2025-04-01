@@ -1,4 +1,4 @@
-SPARK_VERSION="3.3.2"
+SPARK_VERSION="3.3.4"
 HADOOP_VERSION="3"
 JUPYTERLAB_VERSION="3.5.2"
 
@@ -13,10 +13,6 @@ JUPYTERLAB_VERSION="3.5.2"
 # docker build -f spark-worker.Dockerfile -t spark-worker .
 
 # ,docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" -f jupyterlab.Dockerfile -t jupyterlab .
-
-docker build \
-  -f maven.Dockerfile \
-  -t stevenhurwitt/maven:latest .
 
 docker build \
   -f cluster-base.Dockerfile \
