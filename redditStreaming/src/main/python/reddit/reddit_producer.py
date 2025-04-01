@@ -20,27 +20,55 @@ pp = pprint.PrettyPrinter(indent=1)
 
 from pyspark.sql import SparkSession
 
-# Replace the existing SparkContext initialization with:
-spark = SparkSession.builder \
-    .appName("RedditProducer") \
-    .getOrCreate()
-sc = spark.sparkContext
+os.environ['JAVA_HOME'] = '/usr/local/openjdk-11'
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+os.environ['SPARK_LOCAL_IP'] = 'localhost'
+os.environ['SPARK_LOCAL_DIRS'] = '/opt/workspace/tmp/spark'
+os.environ['SPARK_LOG_DIR'] = '/opt/workspace/events'
 
-logger = logging.getLogger('reddit_producer')
-
-subreddit = "aws"
-
-# secretmanager_client = boto3.client("secretsmanager")
-
-delta_version = "2.2.0"
-spark_version = "3.4.0"
+spark_version = "3.3.2"
 hadoop_version = "3.3.4"
-postgres_version = "42.5.0"
+delta_version = "2.3.0"
+postgres_version = "9.4.1212"
 # aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 # aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
+jar_dir = "/opt/workspace/jars"
+local_jars = ",".join([os.path.join(jar_dir, f) for f in os.listdir(jar_dir) if f.endswith('.jar')])
+subreddit = "aws"
 
+# Replace the existing SparkContext initialization with:
+spark = SparkSession.builder \
+    .appName("RedditProducer") \
+    .master("local[*]") \
+    .config("spark.driver.host", "localhost") \
+    .config("spark.driver.bindAddress", "0.0.0.0") \
+    .config("spark.scheduler.mode", "FAIR") \
+    .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
+    .config("spark.driver.memory", "4g") \
+    .config("spark.executor.memory", "4g") \
+    .config("spark.executor.cores", "2") \
+    .config("spark.streaming.concurrentJobs", "8") \
+    .config("spark.local.dir", "/opt/workspace/tmp/spark") \
+    .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
+    .config("spark.eventLog.enabled", "true") \
+    .config("spark.eventLog.dir", "file:///opt/workspace/events") \
+    .config("spark.sql.debug.maxToStringFields", 1000) \
+    .config("spark.jars.packages", extra_jar_list) \
+    .config("spark.jars", local_jars) \
+    .config("spark.driver.extraClassPath", local_jars) \
+    .config("spark.executor.extraClassPath", local_jars) \
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+    .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
+    .enableHiveSupport() \
+    .getOrCreate()
+
+sc = spark.sparkContext
+
+logger = logging.getLogger('reddit_producer')
 
 try:
     import reddit
