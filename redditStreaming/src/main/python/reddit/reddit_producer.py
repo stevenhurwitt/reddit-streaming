@@ -18,9 +18,7 @@ from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
 
 pp = pprint.PrettyPrinter(indent=1)
 
-from pyspark.sql import SparkSession
-
-os.environ['JAVA_HOME'] = '/usr/local/openjdk-11'
+# os.environ['JAVA_HOME'] = '/usr/local/openjdk-11'
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 os.environ['SPARK_LOCAL_IP'] = 'localhost'

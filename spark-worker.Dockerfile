@@ -8,7 +8,8 @@ ARG spark_worker_web_ui=8081
 EXPOSE ${spark_worker_web_ui}
 EXPOSE 18080
 
-RUN ln -s /usr/local/bin/python3 /usr/bin/python
+RUN rm -f /usr/bin/python && \
+    ln -s /usr/local/bin/python3 /usr/bin/python
 
 COPY ./spark-defaults.conf conf/spark-defaults.conf
 
