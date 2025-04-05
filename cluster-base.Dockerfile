@@ -1,7 +1,7 @@
 ARG debian_buster_image_tag=11-jdk-buster
 FROM openjdk:${debian_buster_image_tag}
 
-# -- Layer: OS + Python 3.14
+# -- Layer: OS + Python 3.13
 
 ARG shared_workspace=/opt/workspace
 
@@ -11,8 +11,8 @@ RUN mkdir -p ${shared_workspace} && \
 	apt install -y build-essential zlib1g-dev libncurses5-dev && \
 	apt install -y libsqlite3-dev && \
 	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget libjpeg-dev && \
-	curl -O https://www.python.org/ftp/python/3.14.0/Python-3.14.0.tar.xz  && \
-    tar -xf Python-3.14.0.tar.xz && cd Python-3.14.0 && ./configure && make -j 8 &&\
+	curl -O https://www.python.org/ftp/python/3.13.2/Python-3.13.2.tar.xz  && \
+    tar -xf Python-3.13.2.tar.xz && cd Python-3.13.2 && ./configure && make -j 8 &&\
     make install && \
     apt-get update && apt-get install -y procps && apt-get install -y vim && apt-get install -y net-tools && \
     rm -rf /var/lib/apt/lists/*
