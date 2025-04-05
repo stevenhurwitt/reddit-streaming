@@ -113,8 +113,8 @@ def init_spark(subreddit, index):
     extra_jar_list = config["extra_jar_list"]
 
     # Get list of local JARs
-    jar_dir = "/opt/workspace/jars"
-    local_jars = ",".join([os.path.join(jar_dir, f) for f in os.listdir(jar_dir) if f.endswith('.jar')])
+    # jar_dir = "/opt/workspace/jars"
+    # local_jars = ",".join([os.path.join(jar_dir, f) for f in os.listdir(jar_dir) if f.endswith('.jar')])
     
     # Set Java specific configurations
     # os.environ['PYSPARK_PYTHON'] = sys.executable
@@ -144,9 +144,17 @@ def init_spark(subreddit, index):
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
                     .config("spark.hadoop.fs.s3a.endpoint", "s3.amazonaws.com") \
                     .config("spark.hadoop.fs.s3a.path.style.access", "true") \
-                    .config("spark.jars", local_jars) \
-                    .config("spark.driver.extraClassPath", local_jars) \
-                    .config("spark.executor.extraClassPath", local_jars) \
+                    .config("spark.jars.packages", 
+                            "org.apache.hadoop:hadoop-aws:3.3.4," + 
+                            "org.apache.hadoop:hadoop-common:3.3.4," +
+                            "org.apache.hadoop:hadoop-aws:3.3.4," + 
+                            "com.amazonaws:aws-java-sdk-bundle:1.12.261," +
+                            "org.apache.logging.log4j:log4j-slf4j-impl:2.17.2," +
+                            "org.apache.logging.log4j:log4j-api:2.17.2," +
+                            "org.apache.logging.log4j:log4j-core:2.17.2," + 
+                            "org.apache.hadoop:hadoop-client:3.3.4," + 
+                            "io.delta:delta-core_2.12:2.4.0," + 
+                            "org.postgresql:postgresql:42.2.18") \
                     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
                     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
                     .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
