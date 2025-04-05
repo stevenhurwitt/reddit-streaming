@@ -8,6 +8,8 @@ import logging
 
 import yaml
 import datetime as dt
+import findspark
+findspark.init()
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
@@ -48,14 +50,16 @@ extra_jar_list = ",".join([
 bucket = "reddit-streaming-stevenhurwitt-2"
 
 # Set Java environment variables
-os.environ['SPARK_HOME'] = os.path.dirname(os.path.dirname(pyspark.__file__))
-os.environ['JAVA_HOME'] = '/usr/local/openjdk-11'
+os.environ['SPARK_HOME'] = os.path.dirname(pyspark.__file__)
+os.environ['JAVA_HOME'] = '/usr/local/openjdk-11/'
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 os.environ['SPARK_LOCAL_IP'] = 'localhost'
 os.environ['SPARK_LOCAL_DIRS'] = '/opt/workspace/tmp/spark'
 os.environ['SPARK_LOG_DIR'] = '/opt/workspace/events'
 # os.environ['PYSPARK_SUBMIT_ARGS'] = "--master local[2] pyspark-shell"
+
+
 
 def read_files():
     """
@@ -417,7 +421,7 @@ def main():
                     
                 stage_df = read_kafka_stream(spark, sc, s)
                 streams.extend(write_stream(stage_df, s))
-                
+
             except Exception as e:
                 print(f"Error processing subreddit {s}: {str(e)}")
                 continue

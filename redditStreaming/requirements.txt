@@ -1,6 +1,7 @@
 boto3
 botocore
 delta-spark===3.3.0
+findspark
 ipykernel
 ipython
 jupyter

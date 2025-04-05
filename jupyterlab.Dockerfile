@@ -19,6 +19,7 @@ RUN apt-get update -y && \
         build-essential \
         libssl-dev \
         libffi-dev \
+        openjdk-11-jdk \
         && apt-get clean \
         && rm -rf /var/lib/apt/lists/*
 
