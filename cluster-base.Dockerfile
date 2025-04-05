@@ -1,7 +1,7 @@
 ARG debian_buster_image_tag=11-jdk-buster
 FROM openjdk:${debian_buster_image_tag}
 
-# -- Layer: OS + Python 3.7
+# -- Layer: OS + Python 3.14
 
 ARG shared_workspace=/opt/workspace
 
