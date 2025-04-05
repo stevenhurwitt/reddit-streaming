@@ -32,9 +32,9 @@ logger = logging.getLogger('spark_streaming')
 spark_host = "spark-master" 
 kafka_host = "kafka" 
 subreddit = "aws"
-spark_version = "3.3.2"
+spark_version = "3.5.5"
 hadoop_version = "3.3.4"
-delta_version = "2.3.0"
+delta_version = "3.3.0"
 postgres_version = "9.4.1212"
 # aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 # aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
@@ -153,7 +153,7 @@ def init_spark(subreddit, index):
                             "org.apache.logging.log4j:log4j-api:2.17.2," +
                             "org.apache.logging.log4j:log4j-core:2.17.2," + 
                             "org.apache.hadoop:hadoop-client:3.3.4," + 
-                            "io.delta:delta-core_2.12:2.4.0," + 
+                            "io.delta:delta-core_2.12:3.3.0," + 
                             "org.postgresql:postgresql:42.2.18") \
                     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
                     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
@@ -324,20 +324,21 @@ def read_kafka_stream(spark, sc, subreddit):
 def write_stream(df, subreddit):
     """
     writes streaming data to s3 data lake
-
+    
     params: df
+    returns: list of streaming queries
     """
-
     creds, config = read_files()
-
     bucket = config["bucket"]
-    # logger.info("bucket: {}".format(bucket))
     logger.info("subreddit: {}".format(subreddit))
     write_path = f"s3a://{bucket}/{subreddit}"
     logger.info("write path: {}".format(write_path))
 
+    # Store queries in a list
+    queries = []
+
     # write subset of df to console
-    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+    console_query = df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
         .select("subreddit", "title", "score", "created_utc") \
         .writeStream \
         .trigger(processingTime='180 seconds') \
@@ -347,9 +348,11 @@ def write_stream(df, subreddit):
         .format("console") \
         .queryName(subreddit + "_console") \
         .start()
+    
+    queries.append(console_query)
 
     # write to s3 delta
-    df.writeStream \
+    delta_query = df.writeStream \
         .trigger(processingTime="180 seconds") \
         .format("delta") \
         .option("path", write_path) \
@@ -359,6 +362,11 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start(f"/opt/workspace/data/{subreddit}")
     
+    queries.append(delta_query)
+    
+    return queries
+
+
 def test_kafka_connection(kafka_host):
     """Test Kafka connectivity"""
     try:
@@ -408,8 +416,8 @@ def main():
                     raise Exception("Failed to connect to Kafka")
                     
                 stage_df = read_kafka_stream(spark, sc, s)
-                write_stream(stage_df, s)
-                streams.append(stream)
+                streams.extend(write_stream(stage_df, s))
+                
             except Exception as e:
                 print(f"Error processing subreddit {s}: {str(e)}")
                 continue

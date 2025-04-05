@@ -25,16 +25,20 @@ os.environ['SPARK_LOCAL_IP'] = 'localhost'
 os.environ['SPARK_LOCAL_DIRS'] = '/opt/workspace/tmp/spark'
 os.environ['SPARK_LOG_DIR'] = '/opt/workspace/events'
 
-spark_version = "3.3.2"
+spark_version = "3.5.5"
 hadoop_version = "3.3.4"
-delta_version = "2.3.0"
+delta_version = "3.3.0"
 postgres_version = "9.4.1212"
 # aws_client = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_ACCESS_KEY_ID")["SecretString"])["AWS_ACCESS_KEY_ID"]
 # aws_secret = ast.literal_eval(secretmanager_client.get_secret_value(SecretId="AWS_SECRET_ACCESS_KEY")["SecretString"])["AWS_SECRET_ACCESS_KEY"]
 extra_jar_list = f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version},org.apache.hadoop:hadoop-common:{hadoop_version},org.apache.hadoop:hadoop-aws:{hadoop_version},org.apache.hadoop:hadoop-client:{hadoop_version},io.delta:delta-core_2.12:{delta_version},org.postgresql:postgresql:{postgres_version}"
 bucket = "reddit-streaming-stevenhurwitt-2"
-jar_dir = "/opt/workspace/jars"
-local_jars = ",".join([os.path.join(jar_dir, f) for f in os.listdir(jar_dir) if f.endswith('.jar')])
+extra_jar_list = ",".join([
+    f"org.apache.spark:spark-sql-kafka-0-10_2.12:{spark_version}",
+    f"org.apache.kafka:kafka-clients:3.3.1",
+    f"io.delta:delta-core_2.12:{delta_version}",
+    f"org.apache.hadoop:hadoop-aws:{hadoop_version}"
+])
 subreddit = "aws"
 
 # Replace the existing SparkContext initialization with:
@@ -54,10 +58,17 @@ spark = SparkSession.builder \
     .config("spark.eventLog.enabled", "true") \
     .config("spark.eventLog.dir", "file:///opt/workspace/events") \
     .config("spark.sql.debug.maxToStringFields", 1000) \
-    .config("spark.jars.packages", extra_jar_list) \
-    .config("spark.jars", local_jars) \
-    .config("spark.driver.extraClassPath", local_jars) \
-    .config("spark.executor.extraClassPath", local_jars) \
+    .config("spark.jars.packages", 
+                            "org.apache.hadoop:hadoop-aws:3.3.4," + 
+                            "org.apache.hadoop:hadoop-common:3.3.4," +
+                            "org.apache.hadoop:hadoop-aws:3.3.4," + 
+                            "com.amazonaws:aws-java-sdk-bundle:1.12.261," +
+                            "org.apache.logging.log4j:log4j-slf4j-impl:2.17.2," +
+                            "org.apache.logging.log4j:log4j-api:2.17.2," +
+                            "org.apache.logging.log4j:log4j-core:2.17.2," + 
+                            "org.apache.hadoop:hadoop-client:3.3.4," + 
+                            "io.delta:delta-spark_2.12:3.3.0," + 
+                            "org.postgresql:postgresql:42.2.18") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     .config("spark.delta.logStore.class", "org.apache.spark.sql.delta.storage.S3SingleDriverLogStore") \
@@ -372,15 +383,14 @@ def check_kafka_connection(host):
     Check if Kafka broker is accessible
     """
     import socket
-    import telnetlib
     from kafka.admin import KafkaAdminClient
 
      # List of possible Kafka addresses to try
     hosts_to_try = [
         host,                # Original hostname
-        "kafka:9092",            # Service name in docker-compose
-        "172.17.0.1:9092",       # Default Docker bridge
-        "localhost:9092"         # Local hostname
+        "kafka",            # Service name in docker-compose
+        "172.17.0.1",       # Default Docker bridge
+        "localhost"         # Local hostname
     ]
 
     print(f"Checking Kafka connection to {host}...")
@@ -398,7 +408,7 @@ def check_kafka_connection(host):
             admin_client.close()
             print(f"Successfully connected to Kafka at {test_host}:9092")
             print(f"Available topics: {topics}")
-            return test_host.split(':')[0] # Return just the hostname
+            return test_host # Return just the hostname
             
         except Exception as e:
             print(f"Failed to connect to {test_host}: {str(e)}")
@@ -412,6 +422,19 @@ def check_kafka_connection(host):
         is_docker = False
         print("Could not determine if running in Docker")
 
+    # Try direct socket connection
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(5)
+        result = sock.connect_ex((test_host, 9092))
+        sock.close()
+        
+        if result == 0:
+            print(f"Successfully connected to port 9092 on {test_host}")
+            return test_host
+    except Exception as socket_err:
+        print(f"Socket connection failed: {str(socket_err)}")
+    
     # Try DNS resolution first
     try:
         ip_address = socket.gethostbyname(host)
@@ -420,27 +443,6 @@ def check_kafka_connection(host):
         print(f"DNS resolution failed for {host}: {str(e)}")
         return False
 
-    # Try TCP connection to Kafka port
-    try:
-        # Try telnet connection
-        tn = telnetlib.Telnet(host, 9092, timeout=5)
-        tn.close()
-        print(f"Successfully connected to Kafka at {host}:9092")
-        return True
-    except (socket.timeout, socket.error, EOFError) as e:
-        print(f"Failed to connect to Kafka at {host}:9092")
-        print(f"Error: {str(e)}")
-        
-        # If hostname fails, try IP directly
-        try:
-            tn = telnetlib.Telnet(ip_address, 9092, timeout=5)
-            tn.close()
-            print(f"Successfully connected to Kafka at {ip_address}:9092")
-            return True
-        except (socket.timeout, socket.error, EOFError) as e:
-            print(f"Failed to connect to Kafka at {ip_address}:9092")
-            print(f"Error: {str(e)}")
-            return False
     print("\nFailed to connect to Kafka on all addresses")
     return False
 

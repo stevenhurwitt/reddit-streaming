@@ -8,6 +8,8 @@ volumes:
     driver: local
   postgres-db-volume:
     driver: local
+  kafka_data:
+    driver: local
 services:
   jupyterlab:
     image: jupyterlab
@@ -128,11 +130,11 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_ADVERTISED_HOST_NAME: 10.0.0.123  #ip of local machine
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1  #ip of local machine
       # KAFKA_ADVERTISED_HOST_NAME: xanaxprincess.asuscomm.com
       # KAFKA_ADVERTISED_PORT: 9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LOG_DIRS: /kafka/kafka-logs
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
       # KAFKA_BROKER_ID: 998 # comment out if using multiple brokers
       # KAFKA_CREATE_TOPICS: "test-topic:5:2"
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
@@ -144,7 +146,7 @@ services:
       - zookeeper
     # entrypoint: /tmp/entrypoint.sh
     volumes: 
-      - ./cluster_config/kafka/logs:/kafka/kafka-logs
+      - kafka_data:/var/lib/kafka/data
       - ./cluster_config/kafka/config:/opt/kafka/config
       # - ./entrypoint.sh:/tmp/entrypoint.sh
       - /var/run/docker.sock:/var/run/docker.sock
