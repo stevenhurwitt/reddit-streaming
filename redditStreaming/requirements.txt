@@ -1,14 +1,13 @@
 boto3
 botocore
-delta-spark==2.3.0
+delta-spark===3.3.0
 ipykernel
 ipython
-kafka-python
 jupyter
 jupyterlab==3.5.2
 numpy
 pandas
 pyarrow
-pyspark==3.3.2
-pyyaml
+pyspark==3.5.5
 requests
+kafka-python
