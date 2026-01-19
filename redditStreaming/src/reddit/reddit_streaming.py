@@ -295,7 +295,7 @@ def write_stream(df, subreddit):
         .start()
 
     # jdbc write to postgres config
-    postgres_host = "postgres"
+    postgres_host = "reddit-postgres"
     postgres_db = "reddit"
     postgres_user = "postgres"
     postgres_password = "secret!1234"
