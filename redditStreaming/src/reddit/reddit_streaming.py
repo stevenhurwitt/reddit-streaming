@@ -300,24 +300,24 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start()
 
-    # jdbc write to postgres config
-    postgres_host = "reddit-postgres"
-    postgres_db = "reddit"
-    postgres_user = "postgres"
-    postgres_password = "secret!1234"
+    # # jdbc write to postgres config
+    # postgres_host = "reddit-postgres"
+    # postgres_db = "reddit"
+    # postgres_user = "postgres"
+    # postgres_password = "secret!1234"
 
-    # write to postgres
-    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
-        .writeStream \
-        .format("jdbc") \
-        .option("url", "jdbc:postgresql://{}:5434/{}".format(postgres_host, postgres_db)) \
-        .option("dbtable", subreddit) \
-        .option("user", postgres_user) \
-        .option("password", postgres_password) \
-        .option("driver", "org.postgresql.Driver") \
-        .outputMode("append") \
-        .queryName(subreddit + "_postgres") \
-        .start()
+    # # write to postgres
+    # df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+    #     .writeStream \
+    #     .format("jdbc") \
+    #     .option("url", "jdbc:postgresql://{}:5434/{}".format(postgres_host, postgres_db)) \
+    #     .option("dbtable", subreddit) \
+    #     .option("user", postgres_user) \
+    #     .option("password", postgres_password) \
+    #     .option("driver", "org.postgresql.Driver") \
+    #     .outputMode("append") \
+    #     .queryName(subreddit + "_postgres") \
+    #     .start()
 
     # .select("subreddit", "title", "score", "created_utc") \
     # .trigger(processingTime="180 seconds") \
