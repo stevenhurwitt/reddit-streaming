@@ -385,7 +385,8 @@ def main():
         # subreddit_list = []
         subreddit_list = config["subreddit"]
         for i, s in enumerate(subreddit_list):
-            spark, sc = init_spark(s, i)
+            # Use the already created spark session instead of creating new ones
+            # spark, sc = init_spark(s, i)
 
             stage_df = read_kafka_stream(spark, sc, s, i)
 
