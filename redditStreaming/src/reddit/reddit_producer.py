@@ -296,7 +296,7 @@ def main():
         # config_path = "/".join(base.split("/")[:-1])
         # config_file = os.path.join(base, "config.yaml")
         
-        with open("config.yaml", "r") as f:
+        with open("/opt/workspace/redditStreaming/src/reddit/config.yaml", "r") as f:
             config = yaml.safe_load(f)
             subreddit = config["subreddit"]
             post_type = config["post_type"]

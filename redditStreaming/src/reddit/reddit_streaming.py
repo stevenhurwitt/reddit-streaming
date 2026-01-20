@@ -54,8 +54,14 @@ def read_files():
             f.close()
 
     except:
-        print("failed to find config.yaml, exiting now.")
-        sys.exit()
+        try:
+            with open("/opt/workspace/redditStreaming/src/reddit/config.yaml", "r") as f:
+                config = yaml.safe_load(f)
+                # print("read config file.")
+                f.close()
+        except:
+            print("failed to find config.yaml, exiting now.")
+            sys.exit()
 
     return(creds, config)
 
