@@ -274,7 +274,7 @@ def write_stream(df, subreddit):
 
     creds, config = read_files()
 
-    bucket = config["bucket"]
+    bucket = "reddit-streaming-stevenhurwitt-2"
     write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
 
     # write subset of df to console
