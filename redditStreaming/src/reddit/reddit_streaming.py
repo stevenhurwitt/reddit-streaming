@@ -275,7 +275,7 @@ def write_stream(df, subreddit):
     creds, config = read_files()
 
     bucket = "reddit-streaming-stevenhurwitt-2"
-    write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
+    write_path = os.path.join("s3a://", bucket, subreddit)
 
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
