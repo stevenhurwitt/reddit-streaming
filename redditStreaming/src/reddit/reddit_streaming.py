@@ -79,7 +79,7 @@ def init_spark(subreddit, index):
     extra_jar_list = config["extra_jar_list"]
     index = 0
     # extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"
-    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:2.2.0,org.postgresql:postgresql:42.5.0"
+    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-spark_2.12:3.2.0,org.postgresql:postgresql:42.5.0"
 
     # initialize spark session
 
@@ -310,7 +310,7 @@ def write_stream(df, subreddit):
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
         .writeStream \
         .format("jdbc") \
-        .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
+        .option("url", "jdbc:postgresql://{}:5434/{}".format(postgres_host, postgres_db)) \
         .option("dbtable", subreddit) \
         .option("user", postgres_user) \
         .option("password", postgres_password) \
@@ -358,15 +358,16 @@ def main():
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "8g") \
-                    .config("spark.executor.cores", "8") \
-                    .config("spark.streaming.concurrentJobs", "8") \
+                    .config("spark.executor.memory", "1g") \
+                    .config("spark.executor.cores", "2") \
+                    .config("spark.streaming.concurrentJobs", "4") \
+                    .config("spark.cores.max", "4") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
-                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:2.2.0,org.postgresql:postgresql:42.5.0") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
