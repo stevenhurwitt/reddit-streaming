@@ -5,7 +5,7 @@ cd /opt/workspace/redditStreaming/src/reddit
 
 # Start reddit_producer in background
 echo "Starting reddit_producer..."
-python reddit_producer.py > /tmp/producer.log 2>&1 &
+python -u reddit_producer.py > /tmp/producer.log 2>&1 &
 PRODUCER_PID=$!
 echo "Producer started with PID: $PRODUCER_PID"
 
@@ -34,7 +34,7 @@ echo "  tail -f /tmp/streaming.log"
 while true; do
     if ! kill -0 $PRODUCER_PID 2>/dev/null; then
         echo "ERROR: Producer process died! Restarting..."
-        python reddit_producer.py > /tmp/producer.log 2>&1 &
+        python -u reddit_producer.py > /tmp/producer.log 2>&1 &
         PRODUCER_PID=$!
         echo $PRODUCER_PID > /tmp/producer.pid
     fi
