@@ -354,6 +354,11 @@ def main():
             print("CONFIG: ")
             pp.pprint(config)
 
+        # Create necessary directories for event logging
+        import os
+        event_log_dir = "/opt/workspace/events/{}".format(subreddit)
+        os.makedirs(event_log_dir, exist_ok=True)
+        
         spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
