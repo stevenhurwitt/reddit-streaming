@@ -5,11 +5,11 @@ docker-compose exec jupyterlab bash -c "ps aux | grep -E 'reddit_producer.py|red
 
 echo ""
 echo "=== Recent Producer Log ==="
-docker-compose exec jupyterlab tail -10 /tmp/producer.log 2>/dev/null || echo "No producer log"
+docker-compose exec jupyterlab tail -30 /tmp/producer.log 2>/dev/null || echo "No producer log"
 
 echo ""
 echo "=== Recent Streaming Log ==="
-docker-compose exec jupyterlab tail -10 /tmp/streaming.log 2>/dev/null || echo "No streaming log"
+docker-compose exec jupyterlab tail -30 /tmp/streaming.log 2>/dev/null || echo "No streaming log"
 
 echo ""
 echo "=== Spark Master Status ==="
