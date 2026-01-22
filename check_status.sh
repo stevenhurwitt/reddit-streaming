@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=== Process Status ==="
-docker-compose exec jupyterlab ps aux | grep -E "reddit_producer|reddit_streaming" | grep -v grep || echo "No processes running"
+docker-compose exec jupyterlab bash -c "ps aux | grep -E 'reddit_producer.py|reddit_streaming.py' | grep -v grep" || echo "No processes running"
 
 echo ""
 echo "=== Recent Producer Log ==="
