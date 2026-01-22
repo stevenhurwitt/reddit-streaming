@@ -258,10 +258,15 @@ def read_kafka_stream(spark, sc, subreddit, index):
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "latest") \
                 .option("failOnDataLoss", "false") \
+                .option("kafka.group.id", "reddit_spark_{}".format(subreddit)) \
+                .option("maxOffsetsPerTrigger", "1000") \
+                .option("kafka.max.poll.records", "500") \
+                .option("kafka.session.timeout.ms", "30000") \
                 .load() \
                 .selectExpr("CAST(value AS STRING) as json") \
                 .select(from_json(col("json"), payload_schema).alias("data")) \
-                .select("data.*") 
+                .select("data.*") \
+                .dropDuplicates(["id"])
 
     return(df)
 
