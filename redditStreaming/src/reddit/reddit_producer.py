@@ -159,26 +159,36 @@ def subset_response(response):
 
 def get_broker():
     """
-    create broker & producer.
+    create broker & producer with retry logic.
     """
-    try:
-        host = "kafka"
-        broker = ["{}:9092".format(host)]
-        print("created broker.")
-        # topic = "reddit_" + subreddit
-
-        producer = KafkaProducer(
-                    bootstrap_servers=broker,
-                    value_serializer=my_serializer
-                    # api_version = (0, 10, 2)
-                )
-        print("intialized producer.")
+    host = "kafka"
+    broker = ["{}:9092".format(host)]
+    max_retries = 10
+    retry_delay = 5
     
-    except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
-        sys.exit()
-
-    return(broker, producer)
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
+            producer = KafkaProducer(
+                        bootstrap_servers=broker,
+                        value_serializer=my_serializer,
+                        api_version_auto_timeout_ms=30000,
+                        request_timeout_ms=30000
+                    )
+            print("Successfully connected to Kafka broker and initialized producer.")
+            return(broker, producer)
+        
+        except (kafka.errors.NoBrokersAvailable, Exception) as e:
+            if attempt < max_retries - 1:
+                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+            else:
+                print("Failed to connect to Kafka broker after maximum retries.")
+                sys.exit()
+    
+    print("Failed to initialize Kafka producer.")
+    sys.exit()
 
 
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
@@ -194,21 +204,30 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    try:
-        broker = ["{}:9092".format(host)]
-        # print("created broker.")
-        # topic = "reddit_" + subreddit
-
-        producer = KafkaProducer(
-                    bootstrap_servers=broker,
-                    value_serializer=my_serializer
-                    # api_version = (0, 10, 2)
-                )
-        print("intialized producer.")
+    broker = ["{}:9092".format(host)]
+    max_retries = 10
+    retry_delay = 5
     
-    except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
-        sys.exit()
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
+            producer = KafkaProducer(
+                        bootstrap_servers=broker,
+                        value_serializer=my_serializer,
+                        api_version_auto_timeout_ms=30000,
+                        request_timeout_ms=30000
+                    )
+            print("Successfully connected to Kafka broker and initialized producer.")
+            break
+        
+        except (kafka.errors.NoBrokersAvailable, Exception) as e:
+            if attempt < max_retries - 1:
+                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+            else:
+                print("Failed to connect to Kafka broker after maximum retries.")
+                sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]

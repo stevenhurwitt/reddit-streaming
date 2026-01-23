@@ -22,6 +22,9 @@ RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 ENV VIRTUAL_ENV="/opt/venv"
 
+# Set UV timeout to avoid network timeout issues
+ENV UV_HTTP_TIMEOUT=300
+
 # Install Python packages using uv
 RUN uv pip install --no-cache pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
