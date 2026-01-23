@@ -54,8 +54,14 @@ def read_files():
             f.close()
 
     except:
-        print("failed to find config.yaml, exiting now.")
-        sys.exit()
+        try:
+            with open("/opt/workspace/redditStreaming/src/reddit/config.yaml", "r") as f:
+                config = yaml.safe_load(f)
+                # print("read config file.")
+                f.close()
+        except:
+            print("failed to find config.yaml, exiting now.")
+            sys.exit()
 
     return(creds, config)
 
@@ -73,7 +79,7 @@ def init_spark(subreddit, index):
     extra_jar_list = config["extra_jar_list"]
     index = 0
     # extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1"
-    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:2.2.0,org.postgresql:postgresql:42.5.0"
+    extra_jar_list = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-spark_2.12:3.2.0,org.postgresql:postgresql:42.5.0"
 
     # initialize spark session
 
@@ -89,7 +95,7 @@ def init_spark(subreddit, index):
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
                     .config("spark.executor.memory", "2048m") \
-                    .config("spark.executor.cores", "2") \
+                    .config("spark.executor.cores", "4") \
                     .config("spark.streaming.concurrentJobs", "8") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
@@ -268,8 +274,8 @@ def write_stream(df, subreddit):
 
     creds, config = read_files()
 
-    bucket = config["bucket"]
-    write_path = os.path.join("s3a://", bucket, subreddit + "_clean/")
+    bucket = "reddit-streaming-stevenhurwitt-2"
+    write_path = os.path.join("s3a://", bucket, subreddit)
 
     # write subset of df to console
     df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
@@ -294,24 +300,24 @@ def write_stream(df, subreddit):
         .queryName(subreddit + "_delta") \
         .start()
 
-    # jdbc write to postgres config
-    postgres_host = "postgres"
-    postgres_db = "reddit"
-    postgres_user = "postgres"
-    postgres_password = "secret!1234"
+    # # jdbc write to postgres config
+    # postgres_host = "reddit-postgres"
+    # postgres_db = "reddit"
+    # postgres_user = "postgres"
+    # postgres_password = "secret!1234"
 
-    # write to postgres
-    df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
-        .writeStream \
-        .format("jdbc") \
-        .option("url", "jdbc:postgresql://{}:5432/{}".format(postgres_host, postgres_db)) \
-        .option("dbtable", subreddit) \
-        .option("user", postgres_user) \
-        .option("password", postgres_password) \
-        .option("driver", "org.postgresql.Driver") \
-        .outputMode("append") \
-        .queryName(subreddit + "_postgres") \
-        .start()
+    # # write to postgres
+    # df.withColumn("created_utc", col("created_utc").cast("timestamp")) \
+    #     .writeStream \
+    #     .format("jdbc") \
+    #     .option("url", "jdbc:postgresql://{}:5434/{}".format(postgres_host, postgres_db)) \
+    #     .option("dbtable", subreddit) \
+    #     .option("user", postgres_user) \
+    #     .option("password", postgres_password) \
+    #     .option("driver", "org.postgresql.Driver") \
+    #     .outputMode("append") \
+    #     .queryName(subreddit + "_postgres") \
+    #     .start()
 
     # .select("subreddit", "title", "score", "created_utc") \
     # .trigger(processingTime="180 seconds") \
@@ -348,19 +354,25 @@ def main():
             print("CONFIG: ")
             pp.pprint(config)
 
+        # Create necessary directories for event logging
+        import os
+        event_log_dir = "/opt/workspace/events/{}".format(subreddit)
+        os.makedirs(event_log_dir, exist_ok=True)
+        
         spark = SparkSession.builder.appName("reddit_{}".format(subreddit)) \
                     .master("spark://{}:7077".format(spark_host)) \
                     .config("spark.scheduler.mode", "FAIR") \
                     .config("spark.scheduler.allocation.file", "file:///opt/workspace/redditStreaming/fairscheduler.xml") \
-                    .config("spark.executor.memory", "8g") \
-                    .config("spark.executor.cores", "8") \
-                    .config("spark.streaming.concurrentJobs", "8") \
+                    .config("spark.executor.memory", "1g") \
+                    .config("spark.executor.cores", "2") \
+                    .config("spark.streaming.concurrentJobs", "4") \
+                    .config("spark.cores.max", "4") \
                     .config("spark.local.dir", "/opt/workspace/tmp/driver/{}/".format(subreddit)) \
                     .config("spark.worker.dir", "/opt/workspace/tmp/executor/{}/".format(subreddit)) \
                     .config("spark.eventLog.enabled", "true") \
                     .config("spark.eventLog.dir", "file:///opt/workspace/events/{}/".format(subreddit)) \
                     .config("spark.sql.debug.maxToStringFields", 1000) \
-                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-core_2.12:1.2.1") \
+                    .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.3,org.apache.hadoop:hadoop-common:3.3.1,org.apache.hadoop:hadoop-aws:3.3.1,org.apache.hadoop:hadoop-client:3.3.1,io.delta:delta-spark_2.12:3.2.0,org.postgresql:postgresql:42.5.0") \
                     .config("spark.hadoop.fs.s3a.access.key", aws_client) \
                     .config("spark.hadoop.fs.s3a.secret.key", aws_secret) \
                     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
@@ -379,7 +391,8 @@ def main():
         # subreddit_list = []
         subreddit_list = config["subreddit"]
         for i, s in enumerate(subreddit_list):
-            spark, sc = init_spark(s, i)
+            # Use the already created spark session instead of creating new ones
+            # spark, sc = init_spark(s, i)
 
             stage_df = read_kafka_stream(spark, sc, s, i)
 

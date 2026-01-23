@@ -21,7 +21,7 @@ job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
 subreddit = "technology"
-bucket = "reddit-streaming-stevenhurwitt"
+bucket = "reddit-streaming-stevenhurwitt-2"
 
 spark = builder = SparkSession \
   .builder \

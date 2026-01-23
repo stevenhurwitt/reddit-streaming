@@ -1,29 +1,33 @@
-ARG debian_buster_image_tag=8-jdk-buster
-FROM openjdk:${debian_buster_image_tag}
+ARG debian_image_tag=bullseye
+FROM debian:${debian_image_tag}
 
-# -- Layer: OS + Python 3.7
+# -- Layer: OS + Java 17 + Python 3.9
 
 ARG shared_workspace=/opt/workspace
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN mkdir -p ${shared_workspace} && \
-    apt-get update --allow-insecure-repositories -y && \
-	apt install -y curl gcc zip unzip telnet &&\ 
+    apt-get update -y && \
+	apt install -y curl gcc zip unzip telnet wget ca-certificates &&\ 
 	apt install -y build-essential zlib1g-dev libncurses5-dev && \
 	apt install -y libpq-dev awscli && \
-	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget libjpeg-dev && \
-    apt install -y python3 && \
+	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libjpeg-dev && \
+    apt install -y openjdk-17-jdk-headless && \
+    apt install -y python3 python3-dev python3-venv python3-pip && \
     apt-get update && apt-get install -y procps && apt-get install -y nano && apt-get install -y net-tools && \
     rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # sdkman for scala & maven
 RUN curl -s https://get.sdkman.io | bash
 RUN chmod a+x "$HOME/.sdkman/bin/sdkman-init.sh" && \
     source "$HOME/.sdkman/bin/sdkman-init.sh" && \
     sdk install maven && \
-    sdk install scala 2.12.15 && \
-    sdk use scala 2.12.15
+    sdk install scala 2.12.20 && \
+    sdk use scala 2.12.20
 
 # almond.sh for scala jupyter kernel
 RUN curl -Lo coursier https://git.io/coursier-cli && \

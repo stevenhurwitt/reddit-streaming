@@ -1,1 +1,1 @@
-aws s3 sync . s3://reddit-streaming-stevenhurwitt/scripts/
+aws s3 sync . s3://reddit-streaming-stevenhurwitt-2/scripts/

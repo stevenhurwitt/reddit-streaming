@@ -92,11 +92,16 @@ def get_subreddit(subreddit, limit, post_type, before, headers):
                             headers = headers,
                             params = options)
 
+        if response.status_code != 200:
+            print(f"Reddit API error: status {response.status_code}, response: {response.text[:200]}")
+            return None
+
         response_json = response.json()
         return(response_json)
     
     except Exception as e:
-        pp.pprint(e)
+        print(f"Error fetching subreddit {subreddit}: {e}")
+        return None
 
 def my_serializer(message):
     return json.dumps(message).encode('utf-8')
@@ -112,6 +117,13 @@ def subset_response(response):
         data (dict)
         after_token (str)
     """
+    if response is None:
+        return None, None
+    
+    if "data" not in response or "children" not in response["data"] or len(response["data"]["children"]) == 0:
+        print(f"Empty or invalid response: {response}")
+        return None, None
+    
     data = response["data"]["children"][0]["data"] #subset for just the post data
     after_token = response["data"]["after"] #save "after" token to get posts after this one
     i = 0
@@ -147,26 +159,36 @@ def subset_response(response):
 
 def get_broker():
     """
-    create broker & producer.
+    create broker & producer with retry logic.
     """
-    try:
-        host = "kafka"
-        broker = ["{}:9092".format(host)]
-        print("created broker.")
-        # topic = "reddit_" + subreddit
-
-        producer = KafkaProducer(
-                    bootstrap_servers=broker,
-                    value_serializer=my_serializer
-                    # api_version = (0, 10, 2)
-                )
-        print("intialized producer.")
+    host = "kafka"
+    broker = ["{}:9092".format(host)]
+    max_retries = 10
+    retry_delay = 5
     
-    except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
-        sys.exit()
-
-    return(broker, producer)
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
+            producer = KafkaProducer(
+                        bootstrap_servers=broker,
+                        value_serializer=my_serializer,
+                        api_version_auto_timeout_ms=30000,
+                        request_timeout_ms=30000
+                    )
+            print("Successfully connected to Kafka broker and initialized producer.")
+            return(broker, producer)
+        
+        except (kafka.errors.NoBrokersAvailable, Exception) as e:
+            if attempt < max_retries - 1:
+                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+            else:
+                print("Failed to connect to Kafka broker after maximum retries.")
+                sys.exit()
+    
+    print("Failed to initialize Kafka producer.")
+    sys.exit()
 
 
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
@@ -182,21 +204,30 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    try:
-        broker = ["{}:9092".format(host)]
-        # print("created broker.")
-        # topic = "reddit_" + subreddit
-
-        producer = KafkaProducer(
-                    bootstrap_servers=broker,
-                    value_serializer=my_serializer
-                    # api_version = (0, 10, 2)
-                )
-        print("intialized producer.")
+    broker = ["{}:9092".format(host)]
+    max_retries = 10
+    retry_delay = 5
     
-    except kafka.errors.NoBrokersAvailable:
-        print("no kafka broker available.")
-        sys.exit()
+    for attempt in range(max_retries):
+        try:
+            print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
+            producer = KafkaProducer(
+                        bootstrap_servers=broker,
+                        value_serializer=my_serializer,
+                        api_version_auto_timeout_ms=30000,
+                        request_timeout_ms=30000
+                    )
+            print("Successfully connected to Kafka broker and initialized producer.")
+            break
+        
+        except (kafka.errors.NoBrokersAvailable, Exception) as e:
+            if attempt < max_retries - 1:
+                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+            else:
+                print("Failed to connect to Kafka broker after maximum retries.")
+                sys.exit()
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
@@ -211,7 +242,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
 
-        if after_token is not None:
+        if after_token is not None and my_data is not None:
             producer.send(params["topic"][i], my_data)                          
 
             if debug:
@@ -234,50 +265,56 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
 
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
-                if after_token is not None:
+                if after_token is not None and my_data is not None:
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
                         print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                elif my_data is None:
+                    # API returned empty/invalid response, keep current token
+                    after_token = params["token"][i]
                 
                 token_list.append(after_token) 
                 
                 time.sleep(5)
 
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as e:
                 # when the bearer token expires (after 24 hrs), we do not receive a response
-                print("bearer token expired, reauthenticating...")
+                print(f"JSONDecodeError for {s}: {e}, reauthenticating...")
                 header = get_bearer()
                 after_token = params["token"][i]
 
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
 
-                if after_token is not None:
+                if after_token is not None and my_data is not None:
                     producer.send(params["topic"][i], my_data)
 
                     if debug:
                         print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                else:
+                    # Still empty after reauth, keep current token
+                    after_token = params["token"][i]
                 
                 token_list.append(after_token)
                 time.sleep(5)
-                pass
 
             except IndexError:
                 # this means empty response is returned, take a nap
-                # time.sleep(120)
-                # print("no more data for subreddit: {}.".format(s))
                 token_list.append(params["token"][i])
                 time.sleep(3)
-                pass
+
+            except TypeError as e:
+                # NoneType errors - API returned None
+                print(f"TypeError for {s}: {e}, keeping current token")
+                token_list.append(params["token"][i])
+                time.sleep(30)
 
             except Exception as e:
                 # catch all for api exceptions (SSL errors, ConnectionError, etc)
-                print(e)
+                print(f"Exception for {s}: {e}")
                 token_list.append(params["token"][i])
-                # pass
                 time.sleep(60)
-                pass
 
         params["token"] = token_list
         if None in token_list:
@@ -291,12 +328,14 @@ def main():
     """
     authenticate and poll subreddit api
     """
+    print("Starting main()...")
     try:
         # base = os.getcwd()
         # config_path = "/".join(base.split("/")[:-1])
         # config_file = os.path.join(base, "config.yaml")
         
-        with open("config.yaml", "r") as f:
+        print("Loading config...")
+        with open("/opt/workspace/redditStreaming/src/reddit/config.yaml", "r") as f:
             config = yaml.safe_load(f)
             subreddit = config["subreddit"]
             post_type = config["post_type"]
@@ -304,9 +343,10 @@ def main():
             debug = config["debug"]
             # debug = True
             f.close()
+        print(f"Config loaded: {subreddit}, {post_type}, {kafka_host}, debug={debug}")
     
-    except:
-        print("failed to find config.yaml")
+    except Exception as e:
+        print(f"failed to find config.yaml: {e}")
         sys.exit()
 
     # s3, athena, secrets = aws()
@@ -315,8 +355,10 @@ def main():
     # print("athena: {}".format(athena))
     # print("secrets: {}".format(secrets))
 
+    print("Getting bearer token...")
     my_header = get_bearer()
     print("authenticated w/ bearer token good for 24 hrs.")
+    print("Starting poll_subreddit...")
     poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)
 
 if __name__ == "__main__":

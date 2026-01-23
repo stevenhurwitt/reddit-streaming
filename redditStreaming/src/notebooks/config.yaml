@@ -1,0 +1,11 @@
+subreddit: #limit to 4 b/c there are 4 cores on raspberry pi for spark to share
+  - technology
+  - ProgrammerHumor
+  - news
+  - worldnews
+post_type: new
+kafka_host: kafka
+spark_host: spark-master
+# kafka_host: kafka #kafka
+# spark_host: spark-master #spark-master
+debug: True

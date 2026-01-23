@@ -22,7 +22,7 @@ job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
 subreddit = "aws"
-bucket = "reddit-streaming-stevenhurwitt"
+bucket = "reddit-streaming-stevenhurwitt-2"
 
 
 secretmanager_client = boto3.client("secretsmanager")
