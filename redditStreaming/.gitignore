@@ -8,6 +8,7 @@ target/maven-archiver
 target/maven-status
 *.json
 creds.json
+redditStreaming/src/reddit/creds.json
 /*.json
 /*/*.json
 */*/*.json
