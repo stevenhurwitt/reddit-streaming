@@ -21,6 +21,7 @@ glueContext = GlueContext(sc)
 job = Job(glueContext)
 job.init(args["JOB_NAME"], args)
 
+bucket = "reddit-streaming-stevenhurwitt-2"
 subreddit = "BlackPeopleTwitter"
 
 secretmanager_client = boto3.client("secretsmanager")
