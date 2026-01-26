@@ -227,3 +227,27 @@ resource "aws_iam_role_policy" "my_athena_policy" {
 }
 EOF
 }
+
+# Secrets Manager policy for Glue to retrieve credentials
+resource "aws_iam_role_policy" "glue_secrets_policy" {
+  name = "glue_secrets_policy"
+  role = aws_iam_role.glue.id
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+      ],
+      "Resource": [
+        "${aws_secretsmanager_secret.aws_access_key_id.arn}",
+        "${aws_secretsmanager_secret.aws_secret_access_key.arn}"
+      ]
+    }
+  ]
+}
+EOF
+}

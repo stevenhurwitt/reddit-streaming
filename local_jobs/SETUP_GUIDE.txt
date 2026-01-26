@@ -1,0 +1,74 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    LOCAL CRON JOB SETUP - 3 SIMPLE STEPS                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: Initial Setup (Run Once)
+─────────────────────────────────
+  cd reddit-streaming/local_jobs
+  bash setup_local_jobs.sh
+
+  This will:
+  ✓ Create Python virtual environment
+  ✓ Install dependencies (boto3, pyspark, delta-spark)
+  ✓ Create logs directory
+
+
+STEP 2: Prepare AWS Credentials
+──────────────────────────────────
+  Copy AWS credentials to project root:
+  
+  cp /path/to/aws_access_key.txt reddit-streaming/
+  cp /path/to/aws_secret.txt reddit-streaming/
+
+  Or use AWS Secrets Manager (if running on EC2 with IAM role)
+
+
+STEP 3: Configure Cron (Run Once)
+──────────────────────────────────
+  bash setup_cron.sh
+
+  This will schedule jobs to run DAILY AT MIDNIGHT UTC:
+  ✓ news curation
+  ✓ technology curation
+  ✓ ProgrammerHumor curation
+  ✓ worldnews curation
+
+
+VERIFY SETUP
+────────────
+  View cron jobs:
+    crontab -l | grep REDDIT_CRON
+
+  View logs:
+    tail -f logs/news.log
+
+  Test manually:
+    source venv/bin/activate
+    python3 run_curation_job.py --job news
+
+
+THAT'S IT! ✓
+────────────
+Your jobs will now run automatically every day at midnight UTC.
+
+For more details, see: README.md or QUICK_REFERENCE.md
+
+
+REMOVING CRON JOBS
+──────────────────
+  bash remove_cron.sh
+
+
+TROUBLESHOOTING
+───────────────
+• Java error? Install Java 11+
+  - macOS: brew install openjdk@11
+  - Ubuntu: sudo apt-get install openjdk-11-jdk
+
+• Credentials error? Make sure files exist in project root:
+  - aws_access_key.txt
+  - aws_secret.txt
+
+• Cron not running? Check crontab with: crontab -l
+
+• See full logs: tail -50 logs/news.log

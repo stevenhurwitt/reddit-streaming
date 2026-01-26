@@ -163,8 +163,8 @@ def get_broker():
     """
     host = "kafka"
     broker = ["{}:9092".format(host)]
-    max_retries = 10
-    retry_delay = 5
+    max_retries = 30
+    retry_delay = 2
     
     for attempt in range(max_retries):
         try:
@@ -173,7 +173,9 @@ def get_broker():
                         bootstrap_servers=broker,
                         value_serializer=my_serializer,
                         api_version_auto_timeout_ms=30000,
-                        request_timeout_ms=30000
+                        request_timeout_ms=30000,
+                        retries=3,
+                        acks='all'
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             return(broker, producer)
@@ -182,9 +184,10 @@ def get_broker():
             if attempt < max_retries - 1:
                 print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
                 time.sleep(retry_delay)
-                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+                retry_delay = min(retry_delay * 1.5, 30)  # Exponential backoff, max 30s
             else:
                 print("Failed to connect to Kafka broker after maximum retries.")
+                print(f"Attempted to connect to: {broker}")
                 sys.exit()
     
     print("Failed to initialize Kafka producer.")
@@ -205,8 +208,8 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
 
     """
     broker = ["{}:9092".format(host)]
-    max_retries = 10
-    retry_delay = 5
+    max_retries = 30
+    retry_delay = 2
     
     for attempt in range(max_retries):
         try:
@@ -215,7 +218,9 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                         bootstrap_servers=broker,
                         value_serializer=my_serializer,
                         api_version_auto_timeout_ms=30000,
-                        request_timeout_ms=30000
+                        request_timeout_ms=30000,
+                        retries=3,
+                        acks='all'
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             break
@@ -224,9 +229,10 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
             if attempt < max_retries - 1:
                 print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
                 time.sleep(retry_delay)
-                retry_delay = min(retry_delay * 2, 60)  # Exponential backoff, max 60s
+                retry_delay = min(retry_delay * 1.5, 30)  # Exponential backoff, max 30s
             else:
                 print("Failed to connect to Kafka broker after maximum retries.")
+                print(f"Attempted to connect to: {broker}")
                 sys.exit()
 
     params = {}

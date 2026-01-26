@@ -1,0 +1,55 @@
+2026-01-26 14:52:05,203 - __main__ - INFO - Starting curation job for: news
+2026-01-26 14:52:05,254 - botocore.credentials - INFO - Found credentials in shared credentials file: ~/.aws/credentials
+2026-01-26 14:52:05,701 - __main__ - WARNING - Failed to retrieve from Secrets Manager: An error occurred (AccessDeniedException) when calling the GetSecretValue operation: User: arn:aws:iam::864981737895:user/steven is not authorized to perform: secretsmanager:GetSecretValue on resource: AWS_ACCESS_KEY_ID because no identity-based policy allows the secretsmanager:GetSecretValue action
+2026-01-26 14:52:05,702 - __main__ - INFO - Retrieved AWS credentials from local files
+2026-01-26 14:52:05,704 - __main__ - INFO - Connecting to Spark cluster at: spark://spark-master:7077
+/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/bin/spark-class: line 71: /usr/lib/jvm/java-11-openjdk-amd64/bin/java: No such file or directory
+/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/bin/spark-class: line 97: CMD: bad array subscript
+2026-01-26 14:52:05,936 - __main__ - ERROR - Failed to create Spark session: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.
+Traceback (most recent call last):
+  File "/home/steven/reddit-streaming/local_jobs/run_curation_job.py", line 130, in create_spark_session
+    spark = builder.enableHiveSupport().getOrCreate()
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/sql/session.py", line 557, in getOrCreate
+    sc = SparkContext.getOrCreate(sparkConf)
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 542, in getOrCreate
+    SparkContext(conf=conf or SparkConf())
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 206, in __init__
+    SparkContext._ensure_initialized(self, gateway=gateway, conf=conf)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 463, in _ensure_initialized
+    SparkContext._gateway = gateway or launch_gateway(conf)
+                                       ~~~~~~~~~~~~~~^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/java_gateway.py", line 111, in launch_gateway
+    raise PySparkRuntimeError(
+    ...<2 lines>...
+    )
+pyspark.errors.exceptions.base.PySparkRuntimeError: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.
+2026-01-26 14:52:05,945 - __main__ - ERROR - 
+Troubleshooting tips:
+2026-01-26 14:52:05,945 - __main__ - ERROR - 1. Verify Java is installed: java -version
+2026-01-26 14:52:05,945 - __main__ - ERROR - 2. Set JAVA_HOME: export JAVA_HOME=/path/to/java
+2026-01-26 14:52:05,945 - __main__ - ERROR - 3. Try with increased verbosity: SPARK_LOG_LEVEL=DEBUG python3 run_curation_job.py --job news
+2026-01-26 14:52:05,946 - __main__ - ERROR - 4. Verify Spark cluster is running: spark://spark-master:7077
+2026-01-26 14:52:05,946 - __main__ - ERROR - Job failed: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.
+Traceback (most recent call last):
+  File "/home/steven/reddit-streaming/local_jobs/run_curation_job.py", line 243, in main
+    spark = create_spark_session(aws_access_key, aws_secret_key, spark_master=args.spark_master)
+  File "/home/steven/reddit-streaming/local_jobs/run_curation_job.py", line 130, in create_spark_session
+    spark = builder.enableHiveSupport().getOrCreate()
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/sql/session.py", line 557, in getOrCreate
+    sc = SparkContext.getOrCreate(sparkConf)
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 542, in getOrCreate
+    SparkContext(conf=conf or SparkConf())
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 206, in __init__
+    SparkContext._ensure_initialized(self, gateway=gateway, conf=conf)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/core/context.py", line 463, in _ensure_initialized
+    SparkContext._gateway = gateway or launch_gateway(conf)
+                                       ~~~~~~~~~~~~~~^^^^^^
+  File "/home/steven/reddit-streaming/local_jobs/.venv/lib/python3.13/site-packages/pyspark/java_gateway.py", line 111, in launch_gateway
+    raise PySparkRuntimeError(
+    ...<2 lines>...
+    )
+pyspark.errors.exceptions.base.PySparkRuntimeError: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.
