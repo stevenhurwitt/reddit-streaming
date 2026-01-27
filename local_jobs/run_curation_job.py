@@ -60,15 +60,26 @@ def get_aws_credentials():
     except Exception as e:
         logger.warning(f"Failed to retrieve from Secrets Manager: {e}")
         # Fall back to local credential files
-        try:
-            with open("aws_access_key.txt") as f:
-                aws_client = f.read().strip()
-            with open("aws_secret.txt") as f:
-                aws_secret = f.read().strip()
-            logger.info("Retrieved AWS credentials from local files")
-        except Exception as e2:
-            logger.error(f"Failed to retrieve credentials from local files: {e2}")
-            raise
+        # Try current directory first, then parent directory (for Docker)
+        credential_paths = [
+            ("aws_access_key.txt", "aws_secret.txt"),
+            ("../aws_access_key.txt", "../aws_secret.txt"),
+            ("/opt/workspace/aws_access_key.txt", "/opt/workspace/aws_secret.txt")
+        ]
+        
+        for key_path, secret_path in credential_paths:
+            try:
+                with open(key_path) as f:
+                    aws_client = f.read().strip()
+                with open(secret_path) as f:
+                    aws_secret = f.read().strip()
+                logger.info(f"Retrieved AWS credentials from local files: {key_path}")
+                return aws_client, aws_secret
+            except Exception:
+                continue
+        
+        logger.error("Failed to retrieve credentials from any location")
+        raise FileNotFoundError("AWS credentials not found")
 
     return aws_client, aws_secret
 
@@ -102,7 +113,7 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
         "org.apache.hadoop:hadoop-common:3.3.4,"
         "org.apache.hadoop:hadoop-aws:3.3.4,"
         "org.apache.hadoop:hadoop-client:3.3.4,"
-        "io.delta:delta-core_2.12:3.2.0,"
+        "io.delta:delta-spark_2.12:3.1.0,"
         "org.postgresql:postgresql:42.6.0"
     )
 
@@ -115,7 +126,8 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
             .config("spark.hadoop.fs.s3a.aws.credentials.provider", "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider") \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+            .config("spark.databricks.delta.retentionDurationCheck.enabled", "false")
         
         if spark_master:
             # Connect to cluster
@@ -127,7 +139,7 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
                 .config("spark.executor.memory", "2g") \
                 .config("spark.driver.maxResultSize", "0")
         
-        spark = builder.enableHiveSupport().getOrCreate()
+        spark = builder.getOrCreate()
 
         logger.info("Spark session created successfully")
         return spark
@@ -188,15 +200,15 @@ def process_subreddit(spark, subreddit, bucket):
         logger.info("Vacuum and manifest generation complete")
         
         # Run MSCK REPAIR TABLE in Athena
-        logger.info(f"Running MSCK REPAIR TABLE for reddit.{subreddit}")
-        athena = boto3.client("athena", region_name="us-east-1")
-        response = athena.start_query_execution(
-            QueryString=f"MSCK REPAIR TABLE reddit.{subreddit}",
-            ResultConfiguration={
-                "OutputLocation": f"s3://{bucket}/_athena_results"
-            }
-        )
-        logger.info(f"MSCK REPAIR TABLE query submitted to Athena (QueryExecutionId: {response['QueryExecutionId']})")
+        # logger.info(f"Running MSCK REPAIR TABLE for reddit.{subreddit}")
+        # athena = boto3.client("athena", region_name="us-east-1")
+        # response = athena.start_query_execution(
+        #     QueryString=f"MSCK REPAIR TABLE reddit.{subreddit}",
+        #     ResultConfiguration={
+        #         "OutputLocation": f"s3://{bucket}/_athena_results"
+        #     }
+        # )
+        # logger.info(f"MSCK REPAIR TABLE query submitted to Athena (QueryExecutionId: {response['QueryExecutionId']})")
         
         logger.info(f"Curation for {subreddit} completed successfully")
         

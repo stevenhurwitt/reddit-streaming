@@ -38,6 +38,9 @@ services:
       - 4045:4040
     volumes:
       - shared-workspace:/opt/workspace
+      - ./local_jobs:/opt/workspace/local_jobs
+      - ./aws_access_key.txt:/opt/workspace/aws_access_key.txt
+      - ./aws_secret.txt:/opt/workspace/aws_secret.txt
   spark-worker-1:
     image: spark-worker
     container_name: reddit-spark-worker-1

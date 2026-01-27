@@ -14,7 +14,7 @@ COPY ./local_jobs /opt/workspace/local_jobs
 
 RUN cd /opt/workspace/local_jobs && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install boto3 pyspark delta-spark
+    python3 -m pip install boto3 pyspark==3.5.3 delta-spark==3.1.0
 
 #Create the workspace/events shared dir and start Spark Master
 
