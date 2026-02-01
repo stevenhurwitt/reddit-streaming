@@ -41,25 +41,50 @@ add_or_update_cron "REDDIT_CRON - stop streaming" \
     "55 23 * * *" \
     "cd /home/steven/reddit-streaming && ./stop_streaming.sh >> $LOG_DIR/stop_streaming.log 2>&1"
 
-# News curation - midnight UTC
+# Kill any stuck jobs and clean up resources - 11:57 PM UTC
+add_or_update_cron "REDDIT_CRON - cleanup stuck jobs" \
+    "57 23 * * *" \
+    "cd /home/steven/reddit-streaming/local_jobs && ./kill_stuck_jobs.sh >> $LOG_DIR/cleanup.log 2>&1"
+
+# News curation - midnight UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - news curation" \
     "0 0 * * *" \
-    "docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job news --spark-master spark://spark-master:7077 >> $LOG_DIR/news.log 2>&1"
+    "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job news --spark-master spark://spark-master:7077 >> $LOG_DIR/news.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/news.log"
 
-# Technology curation - 12:30 AM UTC  
+# Cleanup after news curation - 12:05 AM UTC
+add_or_update_cron "REDDIT_CRON - cleanup after news" \
+    "5 0 * * *" \
+    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+
+# Technology curation - 12:30 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - technology curation" \
     "30 0 * * *" \
-    "docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job technology --spark-master spark://spark-master:7077 >> $LOG_DIR/technology.log 2>&1"
+    "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job technology --spark-master spark://spark-master:7077 >> $LOG_DIR/technology.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/technology.log"
 
-# ProgrammerHumor curation - 1:00 AM UTC
+# Cleanup after technology curation - 12:35 AM UTC
+add_or_update_cron "REDDIT_CRON - cleanup after technology" \
+    "35 0 * * *" \
+    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+
+# ProgrammerHumor curation - 1:00 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - ProgrammerHumor curation" \
     "0 1 * * *" \
-    "docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job ProgrammerHumor --spark-master spark://spark-master:7077 >> $LOG_DIR/ProgrammerHumor.log 2>&1"
+    "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job ProgrammerHumor --spark-master spark://spark-master:7077 >> $LOG_DIR/ProgrammerHumor.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/ProgrammerHumor.log"
 
-# Worldnews curation - 1:30 AM UTC
+# Cleanup after ProgrammerHumor curation - 1:05 AM UTC
+add_or_update_cron "REDDIT_CRON - cleanup after ProgrammerHumor" \
+    "5 1 * * *" \
+    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+
+# Worldnews curation - 1:30 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - worldnews curation" \
     "30 1 * * *" \
-    "docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job worldnews --spark-master spark://spark-master:7077 >> $LOG_DIR/worldnews.log 2>&1"
+    "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job worldnews --spark-master spark://spark-master:7077 >> $LOG_DIR/worldnews.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/worldnews.log"
+
+# Cleanup after worldnews curation - 1:35 AM UTC
+add_or_update_cron "REDDIT_CRON - cleanup after worldnews" \
+    "35 1 * * *" \
+    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
 
 # Start streaming after curation jobs - 2:15 AM UTC
 add_or_update_cron "REDDIT_CRON - start streaming" \
@@ -74,10 +99,15 @@ echo "✓ Cron jobs configured successfully!"
 echo ""
 echo "Scheduled jobs (UTC times):"
 echo "  • 11:55 PM - Stop streaming"
-echo "  • 12:00 AM - News curation"
-echo "  • 12:30 AM - Technology curation" 
-echo "  • 01:00 AM - ProgrammerHumor curation"
-echo "  • 01:30 AM - Worldnews curation"
+echo "  • 11:57 PM - Clean up stuck jobs"
+echo "  • 12:00 AM - News curation (1hr timeout)"
+echo "  • 12:05 AM - Cleanup temp files after news"
+echo "  • 12:30 AM - Technology curation (1hr timeout)"
+echo "  • 12:35 AM - Cleanup temp files after technology" 
+echo "  • 01:00 AM - ProgrammerHumor curation (1hr timeout)"
+echo "  • 01:05 AM - Cleanup temp files after ProgrammerHumor"
+echo "  • 01:30 AM - Worldnews curation (1hr timeout)"
+echo "  • 01:35 AM - Cleanup temp files after worldnews"
 echo "  • 02:15 AM - Start streaming"
 echo ""
 echo "Logs location: $LOG_DIR/"
@@ -86,6 +116,7 @@ echo "View current cron jobs:"
 echo "  crontab -l | grep REDDIT_CRON"
 echo ""
 echo "View logs:"
+echo "  tail -f $LOG_DIR/cleanup.log"
 echo "  tail -f $LOG_DIR/news.log"
 echo "  tail -f $LOG_DIR/technology.log"
 echo "  tail -f $LOG_DIR/ProgrammerHumor.log"
