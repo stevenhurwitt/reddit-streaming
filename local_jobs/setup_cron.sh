@@ -20,8 +20,13 @@ add_or_update_cron() {
     local schedule="$2"
     local command="$3"
     
-    # Remove existing entry if present
-    grep -v "$comment" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
+    # Remove existing entry if present (both comment and actual job lines)
+    # Use grep -F for fixed string matching to avoid regex issues
+    grep -F -v "$comment" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
+    mv "$TEMP_CRON.tmp" "$TEMP_CRON"
+    
+    # Also remove any lines that contain the actual command
+    grep -F -v "$command" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
     mv "$TEMP_CRON.tmp" "$TEMP_CRON"
     
     # Add new entry
