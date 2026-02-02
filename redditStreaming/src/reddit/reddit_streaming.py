@@ -258,6 +258,11 @@ def read_kafka_stream(spark, sc, subreddit, index):
                 .option("subscribe", "reddit_" + subreddit) \
                 .option("startingOffsets", "latest") \
                 .option("failOnDataLoss", "false") \
+                .option("kafka.session.timeout.ms", "45000") \
+                .option("kafka.heartbeat.interval.ms", "10000") \
+                .option("kafka.max.poll.interval.ms", "120000") \
+                .option("kafka.connections.max.idle.ms", "540000") \
+                .option("kafka.request.timeout.ms", "60000") \
                 .load() \
                 .selectExpr("CAST(value AS STRING) as json") \
                 .select(from_json(col("json"), payload_schema).alias("data")) \

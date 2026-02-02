@@ -53,7 +53,7 @@ add_or_update_cron "REDDIT_CRON - news curation" \
 
 # Cleanup after news curation - 12:05 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after news" \
-    "5 0 * * *" \
+    "25 0 * * *" \
     "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
 
 # Technology curation - 12:30 AM UTC (with timeout)
@@ -63,7 +63,7 @@ add_or_update_cron "REDDIT_CRON - technology curation" \
 
 # Cleanup after technology curation - 12:35 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after technology" \
-    "35 0 * * *" \
+    "55 0 * * *" \
     "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
 
 # ProgrammerHumor curation - 1:00 AM UTC (with timeout)
@@ -73,7 +73,7 @@ add_or_update_cron "REDDIT_CRON - ProgrammerHumor curation" \
 
 # Cleanup after ProgrammerHumor curation - 1:05 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after ProgrammerHumor" \
-    "5 1 * * *" \
+    "25 1 * * *" \
     "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
 
 # Worldnews curation - 1:30 AM UTC (with timeout)
@@ -83,7 +83,7 @@ add_or_update_cron "REDDIT_CRON - worldnews curation" \
 
 # Cleanup after worldnews curation - 1:35 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after worldnews" \
-    "35 1 * * *" \
+    "55 1 * * *" \
     "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
 
 # Start streaming after curation jobs - 2:15 AM UTC
@@ -101,13 +101,13 @@ echo "Scheduled jobs (UTC times):"
 echo "  • 11:55 PM - Stop streaming"
 echo "  • 11:57 PM - Clean up stuck jobs"
 echo "  • 12:00 AM - News curation (1hr timeout)"
-echo "  • 12:05 AM - Cleanup temp files after news"
+echo "  • 12:25 AM - Cleanup temp files after news"
 echo "  • 12:30 AM - Technology curation (1hr timeout)"
-echo "  • 12:35 AM - Cleanup temp files after technology" 
+echo "  • 12:55 AM - Cleanup temp files after technology" 
 echo "  • 01:00 AM - ProgrammerHumor curation (1hr timeout)"
-echo "  • 01:05 AM - Cleanup temp files after ProgrammerHumor"
+echo "  • 01:25 AM - Cleanup temp files after ProgrammerHumor"
 echo "  • 01:30 AM - Worldnews curation (1hr timeout)"
-echo "  • 01:35 AM - Cleanup temp files after worldnews"
+echo "  • 01:55 AM - Cleanup temp files after worldnews"
 echo "  • 02:15 AM - Start streaming"
 echo ""
 echo "Logs location: $LOG_DIR/"
