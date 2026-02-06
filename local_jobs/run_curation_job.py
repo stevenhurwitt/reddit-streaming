@@ -154,6 +154,45 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
         raise
 
 
+def write_to_postgres(df, subreddit, db_host="localhost", db_port=5434, db_name="reddit", 
+                      db_user="postgres", db_password="secret!1234", db_schema="reddit_schema"):
+    """Write cleaned dataframe to PostgreSQL database."""
+    try:
+        # Convert subreddit name to table name (replace spaces and special chars)
+        table_name = subreddit.lower().replace(" ", "_")
+        
+        logger.info(f"Writing cleaned data to PostgreSQL: {db_schema}.{table_name}")
+        
+        # Select relevant columns for PostgreSQL
+        columns_to_write = ["id", "title", "author", "score", "num_comments", 
+                           "created_utc", "url", "selftext"]
+        
+        # Filter to only columns that exist in the dataframe
+        available_columns = [col for col in columns_to_write if col in df.columns]
+        df_pg = df.select(available_columns)
+        
+        # Rename 'id' to 'post_id' for consistency with table schema
+        if "id" in df_pg.columns:
+            df_pg = df_pg.withColumnRenamed("id", "post_id")
+        
+        # Write to PostgreSQL
+        df_pg.write \
+            .format("jdbc") \
+            .option("url", f"jdbc:postgresql://{db_host}:{db_port}/{db_name}") \
+            .option("dbtable", f"{db_schema}.{table_name}") \
+            .option("user", db_user) \
+            .option("password", db_password) \
+            .option("driver", "org.postgresql.Driver") \
+            .mode("append") \
+            .save()
+        
+        logger.info(f"Successfully wrote data to PostgreSQL: {db_schema}.{table_name}")
+        
+    except Exception as e:
+        logger.error(f"Error writing to PostgreSQL: {str(e)}", exc_info=True)
+        raise
+
+
 def process_subreddit(spark, subreddit, bucket):
     """Process a subreddit curation job."""
     try:
@@ -191,6 +230,9 @@ def process_subreddit(spark, subreddit, bucket):
             .option("overwriteSchema", "true") \
             .save(filepath)
         logger.info(f"Successfully wrote cleaned data to {filepath}")
+        
+        # Write cleaned data to PostgreSQL
+        write_to_postgres(df, subreddit)
         
         # Vacuum and generate manifests
         logger.info("Running vacuum and generating symlink manifests...")
