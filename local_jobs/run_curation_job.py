@@ -154,7 +154,7 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
         raise
 
 
-def write_to_postgres(df, subreddit, db_host="localhost", db_port=5434, db_name="reddit", 
+def write_to_postgres(df, subreddit, db_host="reddit-postgres", db_port=5434, db_name="reddit", 
                       db_user="postgres", db_password="secret!1234", db_schema="reddit_schema"):
     """Write cleaned dataframe to PostgreSQL database."""
     try:
