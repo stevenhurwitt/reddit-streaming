@@ -1,0 +1,305 @@
+# PostgreSQL Curation Testing - Setup Summary
+
+Created: February 7, 2026
+
+## What Was Created
+
+I've created a comprehensive testing and diagnostic toolkit to help you identify and fix PostgreSQL write errors in your curation pipeline. Here's what you now have:
+
+### Test Scripts (4 Scripts)
+
+1. **`test_postgres_direct.py`** - Direct PostgreSQL Connection Test
+   - Use psycopg2 to test basic connectivity
+   - Checks schema existence
+   - Lists tables and columns
+   - Verifies insert capability
+   - ✓ **Start here when troubleshooting**
+
+2. **`test_spark_jdbc.py`** - Spark JDBC Driver Test
+   - Tests if Spark can load PostgreSQL JDBC driver
+   - Verifies JDBC connectivity
+   - Tests reading from PostgreSQL
+   - ✓ Use this after psycopg2 test passes
+
+3. **`test_curation_postgres.py`** - Full Integration Test
+   - Reads news_clean Delta table from S3
+   - Tests PostgreSQL connectivity
+   - Shows full DataFrame schema
+   - Writes sample data to PostgreSQL
+   - ✓ Use this to test the complete pipeline
+
+4. **`diagnose_postgres_write.py`** - Comprehensive Diagnostic Tool
+   - Runs 10 sequential tests
+   - Identifies exactly which component is failing
+   - Provides detailed error messages
+   - ✓ Use this when you need to pinpoint the issue
+
+### Documentation Files (3 Files)
+
+1. **`POSTGRES_QUICK_REFERENCE.md`** - Quick Start Guide
+   - Overview of all scripts
+   - Command examples for different scenarios
+   - Common patterns (Docker, RDS, SSH tunnels, etc.)
+   - Quick reference for error messages
+   - ✓ **Read this first for practical examples**
+
+2. **`POSTGRES_TESTING_GUIDE.md`** - Detailed Troubleshooting Guide
+   - In-depth explanation of common issues
+   - Solutions for each error type
+   - Debugging steps (systematic approach)
+   - Configuration patterns
+   - ✓ Comprehensive reference for difficult problems
+
+3. **`SETUP_SUMMARY.txt`** - This file
+   - Overview of what was created
+   - How to get started
+   - File locations
+
+## How to Get Started
+
+### Step 1: Navigate to local_jobs
+```bash
+cd /home/steven/reddit-streaming/local_jobs
+```
+
+### Step 2: Run the Quick Reference Tests (Recommended)
+
+**Option A: If you want quick diagnosis (5 minutes)**
+```bash
+python diagnose_postgres_write.py --job news
+```
+
+This will run all tests in sequence and show you exactly where the problem is.
+
+**Option B: If you want step-by-step approach (10 minutes)**
+```bash
+# Test 1: PostgreSQL connectivity
+python test_postgres_direct.py
+
+# Test 2: Spark JDBC
+python test_spark_jdbc.py
+
+# Test 3: Full pipeline
+python test_curation_postgres.py --job news
+```
+
+### Step 3: Read the Documentation
+
+- **For quick examples**: Read `POSTGRES_QUICK_REFERENCE.md`
+- **For detailed help**: Read `POSTGRES_TESTING_GUIDE.md`
+- **For specific errors**: Jump to the matching section in the guides
+
+### Step 4: Run Your Actual Job
+
+Once tests pass:
+```bash
+python run_curation_job.py --job news
+```
+
+## File Locations
+
+All files are in `/home/steven/reddit-streaming/local_jobs/`:
+
+```
+local_jobs/
+├── test_postgres_direct.py        ← Start here for basic test
+├── test_spark_jdbc.py             ← Test JDBC driver
+├── test_curation_postgres.py      ← Full integration test
+├── diagnose_postgres_write.py     ← Quick diagnostic
+├── POSTGRES_QUICK_REFERENCE.md    ← Read this first
+├── POSTGRES_TESTING_GUIDE.md      ← Detailed troubleshooting
+└── run_curation_job.py            ← Your actual curation job
+```
+
+## Common Issues (Quick Fixes)
+
+### "Connection refused"
+```bash
+# Make sure PostgreSQL is running
+docker ps | grep postgres
+# or
+sudo systemctl status postgresql
+
+# Test with this script
+python test_postgres_direct.py --host localhost
+```
+
+### "Password authentication failed"
+```bash
+# Check your password in the command:
+python test_postgres_direct.py --password your_actual_password
+
+# Default password is: secret!1234
+```
+
+### "JDBC driver not found"
+```bash
+# The driver should auto-download, but if not:
+python test_spark_jdbc.py
+
+# This will attempt to load it and show any errors
+```
+
+### "Table not found"
+```bash
+# Check what tables exist:
+python test_postgres_direct.py
+
+# This will list all tables in reddit_schema
+# If none exist, you need to run the test write first:
+python test_curation_postgres.py --job news
+```
+
+### "Can read from S3 but can't write to PostgreSQL"
+```bash
+# Run the full diagnostic
+python diagnose_postgres_write.py
+
+# This will identify which specific step is failing
+```
+
+## Configuration Options
+
+All scripts support these common options:
+
+```bash
+--job news                      # Which subreddit (default: news)
+--db-host reddit-postgres       # PostgreSQL hostname
+--db-port 5434                  # PostgreSQL port
+--db-name reddit                # Database name
+--db-user postgres              # Database user
+--db-password secret!1234       # Database password
+--limit 100                     # Number of records (for tests)
+```
+
+### Examples for Different Environments
+
+**Docker Compose (local):**
+```bash
+python test_postgres_direct.py --host localhost --port 5432
+```
+
+**AWS RDS:**
+```bash
+python test_curation_postgres.py --job news \
+  --db-host reddit-db.*.amazonaws.com \
+  --db-user postgres_user \
+  --db-password your_password
+```
+
+**Remote via SSH tunnel:**
+```bash
+# In one terminal:
+ssh -L 5432:remote-host:5432 user@jump-host
+
+# In another terminal:
+python test_postgres_direct.py --host localhost
+```
+
+## Expected Successful Output
+
+When everything works, you should see:
+
+```
+✓ Connected successfully!
+✓ reddit_schema exists
+✓ Found 5 tables in reddit_schema
+✓ Successfully wrote test data to PostgreSQL
+✓ ALL TESTS PASSED
+```
+
+## Next Steps After Tests Pass
+
+1. **Check data in PostgreSQL:**
+   ```bash
+   python test_postgres_direct.py  # Shows row counts
+   ```
+
+2. **Run your actual curation job:**
+   ```bash
+   python run_curation_job.py --job news
+   ```
+
+3. **Monitor the job:**
+   ```bash
+   tail -f logs/news.log
+   ```
+
+4. **Set up automated scheduling (optional):**
+   ```bash
+   python setup_cron.sh
+   ```
+
+## Key Differences Between Scripts
+
+| Need | Use Script |
+|------|----------|
+| Quick connectivity test | `test_postgres_direct.py` |
+| Test Spark/JDBC specifically | `test_spark_jdbc.py` |
+| Test full pipeline (S3→DB) | `test_curation_postgres.py` |
+| Find exactly what's broken | `diagnose_postgres_write.py` |
+| Learn from examples | `POSTGRES_QUICK_REFERENCE.md` |
+| Deep troubleshooting | `POSTGRES_TESTING_GUIDE.md` |
+
+## System Requirements
+
+Make sure you have:
+- Python 3.7+ installed
+- Java 8+ installed
+- AWS credentials configured
+- Access to PostgreSQL (running somewhere)
+- Network access to S3
+
+Install Python dependencies:
+```bash
+pip install boto3 pyspark delta-spark psycopg2-binary
+```
+
+## Important Notes
+
+1. **All scripts are idempotent** - Safe to run multiple times
+2. **Scripts include detailed logging** - Shows exactly what's failing
+3. **Default PostgreSQL port is 5434** - Different from standard 5432
+4. **Default schema is reddit_schema** - Create if it doesn't exist
+5. **Test scripts write to test tables** - Won't affect production data
+
+## Troubleshooting the Troubleshooting
+
+If the test scripts themselves fail:
+
+1. **Check Python imports:**
+   ```bash
+   python -c "import boto3, pyspark, delta; print('OK')"
+   ```
+
+2. **Check Java:**
+   ```bash
+   java -version
+   ```
+
+3. **Enable debug logging:**
+   ```bash
+   export SPARK_LOG_LEVEL=DEBUG
+   python test_curation_postgres.py --job news
+   ```
+
+4. **Check available memory:**
+   ```bash
+   free -h  # Should have at least 2GB available
+   ```
+
+## Summary
+
+You now have a complete toolkit for:
+- ✓ Testing PostgreSQL connectivity
+- ✓ Testing Spark JDBC driver
+- ✓ Testing Delta table reading from S3
+- ✓ Testing complete write pipeline
+- ✓ Diagnosing specific failures
+- ✓ Understanding and fixing errors
+
+**Start with:** `python diagnose_postgres_write.py --job news`
+
+This will run through all components and tell you exactly what's working and what needs fixing.
+
+Good luck! 🚀

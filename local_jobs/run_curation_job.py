@@ -154,14 +154,32 @@ def create_spark_session(aws_access_key, aws_secret_key, spark_master=None):
         raise
 
 
-def write_to_postgres(df, subreddit, db_host="reddit-postgres", db_port=5434, db_name="reddit", 
-                      db_user="postgres", db_password="secret!1234", db_schema="reddit_schema"):
-    """Write cleaned dataframe to PostgreSQL database."""
+def write_to_postgres(spark, df, subreddit, db_host="reddit-postgres", db_port=5432, db_name="reddit", 
+                      db_user="postgres", db_password="secret!1234", db_schema="reddit_schema",
+                      handle_duplicates="skip"):
+    """Write cleaned dataframe to PostgreSQL database.
+    
+    Args:
+        spark: Spark session
+        df: Spark dataframe to write
+        subreddit: Subreddit name
+        db_host: PostgreSQL host
+        db_port: PostgreSQL port
+        db_name: Database name
+        db_user: Database user
+        db_password: Database password
+        db_schema: Schema name
+        handle_duplicates: How to handle duplicates
+            - "skip": Only write records that don't exist (default, safe)
+            - "overwrite": Delete all existing data and write new data
+            - "fail": Raise error if duplicates found (old behavior)
+    """
     try:
         # Convert subreddit name to table name (replace spaces and special chars)
         table_name = subreddit.lower().replace(" ", "_")
         
         logger.info(f"Writing cleaned data to PostgreSQL: {db_schema}.{table_name}")
+        logger.info(f"Duplicate handling mode: {handle_duplicates}")
         
         # Select relevant columns for PostgreSQL
         columns_to_write = ["id", "title", "author", "score", "num_comments", 
@@ -175,15 +193,59 @@ def write_to_postgres(df, subreddit, db_host="reddit-postgres", db_port=5434, db
         if "id" in df_pg.columns:
             df_pg = df_pg.withColumnRenamed("id", "post_id")
         
+        total_records = df_pg.count()
+        logger.info(f"Total records to write: {total_records}")
+        
+        # Handle duplicates based on mode
+        if handle_duplicates == "skip":
+            # Read existing IDs from PostgreSQL
+            logger.info("Reading existing post_ids from PostgreSQL...")
+            try:
+                existing_ids_df = spark.read \
+                    .format("jdbc") \
+                    .option("url", f"jdbc:postgresql://{db_host}:{db_port}/{db_name}?sslmode=disable") \
+                    .option("query", f"SELECT DISTINCT post_id FROM {db_schema}.{table_name}") \
+                    .option("user", db_user) \
+                    .option("password", db_password) \
+                    .option("driver", "org.postgresql.Driver") \
+                    .load()
+                
+                existing_ids = set(row.post_id for row in existing_ids_df.collect())
+                logger.info(f"Found {len(existing_ids)} existing records in PostgreSQL")
+                
+                # Filter out duplicates
+                df_pg = df_pg.filter(~col("post_id").isin(existing_ids))
+                new_records = df_pg.count()
+                
+                logger.info(f"Records to write after deduplication: {new_records}")
+                logger.info(f"Skipping {total_records - new_records} duplicate records")
+                
+                if new_records == 0:
+                    logger.warning(f"No new records to write - all {total_records} records already exist")
+                    return
+                    
+            except Exception as e:
+                # Table might not exist yet
+                logger.warning(f"Could not read existing records (table may not exist): {e}")
+                logger.warning("Writing all records")
+        
+        elif handle_duplicates == "overwrite":
+            logger.info(f"Overwrite mode: will delete all existing data in {db_schema}.{table_name}")
+        
+        elif handle_duplicates == "fail":
+            logger.info("Fail mode: will fail if any duplicates are encountered")
+        
         # Write to PostgreSQL
+        write_mode = "overwrite" if handle_duplicates == "overwrite" else "append"
+        
         df_pg.write \
             .format("jdbc") \
-            .option("url", f"jdbc:postgresql://{db_host}:{db_port}/{db_name}") \
+            .option("url", f"jdbc:postgresql://{db_host}:{db_port}/{db_name}?sslmode=disable") \
             .option("dbtable", f"{db_schema}.{table_name}") \
             .option("user", db_user) \
             .option("password", db_password) \
             .option("driver", "org.postgresql.Driver") \
-            .mode("append") \
+            .mode(write_mode) \
             .save()
         
         logger.info(f"Successfully wrote data to PostgreSQL: {db_schema}.{table_name}")
@@ -193,8 +255,17 @@ def write_to_postgres(df, subreddit, db_host="reddit-postgres", db_port=5434, db
         raise
 
 
-def process_subreddit(spark, subreddit, bucket):
-    """Process a subreddit curation job."""
+def process_subreddit(spark, subreddit, bucket, handle_duplicates="skip"):
+    """Process a subreddit curation job.
+    
+    Args:
+        spark: Spark session
+        subreddit: Subreddit name to process
+        bucket: S3 bucket name
+        handle_duplicates: How to handle duplicate records in PostgreSQL
+            - "skip": Only write new records (default, recommended)
+            - "overwrite": Replace all existing data
+    """
     try:
         logger.info(f"Starting curation for subreddit: {subreddit}")
         
@@ -232,7 +303,7 @@ def process_subreddit(spark, subreddit, bucket):
         logger.info(f"Successfully wrote cleaned data to {filepath}")
         
         # Write cleaned data to PostgreSQL
-        write_to_postgres(df, subreddit)
+        write_to_postgres(spark, df, subreddit, handle_duplicates=handle_duplicates)
         
         # Vacuum and generate manifests
         logger.info("Running vacuum and generating symlink manifests...")
@@ -280,6 +351,12 @@ def main():
         default=None,
         help="Spark master URL (e.g., spark://spark-master:7077 for Docker cluster). If not provided, runs in local mode."
     )
+    parser.add_argument(
+        "--handle-duplicates",
+        default="skip",
+        choices=["skip", "overwrite"],
+        help="How to handle duplicate records when writing to PostgreSQL (default: skip)"
+    )
 
     args = parser.parse_args()
 
@@ -297,7 +374,7 @@ def main():
         spark = create_spark_session(aws_access_key, aws_secret_key, spark_master=args.spark_master)
         
         # Process subreddit
-        process_subreddit(spark, args.job, args.bucket)
+        process_subreddit(spark, args.job, args.bucket, handle_duplicates=args.handle_duplicates)
         
         logger.info("Job completed successfully")
         sys.exit(0)
