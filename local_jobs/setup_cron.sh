@@ -56,40 +56,45 @@ add_or_update_cron "REDDIT_CRON - news curation" \
     "0 0 * * *" \
     "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job news --spark-master spark://spark-master:7077 >> $LOG_DIR/news.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/news.log"
 
-# Cleanup after news curation - 12:05 AM UTC
+# Cleanup after news curation - 12:25 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after news" \
     "25 0 * * *" \
-    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+    "cd /home/steven/reddit-streaming/local_jobs && ./cleanup_spark_workers.sh # news >> $LOG_DIR/cleanup.log 2>&1"
 
 # Technology curation - 12:30 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - technology curation" \
     "30 0 * * *" \
     "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job technology --spark-master spark://spark-master:7077 >> $LOG_DIR/technology.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/technology.log"
 
-# Cleanup after technology curation - 12:35 AM UTC
+# Cleanup after technology curation - 12:55 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after technology" \
     "55 0 * * *" \
-    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+    "cd /home/steven/reddit-streaming/local_jobs && ./cleanup_spark_workers.sh # technology >> $LOG_DIR/cleanup.log 2>&1"
 
 # ProgrammerHumor curation - 1:00 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - ProgrammerHumor curation" \
     "0 1 * * *" \
     "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job ProgrammerHumor --spark-master spark://spark-master:7077 >> $LOG_DIR/ProgrammerHumor.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/ProgrammerHumor.log"
 
-# Cleanup after ProgrammerHumor curation - 1:05 AM UTC
+# Cleanup after ProgrammerHumor curation - 1:25 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after ProgrammerHumor" \
     "25 1 * * *" \
-    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+    "cd /home/steven/reddit-streaming/local_jobs && ./cleanup_spark_workers.sh # programmerhumor >> $LOG_DIR/cleanup.log 2>&1"
 
 # Worldnews curation - 1:30 AM UTC (with timeout)
 add_or_update_cron "REDDIT_CRON - worldnews curation" \
     "30 1 * * *" \
     "timeout 3600 docker exec reddit-spark-master python3 /opt/workspace/local_jobs/run_curation_job.py --job worldnews --spark-master spark://spark-master:7077 >> $LOG_DIR/worldnews.log 2>&1 || echo 'Job timed out or failed' >> $LOG_DIR/worldnews.log"
 
-# Cleanup after worldnews curation - 1:35 AM UTC
+# Cleanup after worldnews curation - 1:55 AM UTC
 add_or_update_cron "REDDIT_CRON - cleanup after worldnews" \
     "55 1 * * *" \
-    "docker exec reddit-spark-worker-1 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' && docker exec reddit-spark-worker-2 bash -c 'cd /opt/workspace/tmp && rm -rf spark-* driver/* blocks/*' >> $LOG_DIR/cleanup.log 2>&1"
+    "cd /home/steven/reddit-streaming/local_jobs && ./cleanup_spark_workers.sh # worldnews >> $LOG_DIR/cleanup.log 2>&1"
+
+# Backup Postgres database - 2:05 AM UTC
+add_or_update_cron "REDDIT_CRON - backup postgres" \
+    "5 2 * * *" \
+    "cd /home/steven/reddit-streaming && ./backup_postgres.sh >> $LOG_DIR/backup_postgres.log 2>&1"
 
 # Start streaming after curation jobs - 2:15 AM UTC
 add_or_update_cron "REDDIT_CRON - start streaming" \
@@ -113,6 +118,7 @@ echo "  • 01:00 AM - ProgrammerHumor curation (1hr timeout)"
 echo "  • 01:25 AM - Cleanup temp files after ProgrammerHumor"
 echo "  • 01:30 AM - Worldnews curation (1hr timeout)"
 echo "  • 01:55 AM - Cleanup temp files after worldnews"
+echo "  • 02:05 AM - Backup PostgreSQL database"
 echo "  • 02:15 AM - Start streaming"
 echo ""
 echo "Logs location: $LOG_DIR/"
@@ -126,6 +132,7 @@ echo "  tail -f $LOG_DIR/news.log"
 echo "  tail -f $LOG_DIR/technology.log"
 echo "  tail -f $LOG_DIR/ProgrammerHumor.log"
 echo "  tail -f $LOG_DIR/worldnews.log"
+echo "  tail -f $LOG_DIR/backup_postgres.log"
 echo "  tail -f $LOG_DIR/stop_streaming.log"
 echo "  tail -f $LOG_DIR/start_streaming.log"
 echo ""
