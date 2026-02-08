@@ -70,6 +70,9 @@ redditStreaming/src/test/python/__pycache__
 redditStreaming/src/scripts/__pycache__
 glue_history.sh
 
+# backups
+backups/*
+
 # airflow
 dags
 logs
