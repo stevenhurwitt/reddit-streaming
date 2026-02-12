@@ -7,7 +7,7 @@ TEMP_CRON="/tmp/reddit_cron_temp_$$"
 crontab -l > "$TEMP_CRON" 2>/dev/null || true
 
 # Remove reddit cron entries by looking for various patterns
-if grep -q -E "(REDDIT_CRON|reddit-streaming|run_curation_job\.py)" "$TEMP_CRON"; then
+if grep -q -E "(REDDIT_CRON|reddit-streaming|run_curation_job.*\.py)" "$TEMP_CRON"; then
     # Remove lines with REDDIT_CRON comments
     grep -v "REDDIT_CRON" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
     mv "$TEMP_CRON.tmp" "$TEMP_CRON"
@@ -16,8 +16,8 @@ if grep -q -E "(REDDIT_CRON|reddit-streaming|run_curation_job\.py)" "$TEMP_CRON"
     grep -v "reddit-streaming" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
     mv "$TEMP_CRON.tmp" "$TEMP_CRON"
     
-    # Remove lines containing run_curation_job.py
-    grep -v "run_curation_job\.py" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
+    # Remove lines containing run_curation_job.py or run_curation_job_polars.py
+    grep -v "run_curation_job.*\.py" "$TEMP_CRON" > "$TEMP_CRON.tmp" 2>/dev/null || true
     mv "$TEMP_CRON.tmp" "$TEMP_CRON"
     
     # Install the cleaned crontab
