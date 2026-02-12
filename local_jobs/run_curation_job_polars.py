@@ -119,12 +119,13 @@ def transform_data(df):
         logger.info("Transforming data...")
         
         # Convert columns to appropriate types and add date columns
+        # Note: created_utc is stored as Unix timestamp (seconds since epoch)
         df = df.with_columns([
-            # Cast timestamp columns
-            pl.col("approved_at_utc").cast(pl.Datetime).alias("approved_at_utc") if "approved_at_utc" in df.columns else pl.lit(None).alias("approved_at_utc"),
-            pl.col("banned_at_utc").cast(pl.Datetime).alias("banned_at_utc") if "banned_at_utc" in df.columns else pl.lit(None).alias("banned_at_utc"),
-            pl.col("created_utc").cast(pl.Datetime).alias("created_utc"),
-            pl.col("created").cast(pl.Datetime).alias("created") if "created" in df.columns else pl.lit(None).alias("created"),
+            # Convert Unix timestamps to datetime
+            pl.from_epoch("approved_at_utc", time_unit="s").alias("approved_at_utc") if "approved_at_utc" in df.columns else pl.lit(None).alias("approved_at_utc"),
+            pl.from_epoch("banned_at_utc", time_unit="s").alias("banned_at_utc") if "banned_at_utc" in df.columns else pl.lit(None).alias("banned_at_utc"),
+            pl.from_epoch("created_utc", time_unit="s").alias("created_utc"),
+            pl.from_epoch("created", time_unit="s").alias("created") if "created" in df.columns else pl.lit(None).alias("created"),
         ])
         
         # Add date partitioning columns
@@ -282,8 +283,10 @@ def write_to_postgres(df, subreddit, db_host="localhost", db_port=5434, db_name=
             if_table_exists = "append"
         
         # Write using Polars' native PostgreSQL support
+        # Use fully qualified table name to ensure correct schema
+        qualified_table_name = f"{db_schema}.{table_name}"
         df_pg.write_database(
-            table_name=table_name,
+            table_name=qualified_table_name,
             connection=connection_string,
             if_table_exists=if_table_exists,
             engine="sqlalchemy"
