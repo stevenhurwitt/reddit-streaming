@@ -21,6 +21,7 @@ debugpy
 decorator
 defusedxml
 delta
+deltalake
 delta-spark
 docutils
 entrypoints
@@ -68,6 +69,7 @@ pexpect
 pickleshare
 pip
 pkgutil_resolve_name
+polars
 prometheus-client
 prompt-toolkit
 psutil
