@@ -326,8 +326,7 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str]):
                 table_path,
                 df,
                 mode="append",
-                storage_options=storage_options,
-                engine="rust"
+                storage_options=storage_options
             )
             print(f"Appended {df.height} records to Delta table: {table_path}")
         except Exception:
@@ -336,8 +335,7 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str]):
                 table_path,
                 df,
                 mode="overwrite",
-                storage_options=storage_options,
-                engine="rust"
+                storage_options=storage_options
             )
             print(f"Created new Delta table with {df.height} records: {table_path}")
     
