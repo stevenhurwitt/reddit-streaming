@@ -190,7 +190,7 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
         'enable.auto.commit': True,
         'session.timeout.ms': 45000,
         'heartbeat.interval.ms': 10000,
-        'max.poll.interval.ms': 120000,
+        'max.poll.interval.ms': 300000,
     }
     
     consumer = Consumer(conf)
