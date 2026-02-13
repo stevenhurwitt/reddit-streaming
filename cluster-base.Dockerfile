@@ -9,14 +9,15 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 RUN mkdir -p ${shared_workspace} && \
     apt-get update -y && \
-	apt install -y curl gcc zip unzip telnet wget ca-certificates &&\ 
-	apt install -y build-essential zlib1g-dev libncurses5-dev && \
-	apt install -y libpq-dev awscli && \
-	apt install -y libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libjpeg-dev && \
-    apt install -y openjdk-17-jdk-headless && \
-    apt install -y python3 python3-dev python3-venv python3-pip && \
-    apt-get update && apt-get install -y procps && apt-get install -y nano && apt-get install -y net-tools && \
-    rm -rf /var/lib/apt/lists/*
+	apt install -y --no-install-recommends curl gcc zip unzip telnet wget ca-certificates &&\ 
+	apt install -y --no-install-recommends build-essential zlib1g-dev libncurses5-dev && \
+	apt install -y --no-install-recommends libpq-dev awscli && \
+	apt install -y --no-install-recommends libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libjpeg-dev && \
+    apt install -y --no-install-recommends openjdk-17-jdk-headless && \
+    apt install -y --no-install-recommends python3 python3-dev python3-venv python3-pip && \
+    apt-get update && apt-get install -y --no-install-recommends procps nano net-tools && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    pip3 install --no-cache-dir --upgrade pip setuptools wheel
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"

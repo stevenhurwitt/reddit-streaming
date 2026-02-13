@@ -44,7 +44,7 @@ mv "$TEMP_CRON.tmp" "$TEMP_CRON"
 # Stop streaming before curation jobs - 11:55 PM UTC
 add_or_update_cron "REDDIT_CRON - stop streaming" \
     "55 23 * * *" \
-    "cd /home/steven/reddit-streaming && ./stop_streaming.sh >> $LOG_DIR/stop_streaming.log 2>&1"
+    "cd /home/steven/reddit-streaming && ./stop_streaming.sh polars >> $LOG_DIR/stop_streaming.log 2>&1"
 
 # Kill any stuck jobs and clean up resources - 11:57 PM UTC
 add_or_update_cron "REDDIT_CRON - cleanup stuck jobs" \
@@ -79,7 +79,7 @@ add_or_update_cron "REDDIT_CRON - backup postgres" \
 # Start streaming after curation jobs - 2:15 AM UTC
 add_or_update_cron "REDDIT_CRON - start streaming" \
     "15 2 * * *" \
-    "cd /home/steven/reddit-streaming && ./start_streaming.sh >> $LOG_DIR/start_streaming.log 2>&1"
+    "cd /home/steven/reddit-streaming && ./start_streaming.sh polars >> $LOG_DIR/start_streaming.log 2>&1"
 
 # Install the crontab
 crontab "$TEMP_CRON"
@@ -88,14 +88,14 @@ rm "$TEMP_CRON"
 echo "✓ Cron jobs configured successfully!"
 echo ""
 echo "Scheduled jobs (UTC times):"
-echo "  • 11:55 PM - Stop streaming"
+echo "  • 11:55 PM - Stop streaming (Polars)"
 echo "  • 11:57 PM - Clean up stuck jobs"
 echo "  • 12:00 AM - News curation (Polars - local)"
 echo "  • 12:30 AM - Technology curation (Polars - local)"
 echo "  • 01:00 AM - ProgrammerHumor curation (Polars - local)"
 echo "  • 01:30 AM - Worldnews curation (Polars - local)"
 echo "  • 02:05 AM - Backup PostgreSQL database"
-echo "  • 02:15 AM - Start streaming"
+echo "  • 02:15 AM - Start streaming (Polars)"
 echo ""
 echo "Logs location: $LOG_DIR/"
 echo ""

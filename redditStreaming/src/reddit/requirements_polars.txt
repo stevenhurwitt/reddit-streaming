@@ -1,0 +1,24 @@
+# Requirements for Polars-based Reddit Streaming
+
+# Core data processing
+polars>=0.20.0
+
+# Delta Lake support for Polars
+deltalake>=0.14.0
+
+# Kafka clients
+confluent-kafka>=2.3.0
+kafka-python>=2.0.2
+
+# AWS S3 filesystem
+s3fs>=2023.12.0
+boto3>=1.34.0
+
+# Configuration
+PyYAML>=6.0
+
+# Reddit API
+praw>=7.7.0
+
+# Additional utilities
+python-dateutil>=2.8.2

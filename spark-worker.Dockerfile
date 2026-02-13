@@ -13,4 +13,4 @@ COPY ./spark-defaults.conf conf/spark-defaults.conf
 
 COPY ./spark-env.conf conf/spark-env.conf
 
-CMD bash -c "sbin/start-history-server.sh  &&  bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT} >> logs/spark-worker.out" 
+CMD bash -c "rm -rf logs/* work/* && sbin/start-history-server.sh && bin/spark-class org.apache.spark.deploy.worker.Worker spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT} >> logs/spark-worker.out" 

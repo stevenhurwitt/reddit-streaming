@@ -1,10 +1,31 @@
 #!/bin/bash
 
-echo "Starting Reddit Streaming Services..."
-echo ""
+# Default to Spark unless 'polars' is specified
+MODE=${1:-spark}
+
+if [ "$MODE" = "polars" ]; then
+    echo "Starting Reddit Streaming Services (Polars Mode)..."
+    echo ""
+    SERVICE_SCRIPT="run_services_polars.sh"
+    LOG_FILE="/tmp/streaming_polars.log"
+elif [ "$MODE" = "spark" ]; then
+    echo "Starting Reddit Streaming Services (Spark Mode)..."
+    echo ""
+    SERVICE_SCRIPT="run_services.sh"
+    LOG_FILE="/tmp/streaming.log"
+else
+    echo "Error: Invalid mode '$MODE'. Use 'spark' or 'polars'"
+    echo "Usage: $0 [spark|polars]"
+    echo ""
+    echo "Examples:"
+    echo "  $0           # Start with Spark (default)"
+    echo "  $0 spark     # Start with Spark"
+    echo "  $0 polars    # Start with Polars"
+    exit 1
+fi
 
 # Run the service script in detached mode
-docker exec -d reddit-jupyterlab bash /opt/workspace/redditStreaming/run_services.sh
+docker exec -d reddit-jupyterlab bash /opt/workspace/redditStreaming/$SERVICE_SCRIPT
 
 echo "Services starting in background..."
 echo ""
@@ -14,7 +35,7 @@ echo "Waiting for log files to be created..."
 max_wait=30
 elapsed=0
 while [ $elapsed -lt $max_wait ]; do
-    if docker exec reddit-jupyterlab test -f /tmp/producer.log && docker exec reddit-jupyterlab test -f /tmp/streaming.log; then
+    if docker exec reddit-jupyterlab test -f /tmp/producer.log && docker exec reddit-jupyterlab test -f $LOG_FILE; then
         echo "Log files created successfully!"
         break
     fi
@@ -54,7 +75,11 @@ echo "  ./check_status.sh"
 echo ""
 echo "View logs:"
 echo "  docker exec reddit-jupyterlab tail -f /tmp/producer.log"
-echo "  docker exec reddit-jupyterlab tail -f /tmp/streaming.log"
+echo "  docker exec reddit-jupyterlab tail -f $LOG_FILE"
 echo ""
 echo "Stop services:"
-echo "  ./stop_streaming.sh"
+if [ "$MODE" = "polars" ]; then
+    echo "  ./stop_streaming.sh polars"
+else
+    echo "  ./stop_streaming.sh"
+fi
