@@ -408,6 +408,6 @@ if __name__ == "__main__":
         print("read config.yaml.")
         my_header = get_bearer()
         print("authenticated w/ bearer token good for 24 hrs.")
-        print("Sleeping for 60 seconds before hitting Reddit API...")
-        time.sleep(60)
+        print("Sleeping for 30 seconds before hitting Reddit API...")
+        time.sleep(30)
         poll_subreddit(subreddit, post_type, my_header, kafka_host, 0, True)

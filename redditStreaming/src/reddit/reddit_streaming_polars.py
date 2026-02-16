@@ -13,7 +13,7 @@ import yaml
 import time
 import pprint
 from typing import Dict, Any, Optional
-from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition
+from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING
 from deltalake import DeltaTable, write_deltalake
 import s3fs
 from datetime import datetime
@@ -168,40 +168,98 @@ def get_polars_schema():
     return schema
 
 
+def get_offset_checkpoint_path(subreddit: str) -> str:
+    """
+    Get the path to the offset checkpoint file for a subreddit.
+    
+    Args:
+        subreddit: Subreddit name
+    
+    Returns:
+        Path to checkpoint file
+    """
+    checkpoint_dir = f"/opt/workspace/checkpoints/polars_{subreddit}"
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    return os.path.join(checkpoint_dir, "offset_checkpoint.txt")
+
+
+def load_last_offset(subreddit: str) -> Optional[int]:
+    """
+    Load the last committed offset from checkpoint file.
+    
+    Args:
+        subreddit: Subreddit name
+    
+    Returns:
+        Last committed offset or None if no checkpoint exists
+    """
+    checkpoint_path = get_offset_checkpoint_path(subreddit)
+    try:
+        if os.path.exists(checkpoint_path):
+            with open(checkpoint_path, 'r') as f:
+                offset = int(f.read().strip())
+                print(f"Loaded last offset: {offset}")
+                return offset
+    except Exception as e:
+        print(f"Error loading offset checkpoint: {e}")
+    return None
+
+
+def save_offset(subreddit: str, offset: int):
+    """
+    Save the current offset to checkpoint file.
+    
+    Args:
+        subreddit: Subreddit name
+        offset: Current offset to save
+    """
+    checkpoint_path = get_offset_checkpoint_path(subreddit)
+    try:
+        with open(checkpoint_path, 'w') as f:
+            f.write(str(offset))
+    except Exception as e:
+        print(f"Error saving offset checkpoint: {e}")
+
+
 def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[str] = None) -> Consumer:
     """
-    Create a Kafka consumer for the specified subreddit.
+    Create a Kafka consumer for the specified subreddit with manual offset management.
     
     Args:
         kafka_host: Kafka broker hostname
         subreddit: Subreddit name
-        group_id: Consumer group ID (optional)
+        group_id: Consumer group ID (optional, not used with assign)
     
     Returns:
         Consumer: Configured Kafka consumer
     """
-    if group_id is None:
-        group_id = f"polars_reddit_{subreddit}"
-    
+    # Minimal config for assign() mode - no consumer group coordination
     conf = {
         'bootstrap.servers': f'{kafka_host}:9092',
-        'group.id': group_id,
-        'auto.offset.reset': 'earliest',
-        'enable.auto.commit': True,
-        'session.timeout.ms': 45000,
-        'heartbeat.interval.ms': 10000,
-        'max.poll.interval.ms': 300000,
+        'group.id': f"polars_reddit_{subreddit}_manual",  # Required by library but not used
+        'enable.auto.commit': False,  # Disable auto-commit completely
     }
     
     consumer = Consumer(conf)
     topic = f"reddit_{subreddit}"
     
-    # Use assign() instead of subscribe() to avoid consumer group coordination issues
-    # Directly assign partition 0 starting from offset 0 (beginning)
-    tp = TopicPartition(topic, 0, 0)
+    # Load last committed offset
+    last_offset = load_last_offset(subreddit)
+    
+    if last_offset is not None:
+        # Resume from last saved offset
+        offset = last_offset
+        print(f"Resuming from offset: {offset}")
+    else:
+        # Start from earliest available message (use explicit OFFSET_BEGINNING)
+        offset = OFFSET_BEGINNING
+        print(f"Starting from beginning (OFFSET_BEGINNING)")
+    
+    # Always specify an explicit offset to avoid consumer group coordinator queries
+    tp = TopicPartition(topic, 0, offset)
     consumer.assign([tp])
     
-    print(f"Kafka consumer created for topic: {topic}, assigned partition 0")
+    print(f"Kafka consumer created for topic: {topic}, partition 0")
     return consumer
 
 
@@ -233,7 +291,7 @@ def parse_message(msg_value: bytes, schema: Dict[str, Any]) -> Optional[Dict[str
         return None
 
 
-def consume_batch(consumer: Consumer, schema: Dict[str, Any], 
+def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                   batch_size: int = 100, timeout: float = 30.0) -> pl.DataFrame:
     """
     Consume a batch of messages from Kafka and return as Polars DataFrame.
@@ -241,6 +299,7 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any],
     Args:
         consumer: Kafka consumer
         schema: Polars schema
+        subreddit: Subreddit name (for offset tracking)
         batch_size: Maximum number of messages to consume
         timeout: Maximum time to wait for messages (seconds)
     
@@ -249,6 +308,7 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any],
     """
     messages = []
     start_time = time.time()
+    last_offset = None
     
     while len(messages) < batch_size and (time.time() - start_time) < timeout:
         msg = consumer.poll(timeout=1.0)
@@ -266,6 +326,11 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any],
         parsed = parse_message(msg.value(), schema)
         if parsed:
             messages.append(parsed)
+            last_offset = msg.offset()
+    
+    # Save the last processed offset + 1 (next message to read)
+    if last_offset is not None:
+        save_offset(subreddit, last_offset + 1)
     
     if messages:
         # Create DataFrame from messages
@@ -381,7 +446,7 @@ def stream_subreddit(subreddit: str, kafka_host: str, creds: Dict[str, str],
             start_time = time.time()
             
             # Consume batch
-            df = consume_batch(consumer, schema, batch_size=batch_size, 
+            df = consume_batch(consumer, schema, subreddit, batch_size=batch_size, 
                              timeout=min(processing_interval, 30.0))
             
             # Process and write
