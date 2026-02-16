@@ -13,7 +13,7 @@ import yaml
 import time
 import pprint
 from typing import Dict, Any, Optional
-from confluent_kafka import Consumer, KafkaError, KafkaException
+from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition
 from deltalake import DeltaTable, write_deltalake
 import s3fs
 from datetime import datetime
@@ -186,7 +186,7 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     conf = {
         'bootstrap.servers': f'{kafka_host}:9092',
         'group.id': group_id,
-        'auto.offset.reset': 'latest',
+        'auto.offset.reset': 'earliest',
         'enable.auto.commit': True,
         'session.timeout.ms': 45000,
         'heartbeat.interval.ms': 10000,
@@ -195,9 +195,13 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     
     consumer = Consumer(conf)
     topic = f"reddit_{subreddit}"
-    consumer.subscribe([topic])
     
-    print(f"Kafka consumer created for topic: {topic}")
+    # Use assign() instead of subscribe() to avoid consumer group coordination issues
+    # Directly assign partition 0 starting from offset 0 (beginning)
+    tp = TopicPartition(topic, 0, 0)
+    consumer.assign([tp])
+    
+    print(f"Kafka consumer created for topic: {topic}, assigned partition 0")
     return consumer
 
 

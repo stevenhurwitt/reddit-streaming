@@ -249,11 +249,20 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         token_list.append(after_token)
 
         if after_token is not None and my_data is not None:
-            producer.send(params["topic"][i], my_data)                          
+            try:
+                future = producer.send(params["topic"][i], my_data)
+                # Wait for the send to complete (with timeout)
+                record_metadata = future.get(timeout=10)
+                
+                if debug:
+                    print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT to partition {}]".format(
+                        s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token, record_metadata.partition))
+            except Exception as e:
+                print(f"ERROR sending message for {s}: {e}")
 
-            if debug:
-                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-
+    # Flush to ensure messages are sent
+    producer.flush()
+    
     params["token"] = token_list
     if None in token_list:
         time.sleep(5)
@@ -272,10 +281,13 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
                 if after_token is not None and my_data is not None:
-                    producer.send(params["topic"][i], my_data)
-
-                    if debug:
-                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                    try:
+                        future = producer.send(params["topic"][i], my_data)
+                        record_metadata = future.get(timeout=10)
+                        if debug:
+                            print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                    except Exception as e:
+                        print(f"ERROR sending in loop for {s}: {e}")
                 elif my_data is None:
                     # API returned empty/invalid response, keep current token
                     after_token = params["token"][i]
@@ -294,10 +306,13 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 my_data, after_token = subset_response(next_response)
 
                 if after_token is not None and my_data is not None:
-                    producer.send(params["topic"][i], my_data)
-
-                    if debug:
-                        print("subreddit: {}, post datetime: {}, post title: {}, token: {}.".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                    try:
+                        future = producer.send(params["topic"][i], my_data)
+                        record_metadata = future.get(timeout=10)
+                        if debug:
+                            print("subreddit: {}, post datetime: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                    except Exception as e:
+                        print(f"ERROR in reauth send for {s}: {e}")
                 else:
                     # Still empty after reauth, keep current token
                     after_token = params["token"][i]
@@ -322,6 +337,9 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 token_list.append(params["token"][i])
                 time.sleep(60)
 
+        # Flush to ensure all messages in this cycle are sent
+        producer.flush()
+        
         params["token"] = token_list
         if None in token_list:
             time.sleep(5)
