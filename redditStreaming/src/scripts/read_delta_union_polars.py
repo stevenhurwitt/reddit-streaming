@@ -131,6 +131,7 @@ if dfs:
     
     print(f"Total records in union: {len(full_df)}")
     print(f"\nTop 100 most recent posts:")
-    print(display_df.select(available_cols))
+    with pl.Config(tbl_rows=100):
+        print(display_df.select(available_cols))
 else:
     print("No data available.")
