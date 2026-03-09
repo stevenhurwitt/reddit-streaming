@@ -135,3 +135,19 @@ if dfs:
         print(display_df.select(available_cols))
 else:
     print("No data available.")
+
+# Create a date column from created_utc and group by subreddit and date
+full_df = full_df.with_columns([
+    pl.from_epoch("created_utc", time_unit="s").dt.date().alias("date")
+])
+
+grouped_df = (
+    full_df
+    .group_by(["subreddit", "date"])
+    .agg([
+        pl.len().alias("post_count")
+    ])
+    .sort(["date", "subreddit"], descending=[True, False])
+)
+with pl.Config(tbl_rows=20):
+    print(grouped_df.head(20))
