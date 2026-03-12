@@ -66,9 +66,9 @@ add_or_update_cron "REDDIT_CRON - worldnews curation" \
     "30 0 * * *" \
     "cd /home/steven/reddit-streaming/local_jobs && /home/steven/reddit-streaming/.venv/bin/python run_curation_job_polars.py --job worldnews --handle-duplicates skip >> $LOG_DIR/worldnews.log 2>&1"
 
-# Backup Postgres database - 12:40 AM (00:40)
+# Backup Postgres database - 12:45 AM (00:45)
 add_or_update_cron "REDDIT_CRON - backup postgres" \
-    "40 0 * * *" \
+    "45 0 * * *" \
     "cd /home/steven/reddit-streaming && ./backup_postgres.sh >> $LOG_DIR/backup_postgres.log 2>&1"
 
 # Start streaming (Polars) - 12:50 AM (00:50)
@@ -88,7 +88,7 @@ echo "  • 12:00 AM - News curation"
 echo "  • 12:10 AM - Technology curation"
 echo "  • 12:20 AM - ProgrammerHumor curation"
 echo "  • 12:30 AM - Worldnews curation"
-echo "  • 12:40 AM - Backup PostgreSQL database"
+echo "  • 12:45 AM - Backup PostgreSQL database"
 echo "  • 12:50 AM - Start streaming (Polars)"
 echo ""
 echo "Logs location: $LOG_DIR/"
