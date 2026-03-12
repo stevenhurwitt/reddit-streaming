@@ -10,6 +10,10 @@ volumes:
     driver: local
   postgres-db-volume:
     driver: local
+  trino-metastore:
+    driver: local
+  hive-metastore-db:
+    driver: local
 services:
   jupyterlab:
     image: jupyterlab
@@ -78,6 +82,49 @@ services:
     environment: 
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret!1234
+  hive-metastore:
+    image: apache/hive:4.0.0
+    container_name: hive-metastore
+    hostname: hive-metastore
+    ports:
+      - "9083:9083"  
+    environment:
+      - SERVICE_NAME=metastore
+      - DB_DRIVER=postgres
+      - SERVICE_OPTS=-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://reddit-postgres:5432/metastore -Djavax.jdo.option.ConnectionUserName=postgres -Djavax.jdo.option.ConnectionPassword=secret!1234
+    depends_on:
+      - reddit-postgres
+    command: >
+      /bin/sh -c "
+      /opt/hive/bin/schematool -dbType postgres -initSchema || true &&
+      /opt/hive/bin/start-metastore
+      "
+  trino:
+    image: trinodb/trino:latest
+    container_name: reddit-trino
+    hostname: trino
+    ports:
+      - "8089:8080"
+    secrets:
+      - aws_access_key_id
+      - aws_secret_access_key
+    volumes:
+      - ./trino/catalog/delta.properties:/etc/trino/catalog/delta.properties
+      - ./trino/config.properties:/etc/trino/config.properties
+      - ./trino/node.properties:/etc/trino/node.properties
+      - ./trino/jvm.config:/etc/trino/jvm.config
+      - ./trino/catalog:/etc/trino/catalog
+      - trino-metastore:/data/trino
+    depends_on:
+      - hive-metastore
+    command: >
+      /bin/bash -c "
+      export AWS_ACCESS_KEY_ID=$$(cat /run/secrets/aws_access_key_id | tr -d '\\n' | tr -d '\\r');
+      export AWS_SECRET_ACCESS_KEY=$$(cat /run/secrets/aws_secret_access_key | tr -d '\\n' | tr -d '\\r');
+      mkdir -p /data/trino/metastore;
+      chmod 777 /data/trino/metastore;
+      /usr/lib/trino/bin/run-trino
+      "
   zookeeper:
     # image: wurstmeister/zookeeper
     image: ghcr.io/arm64-compat/confluentinc/cp-zookeeper:7.1.1
