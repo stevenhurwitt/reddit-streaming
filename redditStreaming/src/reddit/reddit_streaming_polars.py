@@ -268,11 +268,10 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
         'heartbeat.interval.ms': 10000,  # Heartbeat interval
         'connections.max.idle.ms': 540000,  # Max idle time
         'fetch.min.bytes': 1,  # Fetch minimum 1 byte to avoid stalling
-        'fetch.message.max.bytes': 52428800,  # 50MB max message size
-        'max.poll.records': 100,  # Max records per poll
+        'fetch.max.bytes': 52428800,  # 50MB max message size
         'isolation.level': 'read_committed',  # Read only committed messages
     }
-    
+
     max_retries = 10
     retry_count = 0
     consumer = None
