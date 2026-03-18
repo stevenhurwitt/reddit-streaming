@@ -2,38 +2,33 @@ SPARK_VERSION="3.5.3"
 HADOOP_VERSION="3"
 JUPYTERLAB_VERSION="4.3.4"
 
-# -- Building the Images
+# -- Building the Images using docker buildx
 
-# docker build -f cluster-base.Dockerfile -t cluster-base .
-
-# docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg hadoop_version="${HADOOP_VERSION}" -f spark-base.Dockerfile -t spark-base .
-
-# docker build -f spark-master.Dockerfile -t spark-master .
-
-# docker build -f spark-worker.Dockerfile -t spark-worker .
-
-# ,docker build --build-arg spark_version="${SPARK_VERSION}" --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" -f jupyterlab.Dockerfile -t jupyterlab .
-
-docker build \
+docker buildx build \
   -f cluster-base.Dockerfile \
-  -t cluster-base .
+  -t cluster-base \
+  --load .
 
-docker build \
+docker buildx build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg hadoop_version="${HADOOP_VERSION}" \
   -f spark-base.Dockerfile \
-  -t spark-base .
+  -t spark-base \
+  --load .
 
-docker build \
+docker buildx build \
   -f spark-master.Dockerfile \
-  -t spark-master .
+  -t spark-master \
+  --load .
 
-docker build \
+docker buildx build \
   -f spark-worker.Dockerfile \
-  -t spark-worker .
+  -t spark-worker \
+  --load .
 
-docker build \
+docker buildx build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" \
   -f jupyterlab.Dockerfile \
-  -t jupyterlab .
+  -t jupyterlab \
+  --load .
