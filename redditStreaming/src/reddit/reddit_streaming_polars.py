@@ -197,28 +197,52 @@ def load_last_offset(subreddit: str) -> Optional[int]:
     try:
         if os.path.exists(checkpoint_path):
             with open(checkpoint_path, 'r') as f:
-                offset = int(f.read().strip())
-                print(f"Loaded last offset: {offset}")
-                return offset
+                content = f.read().strip()
+                if content and content != 'None':
+                    offset = int(content)
+                    print(f"Loaded last offset: {offset}")
+                    return offset
+                else:
+                    print(f"Checkpoint contains None or empty value")
+                    return None
+    except ValueError as e:
+        print(f"Error parsing offset from checkpoint: {e}")
+        return None
     except Exception as e:
         print(f"Error loading offset checkpoint: {e}")
     return None
 
 
-def save_offset(subreddit: str, offset: int):
+def save_offset(subreddit: str, offset: Optional[int]):
     """
     Save the current offset to checkpoint file.
     
     Args:
         subreddit: Subreddit name
-        offset: Current offset to save
+        offset: Current offset to save (None to clear)
     """
     checkpoint_path = get_offset_checkpoint_path(subreddit)
     try:
         with open(checkpoint_path, 'w') as f:
-            f.write(str(offset))
+            f.write(str(offset) if offset is not None else 'None')
     except Exception as e:
         print(f"Error saving offset checkpoint: {e}")
+
+
+def clear_offset_checkpoint(subreddit: str):
+    """
+    Clear the offset checkpoint file for a subreddit.
+    
+    Args:
+        subreddit: Subreddit name
+    """
+    checkpoint_path = get_offset_checkpoint_path(subreddit)
+    try:
+        if os.path.exists(checkpoint_path):
+            os.remove(checkpoint_path)
+            print(f"Cleared offset checkpoint for {subreddit}")
+    except Exception as e:
+        print(f"Error clearing offset checkpoint: {e}")
 
 
 def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[str] = None) -> Consumer:
@@ -233,14 +257,39 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     Returns:
         Consumer: Configured Kafka consumer
     """
-    # Minimal config for assign() mode - no consumer group coordination
+    # Enhanced config for assign() mode with better error handling
     conf = {
         'bootstrap.servers': f'{kafka_host}:9092',
         'group.id': f"polars_reddit_{subreddit}_manual",  # Required by library but not used
         'enable.auto.commit': False,  # Disable auto-commit completely
+        'api.version.request.timeout.ms': 30000,  # Wait for API version negotiation
+        'socket.timeout.ms': 60000,  # Socket timeout
+        'session.timeout.ms': 60000,  # Session timeout
+        'heartbeat.interval.ms': 10000,  # Heartbeat interval
+        'connections.max.idle.ms': 540000,  # Max idle time
+        'fetch.min.bytes': 1,  # Fetch minimum 1 byte to avoid stalling
+        'fetch.message.max.bytes': 52428800,  # 50MB max message size
+        'max.poll.records': 100,  # Max records per poll
+        'isolation.level': 'read_committed',  # Read only committed messages
     }
     
-    consumer = Consumer(conf)
+    max_retries = 10
+    retry_count = 0
+    consumer = None
+    
+    while retry_count < max_retries:
+        try:
+            consumer = Consumer(conf)
+            print(f"Consumer created successfully on attempt {retry_count + 1}")
+            break
+        except Exception as e:
+            retry_count += 1
+            print(f"Error creating consumer (attempt {retry_count}/{max_retries}): {e}")
+            if retry_count < max_retries:
+                time.sleep(2)
+            else:
+                raise Exception(f"Failed to create consumer after {max_retries} attempts: {e}")
+    
     topic = f"reddit_{subreddit}"
     
     # Load last committed offset
@@ -257,7 +306,20 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     
     # Always specify an explicit offset to avoid consumer group coordinator queries
     tp = TopicPartition(topic, 0, offset)
-    consumer.assign([tp])
+    try:
+        consumer.assign([tp])
+        print(f"Assigned topic partition: {topic} (partition 0) at offset {offset}")
+    except Exception as e:
+        print(f"Error assigning partition: {e}")
+        # If assignment fails with the saved offset, restart from beginning
+        if last_offset is not None:
+            print(f"Offset {last_offset} may be invalid (past retention). Restarting from beginning.")
+            save_offset(subreddit, None)  # Clear saved offset
+            tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+            consumer.assign([tp])
+            print(f"Re-assigned to start from beginning")
+        else:
+            raise
     
     print(f"Kafka consumer created for topic: {topic}, partition 0")
     return consumer
@@ -309,20 +371,62 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
     messages = []
     start_time = time.time()
     last_offset = None
+    error_streak = 0
+    max_consecutive_errors = 5
     
     while len(messages) < batch_size and (time.time() - start_time) < timeout:
         msg = consumer.poll(timeout=1.0)
         
         if msg is None:
+            error_streak = 0  # Reset on timeout
             continue
         
         if msg.error():
-            if msg.error().code() == KafkaError._PARTITION_EOF:
+            error_code = msg.error().code()
+            
+            # Handle partition EOF - just continue, it's normal
+            if error_code == KafkaError._PARTITION_EOF:
+                error_streak = 0
                 continue
+            
+            # Handle fetch errors (103) and other retriable errors
+            elif error_code == KafkaError._FETCH_FAILED:
+                error_streak += 1
+                print(f"Fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
+                if error_streak >= max_consecutive_errors:
+                    print(f"Max consecutive fetch errors ({max_consecutive_errors}) reached, pausing...")
+                    time.sleep(5)  # Back off and retry
+                    error_streak = 0
+                continue
+            
+            # Handle offset out of range - reset to earliest
+            elif error_code == KafkaError._OFFSET_OUT_OF_RANGE:
+                print(f"Offset out of range for {subreddit}: {msg.error()}")
+                print(f"Resetting to earliest available offset")
+                clear_offset_checkpoint(subreddit)
+                return pl.DataFrame(schema=schema)  # Return empty, consumer will restart
+            
+            # Handle broker errors with retry
+            elif error_code in [KafkaError._NOT_COORDINATOR, KafkaError._FETCH_FAILED, KafkaError._REQUEST_TIMED_OUT]:
+                error_streak += 1
+                print(f"Broker error for {subreddit} (attempt {error_streak}): {msg.error()}")
+                if error_streak >= max_consecutive_errors:
+                    print(f"Max consecutive broker errors, backing off...")
+                    time.sleep(3)
+                    error_streak = 0
+                continue
+            
+            # Other errors
             else:
-                print(f"Kafka error: {msg.error()}")
+                error_streak += 1
+                print(f"Kafka error for {subreddit}: {msg.error()}")
+                if error_streak >= max_consecutive_errors:
+                    time.sleep(2)
+                    error_streak = 0
                 continue
         
+        # Successfully received message
+        error_streak = 0
         parsed = parse_message(msg.value(), schema)
         if parsed:
             messages.append(parsed)
