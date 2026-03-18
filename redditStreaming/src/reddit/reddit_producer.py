@@ -10,7 +10,7 @@ import requests
 # import boto3
 import yaml
 from kafka import KafkaProducer
-from kafka.errors import KafkaTimeoutError, NoBrokersAvailable
+from kafka.errors import KafkaTimeoutError, NoBrokersAvailable, NotLeaderForPartitionError
 
 pp = pprint.PrettyPrinter(indent=1)
 
@@ -174,10 +174,16 @@ def get_broker():
                         value_serializer=my_serializer,
                         api_version_auto_timeout_ms=30000,
                         request_timeout_ms=30000,
-                        retries=3,
-                        acks='all'
+                        max_in_flight_requests_per_connection=1,
+                        retries=5,
+                        acks='all',
+                        max_block_ms=60000,
+                        metadata_max_age_ms=30000
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
+            # Force metadata refresh by listing topics
+            time.sleep(2)
+            print("Producer initialized and metadata refreshed.")
             return(broker, producer)
         
         except (kafka.errors.NoBrokersAvailable, Exception) as e:
@@ -219,10 +225,16 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                         value_serializer=my_serializer,
                         api_version_auto_timeout_ms=30000,
                         request_timeout_ms=30000,
-                        retries=3,
-                        acks='all'
+                        max_in_flight_requests_per_connection=1,
+                        retries=5,
+                        acks='all',
+                        max_block_ms=60000,
+                        metadata_max_age_ms=30000
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
+            # Force metadata refresh
+            time.sleep(2)
+            print("Producer initialized and metadata refreshed.")
             break
         
         except (kafka.errors.NoBrokersAvailable, Exception) as e:
@@ -249,16 +261,29 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         token_list.append(after_token)
 
         if after_token is not None and my_data is not None:
-            try:
-                future = producer.send(params["topic"][i], my_data)
-                # Wait for the send to complete (with timeout)
-                record_metadata = future.get(timeout=10)
-                
-                if debug:
-                    print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT to partition {}]".format(
-                        s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token, record_metadata.partition))
-            except Exception as e:
-                print(f"ERROR sending message for {s}: {e}")
+            # Retry logic for send with exponential backoff
+            max_send_retries = 3
+            send_retry_delay = 1
+            for send_attempt in range(max_send_retries):
+                try:
+                    future = producer.send(params["topic"][i], my_data)
+                    # Wait for the send to complete (with timeout)
+                    record_metadata = future.get(timeout=10)
+                    
+                    if debug:
+                        print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT to partition {}]".format(
+                            s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token, record_metadata.partition))
+                    break  # Success, exit retry loop
+                except kafka.errors.NotLeaderForPartitionError as e:
+                    if send_attempt < max_send_retries - 1:
+                        print(f"NotLeaderForPartitionError for {s}, retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                        time.sleep(send_retry_delay)
+                        send_retry_delay *= 2  # Exponential backoff
+                    else:
+                        print(f"ERROR sending message for {s} after {max_send_retries} retries: {e}")
+                except Exception as e:
+                    print(f"ERROR sending message for {s}: {e}")
+                    break  # Don't retry for other exceptions
 
     # Flush to ensure messages are sent
     producer.flush()
@@ -281,13 +306,26 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 ## weird bug where it hits the api too fast(?) and no after token is returned
                 ## this passes None, which gives the current post & correct access token
                 if after_token is not None and my_data is not None:
-                    try:
-                        future = producer.send(params["topic"][i], my_data)
-                        record_metadata = future.get(timeout=10)
-                        if debug:
-                            print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-                    except Exception as e:
-                        print(f"ERROR sending in loop for {s}: {e}")
+                    # Retry logic for send with exponential backoff
+                    max_send_retries = 3
+                    send_retry_delay = 1
+                    for send_attempt in range(max_send_retries):
+                        try:
+                            future = producer.send(params["topic"][i], my_data)
+                            record_metadata = future.get(timeout=10)
+                            if debug:
+                                print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                            break  # Success, exit retry loop
+                        except kafka.errors.NotLeaderForPartitionError as e:
+                            if send_attempt < max_send_retries - 1:
+                                print(f"NotLeaderForPartitionError for {s}, retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                                time.sleep(send_retry_delay)
+                                send_retry_delay *= 2  # Exponential backoff
+                            else:
+                                print(f"ERROR sending in loop for {s} after {max_send_retries} retries: {e}")
+                        except Exception as e:
+                            print(f"ERROR sending in loop for {s}: {e}")
+                            break  # Don't retry for other exceptions
                 elif my_data is None:
                     # API returned empty/invalid response, keep current token
                     after_token = params["token"][i]
