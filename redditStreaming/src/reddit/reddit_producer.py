@@ -178,8 +178,7 @@ def get_broker():
                         retries=5,
                         acks='all',
                         max_block_ms=60000,
-                        metadata_max_age_ms=10000,  # Refresh metadata every 10 seconds
-                        metadata_expiry_ms=5000     # Expire metadata after 5 seconds
+                        metadata_max_age_ms=10000  # Refresh metadata every 10 seconds
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             # Force metadata refresh by listing topics
@@ -230,8 +229,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                         retries=5,
                         acks='all',
                         max_block_ms=60000,
-                        metadata_max_age_ms=10000,  # Refresh metadata every 10 seconds
-                        metadata_expiry_ms=5000     # Expire metadata after 5 seconds
+                        metadata_max_age_ms=10000  # Refresh metadata every 10 seconds
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             # Force metadata refresh
