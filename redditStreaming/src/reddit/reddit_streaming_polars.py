@@ -381,6 +381,7 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
             continue
         
         if msg.error():
+            error_str = str(msg.error())
             error_code = msg.error().code()
             
             # Handle partition EOF - just continue, it's normal
@@ -388,30 +389,20 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak = 0
                 continue
             
-            # Handle fetch errors (103) and other retriable errors
-            elif error_code == KafkaError._FETCH_FAILED:
-                error_streak += 1
-                print(f"Fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
-                if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive fetch errors ({max_consecutive_errors}) reached, pausing...")
-                    time.sleep(5)  # Back off and retry
-                    error_streak = 0
-                continue
-            
             # Handle offset out of range - reset to earliest
-            elif error_code == KafkaError._OFFSET_OUT_OF_RANGE:
+            elif 'out of range' in error_str.lower() or error_code == -191:
                 print(f"Offset out of range for {subreddit}: {msg.error()}")
                 print(f"Resetting to earliest available offset")
                 clear_offset_checkpoint(subreddit)
                 return pl.DataFrame(schema=schema)  # Return empty, consumer will restart
             
-            # Handle broker errors with retry
-            elif error_code in [KafkaError._NOT_COORDINATOR, KafkaError._FETCH_FAILED, KafkaError._REQUEST_TIMED_OUT]:
+            # Handle fetch/broker errors with retry
+            elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader']) or error_code in [103, -187, -215]:
                 error_streak += 1
-                print(f"Broker error for {subreddit} (attempt {error_streak}): {msg.error()}")
+                print(f"Broker/fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
                 if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive broker errors, backing off...")
-                    time.sleep(3)
+                    print(f"Max consecutive errors ({max_consecutive_errors}) reached, backing off...")
+                    time.sleep(5)  # Back off and retry
                     error_streak = 0
                 continue
             
