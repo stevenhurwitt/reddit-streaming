@@ -178,7 +178,8 @@ def get_broker():
                         retries=5,
                         acks='all',
                         max_block_ms=60000,
-                        metadata_max_age_ms=30000
+                        metadata_max_age_ms=10000,  # Refresh metadata every 10 seconds
+                        metadata_expiry_ms=5000     # Expire metadata after 5 seconds
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             # Force metadata refresh by listing topics
@@ -229,7 +230,8 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                         retries=5,
                         acks='all',
                         max_block_ms=60000,
-                        metadata_max_age_ms=30000
+                        metadata_max_age_ms=10000,  # Refresh metadata every 10 seconds
+                        metadata_expiry_ms=5000     # Expire metadata after 5 seconds
                     )
             print("Successfully connected to Kafka broker and initialized producer.")
             # Force metadata refresh
@@ -262,7 +264,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
 
         if after_token is not None and my_data is not None:
             # Retry logic for send with exponential backoff
-            max_send_retries = 3
+            max_send_retries = 10
             send_retry_delay = 1
             for send_attempt in range(max_send_retries):
                 try:
@@ -276,14 +278,30 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                     break  # Success, exit retry loop
                 except kafka.errors.NotLeaderForPartitionError as e:
                     if send_attempt < max_send_retries - 1:
-                        print(f"NotLeaderForPartitionError for {s}, retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                        print(f"NotLeaderForPartitionError for {s}, refreshing metadata and retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                        # Force metadata refresh by flushing and checking partition info
+                        producer.flush(timeout=5)
+                        try:
+                            # Force metadata refresh
+                            partitions = producer.partitions(params["topic"][i])
+                            print(f"Available partitions for {params['topic'][i]}: {partitions}")
+                        except Exception as refresh_error:
+                            print(f"Error refreshing metadata: {refresh_error}")
                         time.sleep(send_retry_delay)
-                        send_retry_delay *= 2  # Exponential backoff
+                        send_retry_delay = min(send_retry_delay * 2, 10)  # Exponential backoff, cap at 10s
+                    else:
+                        print(f"ERROR sending message for {s} after {max_send_retries} retries: {e}")
+                except kafka.errors.KafkaError as e:
+                    # Handle other Kafka errors
+                    if send_attempt < max_send_retries - 1:
+                        print(f"Kafka error for {s}, retrying in {send_retry_delay}s: {e}")
+                        time.sleep(send_retry_delay)
+                        send_retry_delay = min(send_retry_delay * 1.5, 10)
                     else:
                         print(f"ERROR sending message for {s} after {max_send_retries} retries: {e}")
                 except Exception as e:
                     print(f"ERROR sending message for {s}: {e}")
-                    break  # Don't retry for other exceptions
+                    break  # Don't retry for non-Kafka exceptions
 
     # Flush to ensure messages are sent
     producer.flush()
@@ -307,7 +325,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 ## this passes None, which gives the current post & correct access token
                 if after_token is not None and my_data is not None:
                     # Retry logic for send with exponential backoff
-                    max_send_retries = 3
+                    max_send_retries = 10
                     send_retry_delay = 1
                     for send_attempt in range(max_send_retries):
                         try:
@@ -318,14 +336,30 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                             break  # Success, exit retry loop
                         except kafka.errors.NotLeaderForPartitionError as e:
                             if send_attempt < max_send_retries - 1:
-                                print(f"NotLeaderForPartitionError for {s}, retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                                print(f"NotLeaderForPartitionError for {s}, refreshing metadata and retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
+                                # Force metadata refresh by flushing and checking partition info
+                                producer.flush(timeout=5)
+                                try:
+                                    # Force metadata refresh
+                                    partitions = producer.partitions(params["topic"][i])
+                                    print(f"Available partitions for {params['topic'][i]}: {partitions}")
+                                except Exception as refresh_error:
+                                    print(f"Error refreshing metadata: {refresh_error}")
                                 time.sleep(send_retry_delay)
-                                send_retry_delay *= 2  # Exponential backoff
+                                send_retry_delay = min(send_retry_delay * 2, 10)  # Exponential backoff, cap at 10s
+                            else:
+                                print(f"ERROR sending in loop for {s} after {max_send_retries} retries: {e}")
+                        except kafka.errors.KafkaError as e:
+                            # Handle other Kafka errors
+                            if send_attempt < max_send_retries - 1:
+                                print(f"Kafka error for {s}, retrying in {send_retry_delay}s: {e}")
+                                time.sleep(send_retry_delay)
+                                send_retry_delay = min(send_retry_delay * 1.5, 10)
                             else:
                                 print(f"ERROR sending in loop for {s} after {max_send_retries} retries: {e}")
                         except Exception as e:
                             print(f"ERROR sending in loop for {s}: {e}")
-                            break  # Don't retry for other exceptions
+                            break  # Don't retry for non-Kafka exceptions
                 elif my_data is None:
                     # API returned empty/invalid response, keep current token
                     after_token = params["token"][i]
