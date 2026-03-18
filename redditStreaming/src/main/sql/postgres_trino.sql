@@ -1,3 +1,4 @@
+-- select top 100 postgres
 SELECT 'news' as subreddit, * FROM reddit_schema.news
 UNION ALL
 -- SELECT 'ProgrammerHumor' as subreddit, * FROM reddit_schema.programmerhumor
@@ -9,7 +10,7 @@ ORDER BY created_utc DESC
 LIMIT 100;
 
 
-
+-- counts by subreddit
 SELECT 'news' as subreddit, COUNT(*) FROM reddit_schema.news
 UNION ALL
 SELECT 'ProgrammerHumor' as subreddit, COUNT(*) FROM reddit_schema.programmerhumor
@@ -20,6 +21,7 @@ SELECT 'worldnews' as subreddit, COUNT(*) FROM reddit_schema.worldnews
 
 
 -- trino
+-- select most recent 100 posts
 SELECT subreddit, title, created_utc FROM reddit.news_raw
 UNION ALL
 SELECT subreddit, title, created_utc FROM reddit.programmerhumor_raw
@@ -30,11 +32,13 @@ SELECT subreddit, title, created_utc FROM reddit.worldnews_raw
 ORDER BY created_utc DESC
 LIMIT 100;
 
+-- top ten highest scoring news posts
 SELECT title, author, score, created_utc 
 FROM news_clean 
 ORDER BY score DESC 
 LIMIT 10;
 
+-- clean counts
 SELECT 'technology' as subreddit, COUNT(*) as posts FROM technology_clean
 UNION ALL
 SELECT 'programmerhumor', COUNT(*) FROM programmerhumor_clean
@@ -43,6 +47,7 @@ SELECT 'news', COUNT(*) FROM news_clean
 UNION ALL
 SELECT 'worldnews', COUNT(*) FROM worldnews_clean;
 
+-- raw counts
 SELECT 'technology' as subreddit, COUNT(*) as posts FROM technology_raw
 UNION ALL
 SELECT 'programmerhumor', COUNT(*) FROM programmerhumor_raw
@@ -50,3 +55,21 @@ UNION ALL
 SELECT 'news', COUNT(*) FROM news_raw
 UNION ALL
 SELECT 'worldnews', COUNT(*) FROM worldnews_raw;
+
+-- counts grouped by date/subreddit
+SELECT 
+    DATE(from_unixtime(created_utc)) as post_date,
+    subreddit,
+    COUNT(*) as post_count
+FROM (
+    SELECT subreddit, created_utc FROM reddit.technology_raw
+    UNION ALL
+    SELECT subreddit, created_utc FROM reddit.worldnews_raw
+    UNION ALL
+    SELECT subreddit, created_utc FROM reddit.news_raw
+    UNION ALL
+    SELECT subreddit, created_utc FROM reddit.programmerhumor_raw
+)
+GROUP BY DATE(from_unixtime(created_utc)), subreddit
+ORDER BY post_date DESC, post_count DESC
+LIMIT 20;
