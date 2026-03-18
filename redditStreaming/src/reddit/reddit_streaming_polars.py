@@ -394,7 +394,13 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 print(f"Offset out of range for {subreddit}: {msg.error()}")
                 print(f"Resetting to earliest available offset")
                 clear_offset_checkpoint(subreddit)
-                return pl.DataFrame(schema=schema)  # Return empty, consumer will restart
+                # Seek consumer to beginning to recover
+                topic = f"reddit_{subreddit}"
+                tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                consumer.seek(tp)
+                print(f"Consumer repositioned to beginning of {topic}")
+                error_streak = 0
+                continue  # Continue consuming from new position
             
             # Handle fetch/broker errors with retry
             elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader']) or error_code in [103, -187, -215]:
