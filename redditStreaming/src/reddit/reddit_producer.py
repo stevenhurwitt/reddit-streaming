@@ -281,7 +281,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                         producer.flush(timeout=5)
                         try:
                             # Force metadata refresh
-                            partitions = producer.partitions(params["topic"][i])
+                            partitions = producer.partitions_for(params["topic"][i])
                             print(f"Available partitions for {params['topic'][i]}: {partitions}")
                         except Exception as refresh_error:
                             print(f"Error refreshing metadata: {refresh_error}")
@@ -339,7 +339,7 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                                 producer.flush(timeout=5)
                                 try:
                                     # Force metadata refresh
-                                    partitions = producer.partitions(params["topic"][i])
+                                    partitions = producer.partitions_for(params["topic"][i])
                                     print(f"Available partitions for {params['topic'][i]}: {partitions}")
                                 except Exception as refresh_error:
                                     print(f"Error refreshing metadata: {refresh_error}")
