@@ -203,7 +203,7 @@ services:
     volumes:
       -  ./my-dynamodb-data:/home/dynamodblocal/data
     ports:
-      - 8010:8000
+      - 8011:8000
     command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
 
   # # postgres:
