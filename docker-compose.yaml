@@ -195,16 +195,16 @@ services:
   #   depends_on:
   #     - kafka
 
-  dynamodb:
-    image:  amazon/dynamodb-local
-    container_name: reddit-dynamodb
-    hostname: dynamodb
-    restart: always
-    volumes:
-      -  ./my-dynamodb-data:/home/dynamodblocal/data
-    ports:
-      - 8011:8000
-    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+  # dynamodb:
+  #   image:  amazon/dynamodb-local
+  #   container_name: reddit-dynamodb
+  #   hostname: dynamodb
+  #   restart: always
+  #   volumes:
+  #     -  ./my-dynamodb-data:/home/dynamodblocal/data
+  #   ports:
+  #     - 8011:8000
+  #   command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
 
   # # postgres:
   # #   image: postgres:13

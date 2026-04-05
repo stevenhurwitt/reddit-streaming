@@ -402,13 +402,30 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak = 0
                 continue  # Continue consuming from new position
             
+            # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart.
+            # Seeking to OFFSET_BEGINNING forces librdkafka to re-query metadata with fresh epoch.
+            elif error_code == 103:
+                print(f"Fenced leader epoch for {subreddit}: {msg.error()}")
+                print(f"Leader epoch stale (likely broker restart). Resetting to beginning to refresh epoch.")
+                clear_offset_checkpoint(subreddit)
+                topic = f"reddit_{subreddit}"
+                tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                consumer.seek(tp)
+                print(f"Consumer repositioned to beginning of {topic} to recover epoch")
+                error_streak = 0
+                continue
+
             # Handle fetch/broker errors with retry
-            elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader']) or error_code in [103, -187, -215]:
+            elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader']) or error_code in [-187, -215]:
                 error_streak += 1
                 print(f"Broker/fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
                 if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive errors ({max_consecutive_errors}) reached, backing off...")
-                    time.sleep(5)  # Back off and retry
+                    print(f"Max consecutive errors ({max_consecutive_errors}) reached, backing off and seeking to beginning...")
+                    clear_offset_checkpoint(subreddit)
+                    topic = f"reddit_{subreddit}"
+                    tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                    consumer.seek(tp)
+                    time.sleep(5)
                     error_streak = 0
                 continue
             

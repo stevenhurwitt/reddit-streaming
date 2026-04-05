@@ -157,47 +157,79 @@ def subset_response(response):
 
     return(data, after_token)
 
-def get_broker():
+
+def create_producer(host):
     """
-    create broker & producer with retry logic.
+    Create a KafkaProducer with retry logic. Extracted to allow recreation on leader errors.
     """
-    host = "kafka"
     broker = ["{}:9092".format(host)]
     max_retries = 30
     retry_delay = 2
-    
+
     for attempt in range(max_retries):
         try:
             print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
             producer = KafkaProducer(
                         bootstrap_servers=broker,
                         value_serializer=my_serializer,
-                        api_version_auto_timeout_ms=30000,
+                        api_version=(2, 5, 0),
                         request_timeout_ms=30000,
                         max_in_flight_requests_per_connection=1,
                         retries=5,
                         acks='all',
                         max_block_ms=60000,
-                        metadata_max_age_ms=10000  # Refresh metadata every 10 seconds
+                        metadata_max_age_ms=10000
                     )
-            print("Successfully connected to Kafka broker and initialized producer.")
-            # Force metadata refresh by listing topics
             time.sleep(2)
-            print("Producer initialized and metadata refreshed.")
-            return(broker, producer)
-        
-        except (kafka.errors.NoBrokersAvailable, Exception) as e:
+            print("Producer initialized.")
+            return producer
+        except Exception as e:
             if attempt < max_retries - 1:
-                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
+                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay}s...")
                 time.sleep(retry_delay)
-                retry_delay = min(retry_delay * 1.5, 30)  # Exponential backoff, max 30s
+                retry_delay = min(retry_delay * 1.5, 30)
             else:
                 print("Failed to connect to Kafka broker after maximum retries.")
-                print(f"Attempted to connect to: {broker}")
                 sys.exit()
-    
-    print("Failed to initialize Kafka producer.")
-    sys.exit()
+
+
+def send_with_retry(producer, topic, data, subreddit_name, host, debug):
+    """
+    Send a message to Kafka with retry logic. Recreates the producer on NotLeaderForPartitionError.
+
+    Returns the (possibly recreated) producer.
+    """
+    max_send_retries = 10
+    send_retry_delay = 1
+
+    for send_attempt in range(max_send_retries):
+        try:
+            future = producer.send(topic, data)
+            record_metadata = future.get(timeout=10)
+            if debug:
+                print(f"[{subreddit_name}] sent to partition {record_metadata.partition}")
+            return producer  # success
+        except kafka.errors.NotLeaderForPartitionError as e:
+            print(f"NotLeaderForPartitionError for {subreddit_name} (attempt {send_attempt + 1}/{max_send_retries}), recreating producer...")
+            try:
+                producer.close(timeout=5)
+            except Exception:
+                pass
+            producer = create_producer(host)
+            time.sleep(send_retry_delay)
+            send_retry_delay = min(send_retry_delay * 2, 10)
+        except kafka.errors.KafkaError as e:
+            if send_attempt < max_send_retries - 1:
+                print(f"Kafka error for {subreddit_name}, retrying in {send_retry_delay}s: {e}")
+                time.sleep(send_retry_delay)
+                send_retry_delay = min(send_retry_delay * 1.5, 10)
+            else:
+                print(f"ERROR sending for {subreddit_name} after {max_send_retries} retries: {e}")
+        except Exception as e:
+            print(f"ERROR sending for {subreddit_name}: {e}")
+            break
+
+    return producer
 
 
 def poll_subreddit(subreddit, post_type, header, host, index, debug):
@@ -213,101 +245,32 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
         debug (bool) - debug mode (True/False)
 
     """
-    broker = ["{}:9092".format(host)]
-    max_retries = 30
-    retry_delay = 2
-    
-    for attempt in range(max_retries):
-        try:
-            print(f"Attempting to connect to Kafka broker (attempt {attempt + 1}/{max_retries})...")
-            producer = KafkaProducer(
-                        bootstrap_servers=broker,
-                        value_serializer=my_serializer,
-                        api_version_auto_timeout_ms=30000,
-                        request_timeout_ms=30000,
-                        max_in_flight_requests_per_connection=1,
-                        retries=5,
-                        acks='all',
-                        max_block_ms=60000,
-                        metadata_max_age_ms=10000  # Refresh metadata every 10 seconds
-                    )
-            print("Successfully connected to Kafka broker and initialized producer.")
-            # Force metadata refresh
-            time.sleep(2)
-            print("Producer initialized and metadata refreshed.")
-            break
-        
-        except (kafka.errors.NoBrokersAvailable, Exception) as e:
-            if attempt < max_retries - 1:
-                print(f"Kafka broker not available yet: {e}. Retrying in {retry_delay} seconds...")
-                time.sleep(retry_delay)
-                retry_delay = min(retry_delay * 1.5, 30)  # Exponential backoff, max 30s
-            else:
-                print("Failed to connect to Kafka broker after maximum retries.")
-                print(f"Attempted to connect to: {broker}")
-                sys.exit()
+    producer = create_producer(host)
 
     params = {}
     params["topic"] = ["reddit_{}".format(s) for s in subreddit]
-    topic = params["topic"][index]
-    # print("created topics.")
 
     token_list = []
+    empty_counts = [0] * len(subreddit)
+    EMPTY_RESET_THRESHOLD = 5
 
     for i, s in enumerate(subreddit):
-        # print("subreddit: {}".format(subreddit))
         my_response = get_subreddit(s, 1, post_type, "", header)
         my_data, after_token = subset_response(my_response)
         token_list.append(after_token)
 
         if after_token is not None and my_data is not None:
-            # Retry logic for send with exponential backoff
-            max_send_retries = 10
-            send_retry_delay = 1
-            for send_attempt in range(max_send_retries):
-                try:
-                    future = producer.send(params["topic"][i], my_data)
-                    # Wait for the send to complete (with timeout)
-                    record_metadata = future.get(timeout=10)
-                    
-                    if debug:
-                        print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT to partition {}]".format(
-                            s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token, record_metadata.partition))
-                    break  # Success, exit retry loop
-                except kafka.errors.NotLeaderForPartitionError as e:
-                    if send_attempt < max_send_retries - 1:
-                        print(f"NotLeaderForPartitionError for {s}, refreshing metadata and retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
-                        # Force metadata refresh by flushing and checking partition info
-                        producer.flush(timeout=5)
-                        try:
-                            # Force metadata refresh
-                            partitions = producer.partitions_for(params["topic"][i])
-                            print(f"Available partitions for {params['topic'][i]}: {partitions}")
-                        except Exception as refresh_error:
-                            print(f"Error refreshing metadata: {refresh_error}")
-                        time.sleep(send_retry_delay)
-                        send_retry_delay = min(send_retry_delay * 2, 10)  # Exponential backoff, cap at 10s
-                    else:
-                        print(f"ERROR sending message for {s} after {max_send_retries} retries: {e}")
-                except kafka.errors.KafkaError as e:
-                    # Handle other Kafka errors
-                    if send_attempt < max_send_retries - 1:
-                        print(f"Kafka error for {s}, retrying in {send_retry_delay}s: {e}")
-                        time.sleep(send_retry_delay)
-                        send_retry_delay = min(send_retry_delay * 1.5, 10)
-                    else:
-                        print(f"ERROR sending message for {s} after {max_send_retries} retries: {e}")
-                except Exception as e:
-                    print(f"ERROR sending message for {s}: {e}")
-                    break  # Don't retry for non-Kafka exceptions
+            empty_counts[i] = 0
+            if debug:
+                print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(
+                    s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+            producer = send_with_retry(producer, params["topic"][i], my_data, s, host, debug)
 
-    # Flush to ensure messages are sent
     producer.flush()
-    
+
     params["token"] = token_list
     if None in token_list:
         time.sleep(5)
-
     else:
         time.sleep(30)
 
@@ -319,48 +282,21 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 next_response = get_subreddit(s, 1, post_type, after_token, header)
                 my_data, after_token = subset_response(next_response)
 
-                ## weird bug where it hits the api too fast(?) and no after token is returned
-                ## this passes None, which gives the current post & correct access token
                 if after_token is not None and my_data is not None:
-                    # Retry logic for send with exponential backoff
-                    max_send_retries = 10
-                    send_retry_delay = 1
-                    for send_attempt in range(max_send_retries):
-                        try:
-                            future = producer.send(params["topic"][i], my_data)
-                            record_metadata = future.get(timeout=10)
-                            if debug:
-                                print("subreddit: {}, post date: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-                            break  # Success, exit retry loop
-                        except kafka.errors.NotLeaderForPartitionError as e:
-                            if send_attempt < max_send_retries - 1:
-                                print(f"NotLeaderForPartitionError for {s}, refreshing metadata and retrying in {send_retry_delay}s... (attempt {send_attempt + 1}/{max_send_retries})")
-                                # Force metadata refresh by flushing and checking partition info
-                                producer.flush(timeout=5)
-                                try:
-                                    # Force metadata refresh
-                                    partitions = producer.partitions_for(params["topic"][i])
-                                    print(f"Available partitions for {params['topic'][i]}: {partitions}")
-                                except Exception as refresh_error:
-                                    print(f"Error refreshing metadata: {refresh_error}")
-                                time.sleep(send_retry_delay)
-                                send_retry_delay = min(send_retry_delay * 2, 10)  # Exponential backoff, cap at 10s
-                            else:
-                                print(f"ERROR sending in loop for {s} after {max_send_retries} retries: {e}")
-                        except kafka.errors.KafkaError as e:
-                            # Handle other Kafka errors
-                            if send_attempt < max_send_retries - 1:
-                                print(f"Kafka error for {s}, retrying in {send_retry_delay}s: {e}")
-                                time.sleep(send_retry_delay)
-                                send_retry_delay = min(send_retry_delay * 1.5, 10)
-                            else:
-                                print(f"ERROR sending in loop for {s} after {max_send_retries} retries: {e}")
-                        except Exception as e:
-                            print(f"ERROR sending in loop for {s}: {e}")
-                            break  # Don't retry for non-Kafka exceptions
+                    empty_counts[i] = 0
+                    if debug:
+                        print("subreddit: {}, post date: {}, post title: {}, token: {}.".format(
+                            s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
+                    producer = send_with_retry(producer, params["topic"][i], my_data, s, host, debug)
                 elif my_data is None:
-                    # API returned empty/invalid response, keep current token
-                    after_token = params["token"][i]
+                    empty_counts[i] += 1
+                    if empty_counts[i] >= EMPTY_RESET_THRESHOLD:
+                        print(f"[{s}] {empty_counts[i]} consecutive empty responses — resetting token to fetch latest posts")
+                        after_token = ""
+                        empty_counts[i] = 0
+                    else:
+                        # Keep current token and retry next cycle
+                        after_token = params["token"][i]
                 
                 token_list.append(after_token) 
                 
@@ -376,13 +312,8 @@ def poll_subreddit(subreddit, post_type, header, host, index, debug):
                 my_data, after_token = subset_response(next_response)
 
                 if after_token is not None and my_data is not None:
-                    try:
-                        future = producer.send(params["topic"][i], my_data)
-                        record_metadata = future.get(timeout=10)
-                        if debug:
-                            print("subreddit: {}, post datetime: {}, post title: {}, token: {}. [SENT]".format(s, dt.datetime.fromtimestamp(my_data["created"]), my_data["title"], after_token))
-                    except Exception as e:
-                        print(f"ERROR in reauth send for {s}: {e}")
+                    empty_counts[i] = 0
+                    producer = send_with_retry(producer, params["topic"][i], my_data, s, host, debug)
                 else:
                     # Still empty after reauth, keep current token
                     after_token = params["token"][i]
