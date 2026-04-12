@@ -73,6 +73,8 @@ glue_history.sh
 # backups
 backups/*
 
+local_jobs/__pycache__
+
 # airflow
 dags
 logs
