@@ -1,6 +1,9 @@
 #!/bin/bash
 # backup_postgres.sh - Backup reddit PostgreSQL database
-# Creates a compressed backup with timestamp in filename
+# Uses Grandfather-Father-Son (GFS) rotation:
+#   Son:         daily backups, kept for 7 days
+#   Father:      weekly backups (Sunday), kept for 4 weeks
+#   Grandfather: monthly backups (1st of month), kept for 12 months
 
 set -e
 
@@ -11,17 +14,28 @@ POSTGRES_PASSWORD="secret!1234"
 POSTGRES_DB="reddit"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
 
+# GFS tier directories
+DAILY_DIR="${BACKUP_DIR}/daily"
+WEEKLY_DIR="${BACKUP_DIR}/weekly"
+MONTHLY_DIR="${BACKUP_DIR}/monthly"
+
+# Retention limits
+DAILY_KEEP=7    # days
+WEEKLY_KEEP=28  # days (4 weeks)
+MONTHLY_KEEP=365 # days (12 months)
+
 # Generate filename with current date
 TIMESTAMP=$(date +%Y%m%d)
+DAY_OF_WEEK=$(date +%u)   # 1=Monday … 7=Sunday
+DAY_OF_MONTH=$(date +%d)  # 01–31
 BACKUP_FILE="reddit_postgres_${TIMESTAMP}.sql.gz"
-BACKUP_PATH="${BACKUP_DIR}/${BACKUP_FILE}"
 
-# Create backup directory if it doesn't exist
-mkdir -p "$BACKUP_DIR"
+# Create GFS tier directories
+mkdir -p "$DAILY_DIR" "$WEEKLY_DIR" "$MONTHLY_DIR"
 
-echo "Starting PostgreSQL backup..."
+echo "Starting PostgreSQL backup (GFS rotation)..."
 echo "Database: $POSTGRES_DB"
-echo "Backup file: $BACKUP_PATH"
+echo "Timestamp: $TIMESTAMP"
 echo ""
 
 # Check if container is running
@@ -31,35 +45,63 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${POSTGRES_CONTAINER}$"; then
     exit 1
 fi
 
-# Perform backup using docker exec and pg_dump
-# Pipe directly to gzip for compression
-echo "Creating backup..."
+# --- Step 1: Create today's daily backup ---
+DAILY_PATH="${DAILY_DIR}/${BACKUP_FILE}"
+echo "Creating daily backup: $DAILY_PATH"
 docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" "$POSTGRES_CONTAINER" \
-    pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "$BACKUP_PATH"
+    pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "$DAILY_PATH"
 
-# Check if backup was successful
-if [ $? -eq 0 ] && [ -f "$BACKUP_PATH" ]; then
-    BACKUP_SIZE=$(du -h "$BACKUP_PATH" | cut -f1)
-    echo ""
-    echo "✓ Backup completed successfully!"
-    echo "  File: $BACKUP_PATH"
-    echo "  Size: $BACKUP_SIZE"
-    echo ""
-    
-    # Show existing backups
-    echo "Existing backups in $BACKUP_DIR:"
-    ls -lh "$BACKUP_DIR"/reddit_postgres_*.sql.gz 2>/dev/null || echo "  (no previous backups found)"
-    echo ""
-    
-    # Calculate total backup size
-    TOTAL_SIZE=$(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1)
-    echo "Total backup directory size: $TOTAL_SIZE"
-else
-    echo ""
+if [ ! -f "$DAILY_PATH" ]; then
     echo "✗ Backup failed!"
     exit 1
 fi
 
+BACKUP_SIZE=$(du -h "$DAILY_PATH" | cut -f1)
+echo "✓ Daily backup created (${BACKUP_SIZE})"
+
+# --- Step 2: Promote to weekly if today is Sunday ---
+if [ "$DAY_OF_WEEK" -eq 7 ]; then
+    cp "$DAILY_PATH" "${WEEKLY_DIR}/${BACKUP_FILE}"
+    echo "✓ Weekly backup saved (Sunday)"
+fi
+
+# --- Step 3: Promote to monthly if today is the 1st ---
+if [ "$DAY_OF_MONTH" -eq "01" ]; then
+    cp "$DAILY_PATH" "${MONTHLY_DIR}/${BACKUP_FILE}"
+    echo "✓ Monthly backup saved (1st of month)"
+fi
+
+# --- Step 4: Purge old backups per retention policy ---
 echo ""
-echo "To restore this backup:"
-echo "  gunzip < $BACKUP_PATH | docker exec -i -e PGPASSWORD='$POSTGRES_PASSWORD' $POSTGRES_CONTAINER psql -U $POSTGRES_USER $POSTGRES_DB"
+echo "Purging old backups..."
+
+purge_old() {
+    local dir="$1"
+    local keep_days="$2"
+    local count
+    count=$(find "$dir" -name "*.sql.gz" -mtime +"$keep_days" | wc -l)
+    if [ "$count" -gt 0 ]; then
+        find "$dir" -name "*.sql.gz" -mtime +"$keep_days" -delete
+        echo "  Removed $count file(s) older than ${keep_days} days from $(basename "$dir")/"
+    else
+        echo "  Nothing to purge in $(basename "$dir")/"
+    fi
+}
+
+purge_old "$DAILY_DIR"   "$DAILY_KEEP"
+purge_old "$WEEKLY_DIR"  "$WEEKLY_KEEP"
+purge_old "$MONTHLY_DIR" "$MONTHLY_KEEP"
+
+# --- Summary ---
+echo ""
+echo "Backup summary:"
+printf "  %-12s %s files\n" "daily:"   "$(ls "$DAILY_DIR"/*.sql.gz   2>/dev/null | wc -l)"
+printf "  %-12s %s files\n" "weekly:"  "$(ls "$WEEKLY_DIR"/*.sql.gz  2>/dev/null | wc -l)"
+printf "  %-12s %s files\n" "monthly:" "$(ls "$MONTHLY_DIR"/*.sql.gz 2>/dev/null | wc -l)"
+echo ""
+TOTAL_SIZE=$(du -sh "$BACKUP_DIR" 2>/dev/null | cut -f1)
+echo "Total backup directory size: $TOTAL_SIZE"
+
+echo ""
+echo "To restore the latest daily backup:"
+echo "  gunzip < ${DAILY_DIR}/${BACKUP_FILE} | docker exec -i -e PGPASSWORD='$POSTGRES_PASSWORD' $POSTGRES_CONTAINER psql -U $POSTGRES_USER $POSTGRES_DB"
