@@ -9,7 +9,7 @@ POSTGRES_CONTAINER="reddit-postgres"
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="secret!1234"
 POSTGRES_DB="reddit"
-BACKUP_DIR="${BACKUP_DIR:-./backups}"
+BACKUP_DIR="${BACKUP_DIR:-./backups/daily/}"
 
 # Function to list available backups
 list_backups() {
