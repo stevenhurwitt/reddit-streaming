@@ -187,6 +187,9 @@ services:
       KAFKA_LOG_DIRS: /kafka/kafka-logs
       KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 60000
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 60000
+      # Retention configuration: keep messages for 30 days or 10GB (whichever comes first)
+      KAFKA_LOG_RETENTION_HOURS: 720
+      KAFKA_LOG_RETENTION_BYTES: 10737418240
     restart: always
     depends_on:
       - zookeeper
