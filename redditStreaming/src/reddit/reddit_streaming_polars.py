@@ -19,7 +19,7 @@ import yaml
 import time
 import pprint
 from typing import Dict, Any, Optional
-from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING
+from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING, OFFSET_END
 from deltalake import DeltaTable, write_deltalake
 import s3fs
 from datetime import datetime
@@ -253,10 +253,10 @@ def clear_offset_checkpoint(subreddit: str):
 
 def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[str] = None) -> Consumer:
     """
-    Create a Kafka consumer for the specified subreddit with hybrid offset management.
+    Create a Kafka consumer for the specified subreddit with robust offset management.
     
-    Uses Kafka's native offset storage (__consumer_offsets topic) as primary mechanism
-    with file-based checkpoint as fallback for recovery.
+    Uses manual partition assignment (assign mode) with file-based checkpoint persistence.
+    Includes graceful recovery when offsets become unavailable.
     
     Args:
         kafka_host: Kafka broker hostname
@@ -266,12 +266,11 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     Returns:
         Consumer: Configured Kafka consumer
     """
-    # Hybrid config: Use Kafka's built-in offset storage with fallback to file checkpoints
+    # Config optimized for manual offset management with recovery
     conf = {
         'bootstrap.servers': f'{kafka_host}:9092',
-        'group.id': f"polars_reddit_{subreddit}",  # Used by Kafka for offset storage
-        'enable.auto.commit': True,  # Let Kafka manage offsets automatically
-        'auto.commit.interval.ms': 5000,  # Commit offset every 5 seconds
+        'group.id': f"polars_reddit_{subreddit}",  # Required by library
+        'enable.auto.commit': False,  # Manual offset management via file checkpoints
         'api.version.request.timeout.ms': 30000,  # Wait for API version negotiation
         'socket.timeout.ms': 60000,  # Socket timeout
         'session.timeout.ms': 60000,  # Session timeout
@@ -280,7 +279,7 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
         'fetch.min.bytes': 1,  # Fetch minimum 1 byte to avoid stalling
         'fetch.max.bytes': 52428800,  # 50MB max message size
         'isolation.level': 'read_committed',  # Read only committed messages
-        # Offset reset policy: If offset is lost/expired, start from latest
+        # Graceful degradation: if offset lost, move to latest (not earliest)
         'auto.offset.reset': 'latest',
     }
 
@@ -303,26 +302,41 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
     
     topic = f"reddit_{subreddit}"
     
-    # First, try to load and use file checkpoint as hint (for recovery scenarios)
+    # Load last committed offset from checkpoint
     last_offset = load_last_offset(subreddit)
     
-    # Use subscribe() for consumer group coordination instead of assign()
-    # This lets Kafka manage offsets automatically
-    try:
-        consumer.subscribe([topic])
-        print(f"Subscribed to topic: {topic} with consumer group: polars_reddit_{subreddit}")
-        
-        # If we have a checkpoint offset, seek to it after first poll
-        if last_offset is not None:
-            print(f"File checkpoint found: offset {last_offset}. Will resume after first poll.")
-        else:
-            print(f"No file checkpoint. Starting from Kafka consumer group offset or latest.")
-            
-    except Exception as e:
-        print(f"Error subscribing to topic: {e}")
-        raise
+    if last_offset is not None:
+        # Resume from last saved offset
+        offset = last_offset
+        print(f"Resuming from checkpoint offset: {offset}")
+    else:
+        # Start from earliest available message
+        offset = OFFSET_BEGINNING
+        print(f"Starting from beginning (no prior checkpoint)")
     
-    print(f"Kafka consumer created for topic: {topic}")
+    # Assign partition with specific offset
+    tp = TopicPartition(topic, 0, offset)
+    try:
+        consumer.assign([tp])
+        print(f"Assigned topic partition: {topic} (partition 0) at offset {offset}")
+    except Exception as e:
+        print(f"Error assigning partition: {e}")
+        # If assignment fails (topic doesn't exist yet), clear checkpoint and retry
+        if last_offset is not None and ("UNKNOWN_TOPIC_OR_PART" in str(e) or "not available" in str(e).lower()):
+            print(f"Topic {topic} not yet available or offset {last_offset} invalid. Clearing checkpoint and retrying...")
+            clear_offset_checkpoint(subreddit)
+            # Retry with OFFSET_BEGINNING
+            tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+            try:
+                consumer.assign([tp])
+                print(f"Re-assigned to start from beginning")
+            except Exception as retry_err:
+                print(f"Error on retry: {retry_err}")
+                raise
+        else:
+            raise
+    
+    print(f"Kafka consumer created for topic: {topic}, partition 0")
     return consumer
 
 
@@ -391,33 +405,44 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak = 0
                 continue
             
-            # Handle offset out of range - Kafka will auto-reset based on auto.offset.reset policy
+            # Handle offset out of range - reset to latest and continue
             elif 'out of range' in error_str.lower() or error_code == -191:
                 print(f"Offset out of range for {subreddit}: {msg.error()}")
-                print(f"Kafka will auto-reset to latest per auto.offset.reset=latest policy")
-                # Clear file checkpoint so next restart uses Kafka's decision
+                print(f"Resetting to latest available offset")
                 clear_offset_checkpoint(subreddit)
+                # Seek consumer to end to recover
+                topic = f"reddit_{subreddit}"
+                tp = TopicPartition(topic, 0, OFFSET_END)
+                consumer.seek(tp)
+                print(f"Consumer repositioned to end of {topic}")
                 error_streak = 0
-                continue  # Continue consuming, Kafka handles the reset
+                continue  # Continue consuming from new position
             
-            # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart.
-            # Kafka consumer group mechanism will handle this automatically.
+            # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart
             elif error_code == 103:
                 print(f"Fenced leader epoch for {subreddit}: {msg.error()}")
-                print(f"Leader epoch stale (likely broker restart). Consumer will rejoin group.")
-                # Clear file checkpoint - let Kafka manage recovery
+                print(f"Leader epoch stale (likely broker restart). Resetting to beginning to refresh epoch.")
                 clear_offset_checkpoint(subreddit)
+                topic = f"reddit_{subreddit}"
+                tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                consumer.seek(tp)
+                print(f"Consumer repositioned to beginning of {topic} to recover epoch")
                 error_streak = 0
                 continue
 
             # Handle fetch/broker errors with retry
-            elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader']) or error_code in [-187, -215]:
+            elif any(x in error_str.lower() for x in ['fetch', 'broker', 'timed out', 'not leader', 'unknown topic']) or error_code in [-187, -215, 3]:
                 error_streak += 1
                 print(f"Broker/fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
                 if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off...")
-                    # Clear checkpoint - Kafka will handle offset recovery on next poll
+                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off and seeking to beginning...")
                     clear_offset_checkpoint(subreddit)
+                    topic = f"reddit_{subreddit}"
+                    tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                    try:
+                        consumer.seek(tp)
+                    except:
+                        pass  # Topic might not exist yet
                     time.sleep(5)
                     error_streak = 0
                 continue
