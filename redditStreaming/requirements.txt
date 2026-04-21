@@ -16,6 +16,7 @@ certifi
 cffi
 charset-normalizer
 colorama
+confluent_kafka
 cryptography
 debugpy
 decorator
