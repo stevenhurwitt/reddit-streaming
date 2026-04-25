@@ -93,6 +93,7 @@ PyYAML
 pyzmq
 requests
 rsa
+s3fs
 s3transfer
 Send2Trash
 setuptools
