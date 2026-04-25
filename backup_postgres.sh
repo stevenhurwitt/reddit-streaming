@@ -13,11 +13,17 @@ POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="secret!1234"
 POSTGRES_DB="reddit"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
+MIRROR_DIR="/mnt/samsung/reddit-streaming/backups"
 
 # GFS tier directories
 DAILY_DIR="${BACKUP_DIR}/daily"
 WEEKLY_DIR="${BACKUP_DIR}/weekly"
 MONTHLY_DIR="${BACKUP_DIR}/monthly"
+
+# Mirror directories on external drive
+MIRROR_DAILY_DIR="${MIRROR_DIR}/daily"
+MIRROR_WEEKLY_DIR="${MIRROR_DIR}/weekly"
+MIRROR_MONTHLY_DIR="${MIRROR_DIR}/monthly"
 
 # Retention limits
 DAILY_KEEP=7    # days
@@ -30,8 +36,15 @@ DAY_OF_WEEK=$(date +%u)   # 1=Monday … 7=Sunday
 DAY_OF_MONTH=$(date +%d)  # 01–31
 BACKUP_FILE="reddit_postgres_${TIMESTAMP}.sql.gz"
 
-# Create GFS tier directories
+# Create GFS tier directories (local + mirror)
 mkdir -p "$DAILY_DIR" "$WEEKLY_DIR" "$MONTHLY_DIR"
+if [ -d "$MIRROR_DIR" ] || mkdir -p "$MIRROR_DIR" 2>/dev/null; then
+    mkdir -p "$MIRROR_DAILY_DIR" "$MIRROR_WEEKLY_DIR" "$MIRROR_MONTHLY_DIR"
+    MIRROR_AVAILABLE=true
+else
+    echo "WARNING: Mirror destination '$MIRROR_DIR' is not available. Skipping mirror."
+    MIRROR_AVAILABLE=false
+fi
 
 echo "Starting PostgreSQL backup (GFS rotation)..."
 echo "Database: $POSTGRES_DB"
@@ -59,16 +72,30 @@ fi
 BACKUP_SIZE=$(du -h "$DAILY_PATH" | cut -f1)
 echo "✓ Daily backup created (${BACKUP_SIZE})"
 
+# Copy daily backup to mirror
+if [ "$MIRROR_AVAILABLE" = true ]; then
+    sudo cp "$DAILY_PATH" "${MIRROR_DAILY_DIR}/${BACKUP_FILE}"
+    echo "✓ Daily backup mirrored to $MIRROR_DAILY_DIR"
+fi
+
 # --- Step 2: Promote to weekly if today is Sunday ---
 if [ "$DAY_OF_WEEK" -eq 7 ]; then
     cp "$DAILY_PATH" "${WEEKLY_DIR}/${BACKUP_FILE}"
     echo "✓ Weekly backup saved (Sunday)"
+    if [ "$MIRROR_AVAILABLE" = true ]; then
+        sudo cp "$DAILY_PATH" "${MIRROR_WEEKLY_DIR}/${BACKUP_FILE}"
+        echo "✓ Weekly backup mirrored to $MIRROR_WEEKLY_DIR"
+    fi
 fi
 
 # --- Step 3: Promote to monthly if today is the 1st ---
 if [ "$DAY_OF_MONTH" -eq "01" ]; then
     cp "$DAILY_PATH" "${MONTHLY_DIR}/${BACKUP_FILE}"
     echo "✓ Monthly backup saved (1st of month)"
+    if [ "$MIRROR_AVAILABLE" = true ]; then
+        sudo cp "$DAILY_PATH" "${MIRROR_MONTHLY_DIR}/${BACKUP_FILE}"
+        echo "✓ Monthly backup mirrored to $MIRROR_MONTHLY_DIR"
+    fi
 fi
 
 # --- Step 4: Purge old backups per retention policy ---
@@ -91,6 +118,15 @@ purge_old() {
 purge_old "$DAILY_DIR"   "$DAILY_KEEP"
 purge_old "$WEEKLY_DIR"  "$WEEKLY_KEEP"
 purge_old "$MONTHLY_DIR" "$MONTHLY_KEEP"
+
+# Purge mirror with same retention policy
+if [ "$MIRROR_AVAILABLE" = true ]; then
+    echo ""
+    echo "Purging old mirror backups..."
+    purge_old "$MIRROR_DAILY_DIR"   "$DAILY_KEEP"
+    purge_old "$MIRROR_WEEKLY_DIR"  "$WEEKLY_KEEP"
+    purge_old "$MIRROR_MONTHLY_DIR" "$MONTHLY_KEEP"
+fi
 
 # --- Summary ---
 echo ""
