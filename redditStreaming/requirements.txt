@@ -61,7 +61,7 @@ nbformat
 nest-asyncio
 notebook
 notebook_shim
-numpy
+numpy<2
 packaging
 pandas
 pandocfilters
@@ -78,7 +78,7 @@ psycopg2
 ptyprocess
 pure-eval
 py4j
-pyarrow
+pyarrow==14.0.2
 pyasn1
 pycparser
 Pygments
