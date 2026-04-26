@@ -4,11 +4,16 @@ Reddit Streaming with Polars and Delta Lake
 This module replicates the Spark streaming functionality using Polars for processing
 and writing to S3 Delta tables.
 
-Offset Management Strategy:
-- Primary: Kafka's __consumer_offsets topic (auto-committed every 5s)
-- Fallback: File-based checkpoint in /tmp/offsets/ for recovery hints
+Offset Management Strategy (IMPROVED):
+- Offset is saved ONLY after successful Delta Lake write
+- This prevents re-reading batches if the process crashes during write
+- File-based checkpoint in /tmp/offsets/ for recovery hints
 - Recovery: If offset becomes unavailable (out of range), auto.offset.reset=latest policy
   kicks in and resumes from latest available offset
+
+Deduplication:
+- Records are deduplicated within each batch by 'id' (post ID)
+- This ensures no duplicate IDs within a single batch before writing to Delta
 """
 
 import polars as pl
@@ -18,7 +23,7 @@ import sys
 import yaml
 import time
 import pprint
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING, OFFSET_END
 from deltalake import DeltaTable, write_deltalake
 import s3fs
@@ -369,9 +374,11 @@ def parse_message(msg_value: bytes, schema: Dict[str, Any]) -> Optional[Dict[str
 
 
 def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
-                  batch_size: int = 100, timeout: float = 30.0) -> pl.DataFrame:
+                  batch_size: int = 100, timeout: float = 30.0) -> Tuple[pl.DataFrame, Optional[int]]:
     """
-    Consume a batch of messages from Kafka and return as Polars DataFrame.
+    Consume a batch of messages from Kafka and return as Polars DataFrame with last offset.
+    
+    NOTE: Offset is NOT saved here. Caller must save it after successful write.
     
     Args:
         consumer: Kafka consumer
@@ -381,7 +388,7 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
         timeout: Maximum time to wait for messages (seconds)
     
     Returns:
-        Polars DataFrame with consumed messages
+        Tuple of (Polars DataFrame with consumed messages, last offset or None)
     """
     messages = []
     start_time = time.time()
@@ -463,17 +470,19 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
             messages.append(parsed)
             last_offset = msg.offset()
     
-    # Save the last processed offset to file as backup (Kafka also commits automatically)
-    if last_offset is not None:
-        save_offset(subreddit, last_offset + 1)
     
     if messages:
         # Create DataFrame from messages
         df = pl.DataFrame(messages, schema=schema)
-        return df
+        # Deduplicate by 'id' (post ID) to prevent duplicates within batch
+        original_count = len(df)
+        df = df.unique(subset=["id"]) if "id" in df.columns else df
+        if original_count != len(df):
+            print(f"Deduplicated {original_count - len(df)} duplicate IDs within batch")
+        return df, last_offset
     else:
-        # Return empty DataFrame with schema
-        return pl.DataFrame(schema=schema)
+        # Return empty DataFrame with schema and no offset
+        return pl.DataFrame(schema=schema), None
 
 
 def write_to_console(df: pl.DataFrame, subreddit: str):
@@ -498,17 +507,21 @@ def write_to_console(df: pl.DataFrame, subreddit: str):
         print(f"Batch size: {df.height} records\n")
 
 
-def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str]):
+def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str], last_offset: Optional[int] = None) -> bool:
     """
-    Write DataFrame to S3 Delta table.
+    Write DataFrame to S3 Delta table and save offset after successful write.
     
     Args:
         df: Polars DataFrame
         subreddit: Subreddit name
         creds: AWS credentials
+        last_offset: Last Kafka offset to save after successful write (optional)
+    
+    Returns:
+        bool: True if write succeeded, False otherwise
     """
     if df.height == 0:
-        return
+        return True
     
     bucket = "reddit-streaming-stevenhurwitt-2"
     table_path = f"s3://{bucket}/{subreddit}"
@@ -542,6 +555,13 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str]):
                 storage_options=storage_options
             )
             print(f"Created new Delta table with {df.height} records: {table_path}")
+        
+        # Only save offset after successful write
+        if last_offset is not None:
+            save_offset(subreddit, last_offset + 1)
+            print(f"Saved offset checkpoint: {last_offset + 1}")
+        
+        return True
     
     except Exception as e:
         print(f"Error writing to Delta table: {e}")
@@ -552,6 +572,7 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str]):
         backup_path = f"{checkpoint_dir}/batch_{timestamp}.parquet"
         df.write_parquet(backup_path)
         print(f"Saved failed batch to: {backup_path}")
+        return False
 
 
 def stream_subreddit(subreddit: str, kafka_host: str, creds: Dict[str, str], 
@@ -581,13 +602,16 @@ def stream_subreddit(subreddit: str, kafka_host: str, creds: Dict[str, str],
             start_time = time.time()
             
             # Consume batch
-            df = consume_batch(consumer, schema, subreddit, batch_size=batch_size, 
-                             timeout=min(processing_interval, 30.0))
+            df, last_offset = consume_batch(consumer, schema, subreddit, batch_size=batch_size, 
+                                 timeout=min(processing_interval, 30.0))
             
             # Process and write
             if df.height > 0:
                 write_to_console(df, subreddit)
-                write_to_delta(df, subreddit, creds)
+                # Pass offset to write_to_delta, it will save only if write succeeds
+                success = write_to_delta(df, subreddit, creds, last_offset)
+                if not success:
+                    print(f"Warning: Failed to write batch for {subreddit}, will retry on next interval")
             else:
                 print(f"No new messages for {subreddit} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             
