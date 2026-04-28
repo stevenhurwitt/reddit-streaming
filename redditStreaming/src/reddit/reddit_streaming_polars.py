@@ -13,10 +13,7 @@ Offset Management Strategy (IMPROVED):
 
 Deduplication:
 - Records are deduplicated within each batch by 'id' (post ID)
-- Cross-batch deduplication is enforced at write time via Delta Lake merge/upsert:
-  rows whose 'id' already exists in the table are silently skipped (when_not_matched_insert_all)
-- Error recovery seeks to OFFSET_END (latest) rather than OFFSET_BEGINNING to avoid
-  replaying the entire topic history on transient errors
+- This ensures no duplicate IDs within a single batch before writing to Delta
 """
 
 import polars as pl
@@ -29,9 +26,7 @@ import pprint
 from typing import Dict, Any, Optional, Tuple
 from confluent_kafka import Consumer, KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING, OFFSET_END
 from deltalake import DeltaTable, write_deltalake
-from deltalake.exceptions import TableNotFoundError
 import s3fs
-import pyarrow as pa
 from datetime import datetime
 
 pp = pprint.PrettyPrinter(indent=1)
@@ -430,15 +425,15 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak = 0
                 continue  # Continue consuming from new position
             
-            # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart.
-            # Seek to OFFSET_END (latest) to refresh the epoch without replaying old messages.
+            # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart
             elif error_code == 103:
                 print(f"Fenced leader epoch for {subreddit}: {msg.error()}")
-                print(f"Leader epoch stale (likely broker restart). Seeking to latest to refresh epoch.")
+                print(f"Leader epoch stale (likely broker restart). Resetting to beginning to refresh epoch.")
+                clear_offset_checkpoint(subreddit)
                 topic = f"reddit_{subreddit}"
-                tp = TopicPartition(topic, 0, OFFSET_END)
+                tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
                 consumer.seek(tp)
-                print(f"Consumer repositioned to end of {topic} to recover epoch")
+                print(f"Consumer repositioned to beginning of {topic} to recover epoch")
                 error_streak = 0
                 continue
 
@@ -447,9 +442,10 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak += 1
                 print(f"Broker/fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
                 if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off and seeking to latest...")
+                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off and seeking to beginning...")
+                    clear_offset_checkpoint(subreddit)
                     topic = f"reddit_{subreddit}"
-                    tp = TopicPartition(topic, 0, OFFSET_END)
+                    tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
                     try:
                         consumer.seek(tp)
                     except:
@@ -513,8 +509,7 @@ def write_to_console(df: pl.DataFrame, subreddit: str):
 
 def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str], last_offset: Optional[int] = None) -> bool:
     """
-    Write DataFrame to S3 Delta table using merge/upsert on 'id' to prevent duplicates.
-    Saves offset only after a successful write.
+    Write DataFrame to S3 Delta table and save offset after successful write.
     
     Args:
         df: Polars DataFrame
@@ -531,6 +526,7 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str], last
     bucket = "reddit-streaming-stevenhurwitt-2"
     table_path = f"s3://{bucket}/{subreddit}"
     
+    # Set up S3 storage options
     storage_options = {
         "AWS_ACCESS_KEY_ID": creds["aws_client"],
         "AWS_SECRET_ACCESS_KEY": creds["aws_secret"],
@@ -539,34 +535,28 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str], last
     }
     
     try:
-        arrow_df = df.to_arrow()
-
+        # Check if Delta table exists
         try:
             dt = DeltaTable(table_path, storage_options=storage_options)
-            # Merge/upsert: insert only rows whose 'id' does not already exist in the table.
-            # This prevents cross-batch duplicates across runs and restarts.
-            (
-                dt.merge(
-                    source=arrow_df,
-                    predicate="target.id = source.id",
-                    source_alias="source",
-                    target_alias="target",
-                )
-                .when_not_matched_insert_all()
-                .execute()
-            )
-            print(f"Merged {df.height} records into Delta table (new rows only): {table_path}")
-        except TableNotFoundError:
-            # Table does not exist yet — create it.
+            # Append to existing table
             write_deltalake(
                 table_path,
-                arrow_df,
+                df,
+                mode="append",
+                storage_options=storage_options
+            )
+            print(f"Appended {df.height} records to Delta table: {table_path}")
+        except Exception:
+            # Create new Delta table
+            write_deltalake(
+                table_path,
+                df,
                 mode="overwrite",
-                storage_options=storage_options,
+                storage_options=storage_options
             )
             print(f"Created new Delta table with {df.height} records: {table_path}")
         
-        # Save offset only after a confirmed successful write.
+        # Only save offset after successful write
         if last_offset is not None:
             save_offset(subreddit, last_offset + 1)
             print(f"Saved offset checkpoint: {last_offset + 1}")
@@ -575,6 +565,7 @@ def write_to_delta(df: pl.DataFrame, subreddit: str, creds: Dict[str, str], last
     
     except Exception as e:
         print(f"Error writing to Delta table: {e}")
+        # Fallback: save to local checkpoint
         checkpoint_dir = f"/opt/workspace/checkpoints/polars_{subreddit}_failed"
         os.makedirs(checkpoint_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
