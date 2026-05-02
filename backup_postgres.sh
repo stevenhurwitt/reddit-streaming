@@ -85,7 +85,7 @@ echo "✓ Daily backup created (${BACKUP_SIZE})"
 
 # Copy daily backup to mirror
 if [ "$MIRROR_AVAILABLE" = true ]; then
-    echo "graycie123" | sudo cp "$DAILY_PATH" "${MIRROR_DAILY_DIR}/${BACKUP_FILE}"
+    sudo cp "$DAILY_PATH" "${MIRROR_DAILY_DIR}/${BACKUP_FILE}"
     echo "✓ Daily backup mirrored to $MIRROR_DAILY_DIR"
 fi
 
@@ -94,7 +94,7 @@ if [ "$DAY_OF_WEEK" -eq 7 ]; then
     cp "$DAILY_PATH" "${WEEKLY_DIR}/${BACKUP_FILE}"
     echo "✓ Weekly backup saved (Sunday)"
     if [ "$MIRROR_AVAILABLE" = true ]; then
-        echo "graycie123" | sudo cp "$DAILY_PATH" "${MIRROR_WEEKLY_DIR}/${BACKUP_FILE}"
+        sudo cp "$DAILY_PATH" "${MIRROR_WEEKLY_DIR}/${BACKUP_FILE}"
         echo "✓ Weekly backup mirrored to $MIRROR_WEEKLY_DIR"
     fi
 fi
@@ -104,7 +104,7 @@ if [ "$DAY_OF_MONTH" -eq "01" ]; then
     cp "$DAILY_PATH" "${MONTHLY_DIR}/${BACKUP_FILE}"
     echo "✓ Monthly backup saved (1st of month)"
     if [ "$MIRROR_AVAILABLE" = true ]; then
-        echo "graycie123" | sudo cp "$DAILY_PATH" "${MIRROR_MONTHLY_DIR}/${BACKUP_FILE}"
+        sudo cp "$DAILY_PATH" "${MIRROR_MONTHLY_DIR}/${BACKUP_FILE}"
         echo "✓ Monthly backup mirrored to $MIRROR_MONTHLY_DIR"
     fi
 fi

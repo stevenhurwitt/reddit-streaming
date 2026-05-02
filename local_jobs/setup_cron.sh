@@ -68,12 +68,12 @@ add_or_update_cron "REDDIT_CRON - worldnews curation" \
 
 # Backup Postgres database - 12:45 AM (00:45)
 add_or_update_cron "REDDIT_CRON - backup postgres" \
-    "0 1 * * *" \
+    "15 1 * * *" \
     "cd /home/steven/reddit-streaming && ./backup_postgres.sh >> $LOG_DIR/backup_postgres.log 2>&1"
 
 # Start streaming (Polars) - 12:50 AM (00:50)
 add_or_update_cron "REDDIT_CRON - start streaming polars" \
-    "5 1 * * *" \
+    "20 1 * * *" \
     "cd /home/steven/reddit-streaming && ./start_streaming.sh polars >> $LOG_DIR/start_streaming.log 2>&1"
 
 # Install the crontab
@@ -85,11 +85,11 @@ echo ""
 echo "Scheduled jobs (Local time):"
 echo "  • 11:55 PM - Stop streaming"
 echo "  • 12:00 AM - News curation"
-echo "  • 12:10 AM - Technology curation"
-echo "  • 12:25 AM - ProgrammerHumor curation"
-echo "  • 12:35 AM - Worldnews curation"
-echo "  • 12:55 AM - Backup PostgreSQL database"
-echo "  • 1:00 AM - Start streaming (Polars)"
+echo "  • 12:15 AM - Technology curation"
+echo "  • 12:30 AM - ProgrammerHumor curation"
+echo "  • 12:40 AM - Worldnews curation"
+echo "  • 1:15 AM - Backup PostgreSQL database"
+echo "  • 1:20 AM - Start streaming (Polars)"
 echo ""
 echo "Logs location: $LOG_DIR/"
 echo ""
