@@ -10,10 +10,21 @@ set -e
 # Configuration
 POSTGRES_CONTAINER="reddit-postgres"
 POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="secret!1234"
 POSTGRES_DB="reddit"
 BACKUP_DIR="${BACKUP_DIR:-./backups}"
 MIRROR_DIR="/mnt/samsung/reddit-streaming/backups"
+
+# Setup .pgpass for passwordless authentication
+PGPASS_FILE="${HOME}/.pgpass"
+PGPASS_ENTRY="localhost:5432:${POSTGRES_DB}:${POSTGRES_USER}:secret!1234"
+
+# Ensure .pgpass exists with correct permissions (required for pg_dump)
+if [ ! -f "$PGPASS_FILE" ]; then
+    echo "$PGPASS_ENTRY" > "$PGPASS_FILE"
+    chmod 600 "$PGPASS_FILE"
+elif ! grep -q "$POSTGRES_DB:$POSTGRES_USER" "$PGPASS_FILE"; then
+    echo "$PGPASS_ENTRY" >> "$PGPASS_FILE"
+fi
 
 # GFS tier directories
 DAILY_DIR="${BACKUP_DIR}/daily"
@@ -61,7 +72,7 @@ fi
 # --- Step 1: Create today's daily backup ---
 DAILY_PATH="${DAILY_DIR}/${BACKUP_FILE}"
 echo "Creating daily backup: $DAILY_PATH"
-docker exec -e PGPASSWORD="$POSTGRES_PASSWORD" "$POSTGRES_CONTAINER" \
+docker exec "$POSTGRES_CONTAINER" \
     pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" | gzip > "$DAILY_PATH"
 
 if [ ! -f "$DAILY_PATH" ]; then
@@ -140,4 +151,4 @@ echo "Total backup directory size: $TOTAL_SIZE"
 
 echo ""
 echo "To restore the latest daily backup:"
-echo "  gunzip < ${DAILY_DIR}/${BACKUP_FILE} | docker exec -i -e PGPASSWORD='$POSTGRES_PASSWORD' $POSTGRES_CONTAINER psql -U $POSTGRES_USER $POSTGRES_DB"
+echo "  gunzip < ${DAILY_DIR}/${BACKUP_FILE} | docker exec -i $POSTGRES_CONTAINER psql -U $POSTGRES_USER $POSTGRES_DB"
