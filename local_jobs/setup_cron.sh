@@ -53,27 +53,27 @@ add_or_update_cron "REDDIT_CRON - news curation" \
 
 # Technology curation - 12:10 AM (00:10)
 add_or_update_cron "REDDIT_CRON - technology curation" \
-    "10 0 * * *" \
+    "15 0 * * *" \
     "cd /home/steven/reddit-streaming/local_jobs && /home/steven/reddit-streaming/.venv/bin/python run_curation_job_polars.py --job technology --handle-duplicates skip >> $LOG_DIR/technology.log 2>&1"
 
 # ProgrammerHumor curation - 12:20 AM (00:20)
 add_or_update_cron "REDDIT_CRON - programmerhumor curation" \
-    "25 0 * * *" \
+    "30 0 * * *" \
     "cd /home/steven/reddit-streaming/local_jobs && /home/steven/reddit-streaming/.venv/bin/python run_curation_job_polars.py --job ProgrammerHumor --handle-duplicates skip >> $LOG_DIR/ProgrammerHumor.log 2>&1"
 
 # Worldnews curation - 12:30 AM (00:30)
 add_or_update_cron "REDDIT_CRON - worldnews curation" \
-    "35 0 * * *" \
+    "40 0 * * *" \
     "cd /home/steven/reddit-streaming/local_jobs && /home/steven/reddit-streaming/.venv/bin/python run_curation_job_polars.py --job worldnews --handle-duplicates skip >> $LOG_DIR/worldnews.log 2>&1"
 
 # Backup Postgres database - 12:45 AM (00:45)
 add_or_update_cron "REDDIT_CRON - backup postgres" \
-    "55 0 * * *" \
+    "0 1 * * *" \
     "cd /home/steven/reddit-streaming && ./backup_postgres.sh >> $LOG_DIR/backup_postgres.log 2>&1"
 
 # Start streaming (Polars) - 12:50 AM (00:50)
 add_or_update_cron "REDDIT_CRON - start streaming polars" \
-    "0 1 * * *" \
+    "5 1 * * *" \
     "cd /home/steven/reddit-streaming && ./start_streaming.sh polars >> $LOG_DIR/start_streaming.log 2>&1"
 
 # Install the crontab
