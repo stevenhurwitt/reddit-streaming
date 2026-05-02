@@ -94,11 +94,12 @@ def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key
         table_uri = f"s3://{bucket}/{subreddit}"
         dt = DeltaTable(table_uri, storage_options=storage_options)
         
-        # Use lazy evaluation to stream data
-        lazy_df = dt.to_lazy()
+        # Convert Delta table to Polars DataFrame via PyArrow
+        arrow_table = dt.to_pyarrow_table()
+        df = pl.from_arrow(arrow_table)
         
         # Get total record count
-        total_records = lazy_df.select(pl.len()).collect().item()
+        total_records = len(df)
         logger.info(f"Total records to process: {total_records}")
         
         # Read and yield in batches
@@ -106,7 +107,7 @@ def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key
         batch_num = 0
         while offset < total_records:
             batch_num += 1
-            df_batch = lazy_df.slice(offset, batch_size).collect()
+            df_batch = df.slice(offset, batch_size)
             
             if len(df_batch) > 0:
                 logger.info(f"Batch {batch_num}: Read {len(df_batch)} records (offset: {offset})")
