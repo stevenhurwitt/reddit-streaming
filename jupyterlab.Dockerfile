@@ -8,9 +8,9 @@ ARG jupyterlab_version=4.3.4
 COPY ./redditStreaming/requirements.txt ${SHARED_WORKSPACE}/redditStreaming/
 COPY ./redditStreaming/ ${SHARED_WORKSPACE}/redditStreaming/
 
-# Install PostgreSQL development libraries for psycopg2
+# Install PostgreSQL development libraries for psycopg2 and librdkafka for confluent-kafka
 RUN apt-get update -y && \
-    apt-get install -y postgresql-server-dev-all && \
+    apt-get install -y postgresql-server-dev-all librdkafka-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install uv - fast Python package installer

@@ -4,26 +4,31 @@ JUPYTERLAB_VERSION="4.3.4"
 
 # -- Building the Images using docker build
 
-docker build \
-  -f cluster-base.Dockerfile \
-  -t cluster-base .
+docker buildx build \
+  --file cluster-base.Dockerfile \
+  -t cluster-base \
+  --load .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg hadoop_version="${HADOOP_VERSION}" \
-  -f spark-base.Dockerfile \
-  -t spark-base .
+  --file spark-base.Dockerfile \
+  -t spark-base \
+  --load .
 
-docker build \
-  -f spark-master.Dockerfile \
-  -t spark-master .
+docker buildx build \
+  --file spark-master.Dockerfile \
+  -t spark-master \
+  --load .
 
-docker build \
-  -f spark-worker.Dockerfile \
-  -t spark-worker .
+docker buildx build \
+  --file spark-worker.Dockerfile \
+  -t spark-worker \
+  --load .
 
 docker build \
   --build-arg spark_version="${SPARK_VERSION}" \
   --build-arg jupyterlab_version="${JUPYTERLAB_VERSION}" \
-  -f jupyterlab.Dockerfile \
-  -t jupyterlab .
+  --file jupyterlab.Dockerfile \
+  -t jupyterlab \
+  --load .

@@ -16,6 +16,7 @@ certifi
 cffi
 charset-normalizer
 colorama
+confluent_kafka
 cryptography
 debugpy
 decorator
@@ -60,7 +61,7 @@ nbformat
 nest-asyncio
 notebook
 notebook_shim
-numpy
+numpy<2
 packaging
 pandas
 pandocfilters
@@ -77,7 +78,7 @@ psycopg2
 ptyprocess
 pure-eval
 py4j
-pyarrow
+pyarrow==14.0.2
 pyasn1
 pycparser
 Pygments
@@ -92,6 +93,7 @@ PyYAML
 pyzmq
 requests
 rsa
+s3fs
 s3transfer
 Send2Trash
 setuptools
