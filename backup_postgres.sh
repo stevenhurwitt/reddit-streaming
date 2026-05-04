@@ -116,27 +116,36 @@ echo "Purging old backups..."
 purge_old() {
     local dir="$1"
     local keep_days="$2"
+    local use_sudo="$3"
     local count
-    count=$(find "$dir" -name "*.sql.gz" -mtime +"$keep_days" | wc -l)
+    local find_cmd="find"
+    local delete_cmd=""
+    
+    if [ "$use_sudo" = true ]; then
+        find_cmd="sudo find"
+        delete_cmd="sudo "
+    fi
+    
+    count=$($find_cmd "$dir" -name "*.sql.gz" -mtime +"$keep_days" 2>/dev/null | wc -l)
     if [ "$count" -gt 0 ]; then
-        find "$dir" -name "*.sql.gz" -mtime +"$keep_days" -delete
+        ${delete_cmd}find "$dir" -name "*.sql.gz" -mtime +"$keep_days" -delete
         echo "  Removed $count file(s) older than ${keep_days} days from $(basename "$dir")/"
     else
         echo "  Nothing to purge in $(basename "$dir")/"
     fi
 }
 
-purge_old "$DAILY_DIR"   "$DAILY_KEEP"
-purge_old "$WEEKLY_DIR"  "$WEEKLY_KEEP"
-purge_old "$MONTHLY_DIR" "$MONTHLY_KEEP"
+purge_old "$DAILY_DIR"   "$DAILY_KEEP" false
+purge_old "$WEEKLY_DIR"  "$WEEKLY_KEEP" false
+purge_old "$MONTHLY_DIR" "$MONTHLY_KEEP" false
 
 # Purge mirror with same retention policy
 if [ "$MIRROR_AVAILABLE" = true ]; then
     echo ""
     echo "Purging old mirror backups..."
-    purge_old "$MIRROR_DAILY_DIR"   "$DAILY_KEEP"
-    purge_old "$MIRROR_WEEKLY_DIR"  "$WEEKLY_KEEP"
-    purge_old "$MIRROR_MONTHLY_DIR" "$MONTHLY_KEEP"
+    purge_old "$MIRROR_DAILY_DIR"   "$DAILY_KEEP" true
+    purge_old "$MIRROR_WEEKLY_DIR"  "$WEEKLY_KEEP" true
+    purge_old "$MIRROR_MONTHLY_DIR" "$MONTHLY_KEEP" true
 fi
 
 # --- Summary ---

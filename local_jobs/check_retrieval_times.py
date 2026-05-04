@@ -14,7 +14,7 @@ conn = psycopg2.connect(
 cursor = conn.cursor()
 
 # Check total count
-cursor.execute("SELECT COUNT(*) FROM worldnews")
+cursor.execute("SELECT COUNT(*) FROM reddit_schema.worldnews")
 total = cursor.fetchone()[0]
 print(f'Total worldnews records: {total}')
 print()
@@ -22,7 +22,7 @@ print()
 # Get latest records with retrieved_at
 cursor.execute("""
     SELECT post_id, title, created_utc, retrieved_at
-    FROM worldnews
+    FROM reddit_schema.worldnews
     ORDER BY retrieved_at DESC NULLS LAST
     LIMIT 15
 """)
@@ -42,7 +42,7 @@ cursor.execute("""
         MIN(retrieved_at) as oldest_retrieval,
         MAX(retrieved_at) as newest_retrieval,
         COUNT(*) as count
-    FROM worldnews
+    FROM reddit_schema.worldnews
     WHERE retrieved_at IS NOT NULL
 """)
 stats = cursor.fetchone()
