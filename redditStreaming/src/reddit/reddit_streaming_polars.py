@@ -328,13 +328,13 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
         print(f"Error assigning partition: {e}")
         # If assignment fails (topic doesn't exist yet), clear checkpoint and retry
         if last_offset is not None and ("UNKNOWN_TOPIC_OR_PART" in str(e) or "not available" in str(e).lower()):
-            print(f"Topic {topic} not yet available or offset {last_offset} invalid. Clearing checkpoint and retrying...")
+            print(f"Topic {topic} not yet available or offset {last_offset} invalid. Clearing checkpoint and seeking to latest...")
             clear_offset_checkpoint(subreddit)
-            # Retry with OFFSET_BEGINNING
-            tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+            # Retry with OFFSET_END (latest) to avoid re-processing old messages
+            tp = TopicPartition(topic, 0, OFFSET_END)
             try:
                 consumer.assign([tp])
-                print(f"Re-assigned to start from beginning")
+                print(f"Re-assigned to start from latest available offset (avoiding duplicates)")
             except Exception as retry_err:
                 print(f"Error on retry: {retry_err}")
                 raise
@@ -428,12 +428,25 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
             # Handle FENCED_LEADER_EPOCH (103): cached leader epoch is stale after broker restart
             elif error_code == 103:
                 print(f"Fenced leader epoch for {subreddit}: {msg.error()}")
-                print(f"Leader epoch stale (likely broker restart). Resetting to beginning to refresh epoch.")
-                clear_offset_checkpoint(subreddit)
+                print(f"Leader epoch stale (likely broker restart). Seeking to latest to refresh epoch and avoid duplicates.")
+                # Don't clear checkpoint - try to resume from where we were
                 topic = f"reddit_{subreddit}"
-                tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
-                consumer.seek(tp)
-                print(f"Consumer repositioned to beginning of {topic} to recover epoch")
+                # Try to get current position first
+                try:
+                    current_position = consumer.position([TopicPartition(topic, 0)])
+                    if current_position and current_position[0].offset >= 0:
+                        print(f"Current position: {current_position[0].offset}, continuing from there")
+                        consumer.seek(current_position[0])
+                    else:
+                        # Fall back to latest if position unknown
+                        tp = TopicPartition(topic, 0, OFFSET_END)
+                        consumer.seek(tp)
+                        print(f"Consumer repositioned to latest offset of {topic} (avoiding re-processing)")
+                except Exception as pos_err:
+                    print(f"Could not get position, seeking to latest: {pos_err}")
+                    tp = TopicPartition(topic, 0, OFFSET_END)
+                    consumer.seek(tp)
+                    print(f"Consumer repositioned to latest offset of {topic}")
                 error_streak = 0
                 continue
 
@@ -442,14 +455,21 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
                 error_streak += 1
                 print(f"Broker/fetch error for {subreddit} (attempt {error_streak}): {msg.error()}")
                 if error_streak >= max_consecutive_errors:
-                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off and seeking to beginning...")
-                    clear_offset_checkpoint(subreddit)
+                    print(f"Max consecutive errors ({max_consecutive_errors}) reached. Backing off and seeking to latest...")
                     topic = f"reddit_{subreddit}"
-                    tp = TopicPartition(topic, 0, OFFSET_BEGINNING)
+                    # Try to continue from current position, fall back to latest if needed
                     try:
-                        consumer.seek(tp)
-                    except:
-                        pass  # Topic might not exist yet
+                        current_position = consumer.position([TopicPartition(topic, 0)])
+                        if current_position and current_position[0].offset >= 0:
+                            print(f"Retrying from current position: {current_position[0].offset}")
+                        else:
+                            # Seek to latest to avoid re-processing, but don't clear checkpoint yet
+                            tp = TopicPartition(topic, 0, OFFSET_END)
+                            consumer.seek(tp)
+                            print(f"Repositioned to latest offset (avoiding duplicates)")
+                    except Exception as seek_err:
+                        print(f"Could not reposition consumer: {seek_err}")
+                        pass  # Topic might not exist yet, will retry
                     time.sleep(5)
                     error_streak = 0
                 continue
