@@ -348,6 +348,7 @@ def create_kafka_consumer(kafka_host: str, subreddit: str, group_id: Optional[st
 def parse_message(msg_value: bytes, schema: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Parse a Kafka message and validate against schema.
+    Convert complex nested objects to JSON strings to prevent schema mismatches.
     
     Args:
         msg_value: Raw message bytes
@@ -362,11 +363,24 @@ def parse_message(msg_value: bytes, schema: Dict[str, Any]) -> Optional[Dict[str
         # Ensure all schema fields are present (fill with None if missing)
         parsed_data = {}
         for field_name in schema.keys():
-            parsed_data[field_name] = data.get(field_name, None)
+            value = data.get(field_name, None)
+            
+            # Convert complex nested objects (dicts/lists) to JSON strings for Utf8 fields
+            if value is not None and isinstance(value, (dict, list)):
+                # Check if this field should be a string
+                if schema[field_name] == pl.Utf8:
+                    # Log that we're converting a complex object
+                    field_type = "list" if isinstance(value, list) else "dict"
+                    if field_name in ["media_embed", "secure_media_embed", "media", "secure_media"]:
+                        print(f"[Schema Fix] Converting {field_name} ({field_type}) to JSON string for: {data.get('title', 'unknown')[:50]}")
+                    # Convert complex object to JSON string
+                    value = json.dumps(value)
+            
+            parsed_data[field_name] = value
         
         return parsed_data
     except json.JSONDecodeError as e:
-        print(f"Failed to parse message: {e}")
+        print(f"Failed to parse message (JSON decode error): {e}")
         return None
     except Exception as e:
         print(f"Error processing message: {e}")
@@ -489,6 +503,9 @@ def consume_batch(consumer: Consumer, schema: Dict[str, Any], subreddit: str,
         if parsed:
             messages.append(parsed)
             last_offset = msg.offset()
+        else:
+            # Log when we skip a message due to parse failure
+            print(f"[Skipped] Failed to parse message from {subreddit} at offset {msg.offset()}")
     
     
     if messages:
