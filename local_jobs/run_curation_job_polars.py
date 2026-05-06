@@ -95,7 +95,7 @@ def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key
         dt = DeltaTable(table_uri, storage_options=storage_options)
         
         # Convert Delta table to PyArrow batches (streaming, not loading all into memory)
-        batch_reader = dt.to_pyarrow_dataset().to_batches(max_chunksize=batch_size)
+        batch_reader = dt.to_pyarrow_dataset().to_batches(batch_size=batch_size)
         
         batch_num = 0
         for arrow_batch in batch_reader:
