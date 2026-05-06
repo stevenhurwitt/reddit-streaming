@@ -69,7 +69,7 @@ def get_aws_credentials():
 
 
 def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key, 
-                               batch_size: int = 10000) -> Generator[pl.DataFrame, None, None]:
+                               batch_size: int = 5000) -> Generator[pl.DataFrame, None, None]:
     """Read Delta table from S3 in batches using Polars to minimize memory usage.
     
     Args:
@@ -94,26 +94,17 @@ def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key
         table_uri = f"s3://{bucket}/{subreddit}"
         dt = DeltaTable(table_uri, storage_options=storage_options)
         
-        # Convert Delta table to Polars DataFrame via PyArrow
-        arrow_table = dt.to_pyarrow_table()
-        df = pl.from_arrow(arrow_table)
+        # Convert Delta table to PyArrow batches (streaming, not loading all into memory)
+        batch_reader = dt.to_pyarrow_dataset().to_batches(max_chunksize=batch_size)
         
-        # Get total record count
-        total_records = len(df)
-        logger.info(f"Total records to process: {total_records}")
-        
-        # Read and yield in batches
-        offset = 0
         batch_num = 0
-        while offset < total_records:
+        for arrow_batch in batch_reader:
             batch_num += 1
-            df_batch = df.slice(offset, batch_size)
+            df_batch = pl.from_arrow(arrow_batch)
             
             if len(df_batch) > 0:
-                logger.info(f"Batch {batch_num}: Read {len(df_batch)} records (offset: {offset})")
+                logger.info(f"Batch {batch_num}: Read {len(df_batch)} records")
                 yield df_batch
-            
-            offset += batch_size
         
         logger.info(f"Completed reading all {batch_num} batches")
         
@@ -343,7 +334,7 @@ def vacuum_delta_table(bucket, subreddit, aws_access_key, aws_secret_key):
         raise
 
 
-def process_subreddit(subreddit, bucket, aws_access_key, aws_secret_key, batch_size=10000,
+def process_subreddit(subreddit, bucket, aws_access_key, aws_secret_key, batch_size=5000,
                       handle_duplicates="skip"):
     """Process a subreddit curation job using Polars with batch processing.
     
@@ -444,8 +435,8 @@ def main():
     parser.add_argument(
         "--batch-size",
         type=int,
-        default=10000,
-        help="Records per batch (default: 10000). Adjust based on available memory."
+        default=5000,
+        help="Records per batch (default: 5000). Adjust based on available memory."
     )
     parser.add_argument(
         "--handle-duplicates",
