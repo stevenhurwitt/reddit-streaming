@@ -147,8 +147,7 @@ def deduplicate_subreddit(subreddit: str, bucket: str, storage_options: dict,
             path,
             df_deduped.to_arrow(),
             mode="overwrite",
-            storage_options=storage_options,
-            overwrite_schema=False
+            storage_options=storage_options
         )
         
         logger.info("✓ Successfully wrote deduplicated data")
