@@ -92,19 +92,26 @@ def read_delta_from_s3_batches(bucket, subreddit, aws_access_key, aws_secret_key
         }
         
         table_uri = f"s3://{bucket}/{subreddit}"
-        dt = DeltaTable(table_uri, storage_options=storage_options)
         
-        # Convert Delta table to PyArrow batches (streaming, not loading all into memory)
-        batch_reader = dt.to_pyarrow_dataset().to_batches(batch_size=batch_size)
+        # Use Polars' read_delta to load the table efficiently
+        # Polars is designed to handle large datasets efficiently in memory
+        logger.info("Loading Delta table with Polars...")
+        df = pl.read_delta(table_uri, storage_options=storage_options)
+        total_rows = len(df)
+        logger.info(f"Loaded {total_rows} total rows")
         
+        # Now batch the data in memory
         batch_num = 0
-        for arrow_batch in batch_reader:
+        offset = 0
+        
+        while offset < total_rows:
             batch_num += 1
-            df_batch = pl.from_arrow(arrow_batch)
+            end = min(offset + batch_size, total_rows)
+            df_batch = df[offset:end]
             
-            if len(df_batch) > 0:
-                logger.info(f"Batch {batch_num}: Read {len(df_batch)} records")
-                yield df_batch
+            logger.info(f"Batch {batch_num}: Processing {len(df_batch)} records (offset: {offset})")
+            yield df_batch
+            offset = end
         
         logger.info(f"Completed reading all {batch_num} batches")
         
