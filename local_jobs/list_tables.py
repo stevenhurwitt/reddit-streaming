@@ -16,7 +16,7 @@ cursor = conn.cursor()
 cursor.execute("""
     SELECT table_name 
     FROM information_schema.tables 
-    WHERE table_schema = 'public'
+    WHERE table_schema = 'reddit_schema'
     ORDER BY table_name
 """)
 
@@ -27,7 +27,7 @@ for table in tables:
     print(f'  {table[0]}')
     
     # Get row count for each table
-    cursor.execute(f"SELECT COUNT(*) FROM {table[0]}")
+    cursor.execute(f"SELECT COUNT(*) FROM reddit_schema.{table[0]}")
     count = cursor.fetchone()[0]
     print(f'    Rows: {count}')
     
@@ -35,7 +35,7 @@ for table in tables:
     cursor.execute(f"""
         SELECT column_name 
         FROM information_schema.columns 
-        WHERE table_name = '{table[0]}'
+        WHERE table_name = 'reddit_schema.{table[0]}'
         ORDER BY ordinal_position
     """)
     columns = cursor.fetchall()
