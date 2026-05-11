@@ -143,7 +143,7 @@ def transform_data_batch(df: pl.DataFrame, seen_titles: Set[str]) -> tuple[pl.Da
         df = df.with_columns([
             pl.col("created_utc").cast(pl.Date).alias("date"),
         ]).with_columns([
-            pl.col("date").dt.year().cast(pl.Int32).alias("year"),
+            pl.col("date").dt.year().cast(pl.Int8).alias("year"),
             pl.col("date").dt.month().cast(pl.Int8).alias("month"),
             pl.col("date").dt.day().cast(pl.Int8).alias("day"),
         ])
