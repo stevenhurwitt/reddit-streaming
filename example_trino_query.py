@@ -16,6 +16,7 @@ def main():
             port=8089,
             catalog='delta',
             schema='reddit',
+            user='trino',
         )
         cursor = conn.cursor()
         print("✓ Connected to Trino\n")
@@ -40,33 +41,45 @@ def main():
     
     # Example queries
     queries = {
-        "Top 5 Technology Posts by Score": """
-            SELECT title, author, score, created_utc
-            FROM technology_clean
-            ORDER BY score DESC
-            LIMIT 5
+        "Top 100 Posts Raw": """
+            SELECT subreddit, title, created_utc FROM reddit.news_raw
+            UNION ALL
+            SELECT subreddit, title, created_utc FROM reddit.programmerhumor_raw
+            UNION ALL
+            SELECT subreddit, title, created_utc FROM reddit.technology_raw
+            UNION ALL
+            SELECT subreddit, title, created_utc FROM reddit.worldnews_raw
+            ORDER BY created_utc DESC
+            LIMIT 100
         """,
         
-        "Post Count by Subreddit": """
+        "Post Count by Date, Raw Subreddit": """
             SELECT 
-                'technology' as subreddit, COUNT(*) as posts FROM technology_clean
+                DATE(from_unixtime(created_utc)) as post_date,
+                subreddit,
+                COUNT(*) as post_count
+            FROM (
+                SELECT subreddit, created_utc FROM reddit.technology_raw
+                UNION ALL
+                SELECT subreddit, created_utc FROM reddit.worldnews_raw
+                UNION ALL
+                SELECT subreddit, created_utc FROM reddit.news_raw
+                UNION ALL
+                SELECT subreddit, created_utc FROM reddit.programmerhumor_raw
+            )
+            GROUP BY DATE(from_unixtime(created_utc)), subreddit
+            ORDER BY post_date DESC, post_count DESC
+            LIMIT 50
+        """,
+        
+        "Clean Counts": """
+            SELECT 'technology' as subreddit, COUNT(*) as posts FROM technology_clean
             UNION ALL
             SELECT 'programmerhumor', COUNT(*) FROM programmerhumor_clean
             UNION ALL
             SELECT 'news', COUNT(*) FROM news_clean
             UNION ALL
             SELECT 'worldnews', COUNT(*) FROM worldnews_clean
-        """,
-        
-        "Top 5 Authors in News by Total Score": """
-            SELECT author, 
-                   COUNT(*) as post_count,
-                   SUM(score) as total_score,
-                   ROUND(AVG(score), 2) as avg_score
-            FROM news_clean
-            GROUP BY author
-            ORDER BY total_score DESC
-            LIMIT 5
         """
     }
     
