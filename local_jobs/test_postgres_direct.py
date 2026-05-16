@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def test_postgres_connection(db_host="reddit-postgres", db_port=5434, db_name="reddit",
+def test_postgres_connection(db_host="localhost", db_port=5434, db_name="reddit",
                             db_user="postgres", db_password="secret!1234"):
     """Test PostgreSQL connection using psycopg2."""
     
@@ -97,7 +97,7 @@ def test_postgres_connection(db_host="reddit-postgres", db_port=5434, db_name="r
                         logger.info(f"    - {col_name}: {col_type} ({null_str})")
                     
                     # Get row count
-                    cursor.execute(f"SELECT COUNT(*) FROM {schema_exists}.{table_name}")
+                    cursor.execute(f"SELECT COUNT(*) FROM reddit_schema.{table_name}")
                     row_count = cursor.fetchone()[0]
                     logger.info(f"    - Rows: {row_count}")
             else:
@@ -158,7 +158,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Test PostgreSQL connection directly"
     )
-    parser.add_argument("--host", default="reddit-postgres", help="PostgreSQL host")
+    parser.add_argument("--host", default="localhost", help="PostgreSQL host")
     parser.add_argument("--port", type=int, default=5434, help="PostgreSQL port")
     parser.add_argument("--db", default="reddit", help="Database name")
     parser.add_argument("--user", default="postgres", help="Database user")
