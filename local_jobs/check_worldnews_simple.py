@@ -17,7 +17,7 @@ cursor = conn.cursor()
 cursor.execute("""
     SELECT column_name 
     FROM information_schema.columns 
-    WHERE table_name = 'worldnews'
+    WHERE table_name = 'reddit_schema.worldnews'
     ORDER BY ordinal_position
 """)
 columns = [c[0] for c in cursor.fetchall()]
@@ -25,7 +25,7 @@ print(f'Actual columns: {columns}')
 print()
 
 # Check total count
-cursor.execute("SELECT COUNT(*) FROM worldnews")
+cursor.execute("SELECT COUNT(*) FROM reddit_schema.worldnews")
 total = cursor.fetchone()[0]
 print(f'Total worldnews records: {total}')
 print()
@@ -33,7 +33,7 @@ print()
 # Get latest records - just select all columns
 cursor.execute("""
     SELECT *
-    FROM worldnews
+    FROM reddit_schema.worldnews
     ORDER BY created_utc DESC
     LIMIT 10
 """)
@@ -54,3 +54,4 @@ for row in rows:
 
 cursor.close()
 conn.close()
+
