@@ -16,17 +16,15 @@ cursor = conn.cursor()
 # Check total count
 cursor.execute("""
     SELECT COUNT(*) as total_count
-    FROM curated_posts 
-    WHERE subreddit = 'worldnews'
+    FROM reddit_schema.worldnews
 """)
 total = cursor.fetchone()[0]
 print(f'Total worldnews records: {total}')
 
 # Get latest records by created_utc
 cursor.execute("""
-    SELECT id, title, created_utc, score, num_comments
-    FROM curated_posts 
-    WHERE subreddit = 'worldnews'
+    SELECT post_id, title, created_utc, score, num_comments
+    FROM reddit_schema.worldnews
     ORDER BY created_utc DESC
     LIMIT 10
 """)
@@ -43,8 +41,7 @@ cursor.execute("""
         MIN(created_utc) as oldest,
         MAX(created_utc) as newest,
         COUNT(*) as count
-    FROM curated_posts 
-    WHERE subreddit = 'worldnews'
+    FROM reddit_schema.worldnews
 """)
 stats = cursor.fetchone()
 print(f'\nData range:')
@@ -54,9 +51,8 @@ print(f'Count: {stats[2]}')
 
 # Check when the most recent record was inserted
 cursor.execute("""
-    SELECT id, title, created_utc
-    FROM curated_posts 
-    WHERE subreddit = 'worldnews'
+    SELECT post_id, title, created_utc
+    FROM reddit_schema.worldnews
     ORDER BY created_utc DESC
     LIMIT 1
 """)
@@ -66,7 +62,6 @@ if latest:
     print(f'ID: {latest[0]}')
     print(f'Title: {latest[1]}')
     print(f'Created UTC: {latest[2]}')
-    print(f'Created UTC (readable): {datetime.fromtimestamp(int(latest[2]))}')
 
 cursor.close()
 conn.close()
