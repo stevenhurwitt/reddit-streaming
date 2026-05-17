@@ -26,8 +26,13 @@ services:
       - POSTGRES_DB=reddit
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret!1234
+      - TRINO_HOST=trino
+      - TRINO_PORT=8080
+      - TRINO_CATALOG=delta
+      - TRINO_SCHEMA=reddit
     depends_on:
       - reddit-postgres
+      - trino
     restart: unless-stopped
 
   reddit-frontend:

@@ -15,6 +15,7 @@ export default function Feed({ apiBase, filters, page, limit, onPageChange }) {
       offset: page * limit,
       sort: filters.sort,
       order: filters.order,
+      source: filters.source || 'postgres',
     })
     if (filters.subreddit) params.set('subreddit', filters.subreddit)
     if (filters.search) params.set('search', filters.search)
@@ -42,10 +43,27 @@ export default function Feed({ apiBase, filters, page, limit, onPageChange }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
-        Showing {page * limit + 1}–{Math.min((page + 1) * limit, data.total)} of{' '}
-        {data.total.toLocaleString()} posts
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: '#666' }}>
+          Showing {page * limit + 1}–{Math.min((page + 1) * limit, data.total)} of{' '}
+          {data.total.toLocaleString()} posts
+          {data.duplicate_count > 0 && (
+            <span style={{ marginLeft: 8, color: '#856404', fontWeight: 600 }}>
+              ({data.duplicate_count.toLocaleString()} duplicates removed)
+            </span>
+          )}
+        </p>
+        <span style={{ 
+          fontSize: 11, 
+          padding: '2px 8px', 
+          borderRadius: 3, 
+          background: data.source === 'trino' ? '#fff3cd' : '#d1ecf1',
+          color: data.source === 'trino' ? '#856404' : '#055160',
+          fontWeight: 600 
+        }}>
+          {data.source === 'postgres' ? '📊 Clean' : '🗄️ Raw'}
+        </span>
+      </div>
 
       {data.posts.map((post) => (
         <PostCard key={`${post.subreddit}-${post.post_id}`} post={post} />
