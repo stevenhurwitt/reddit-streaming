@@ -109,7 +109,7 @@ services:
     ports: 
       - "5434:5432"
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-db-volume:/var/lib/postgresql
     environment: 
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secret!1234
