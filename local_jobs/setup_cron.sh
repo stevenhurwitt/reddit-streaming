@@ -44,7 +44,7 @@ mv "$TEMP_CRON.tmp" "$TEMP_CRON"
 # Stop streaming - 11:55 PM (23:55)
 add_or_update_cron "REDDIT_CRON - stop streaming" \
     "55 23 * * *" \
-    "cd /home/steven/reddit-streaming && ./stop_streaming.sh >> $LOG_DIR/stop_streaming.log 2>&1"
+    "cd /home/steven/reddit-streaming && ./stop_streaming.sh polars >> $LOG_DIR/stop_streaming.log 2>&1"
 
 # News curation - midnight (00:00)
 add_or_update_cron "REDDIT_CRON - news curation" \
