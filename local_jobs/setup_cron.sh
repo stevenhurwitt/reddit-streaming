@@ -43,8 +43,14 @@ mv "$TEMP_CRON.tmp" "$TEMP_CRON"
 
 # Stop streaming - 11:55 PM (23:55)
 add_or_update_cron "REDDIT_CRON - stop streaming" \
-    "55 23 * * *" \
+    "50 23 * * *" \
     "cd /home/steven/reddit-streaming && ./stop_streaming.sh polars >> $LOG_DIR/stop_streaming.log 2>&1"
+
+# Deduplicate raw tables
+add_or_update_cron "REDDIT_CRON - deduplicate raw tables" \
+    "55 23 * * *" \
+    "cd /home/steven/reddit-streaming/local_jobs && /home/steven/reddit-streaming/.venv/bin/python deduplicate_raw_tables.py >> $LOG_DIR/deduplicate_raw_tables.log 2>&1"
+
 
 # News curation - midnight (00:00)
 add_or_update_cron "REDDIT_CRON - news curation" \
@@ -88,8 +94,14 @@ echo "  • 12:00 AM - News curation"
 echo "  • 12:05 AM - Technology curation"
 echo "  • 12:10 AM - ProgrammerHumor curation"
 echo "  • 12:15 AM - Worldnews curation"
-echo "  • 1:20 AM - Backup PostgreSQL database"
-echo "  • 1:25 AM - Start streaming (Polars)"
+echo "  • 11:50 PM - Stop streaming"
+echo "  • 11:55 PM - Deduplicate raw tables"
+echo "  • 12:00 AM - News curation"
+echo "  • 12:05 AM - Technology curation"
+echo "  • 12:10 AM - ProgrammerHumor curation"
+echo "  • 12:15 AM - Worldnews curation"
+echo "  • 12:20 AM - Backup PostgreSQL database"
+echo "  • 12:25 AM - Start streaming (Polars)"
 echo ""
 echo "Logs location: $LOG_DIR/"
 echo ""
