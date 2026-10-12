@@ -7,6 +7,10 @@ ARG shared_workspace=/opt/workspace
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
+# bullseye is EOL - use archived package repositories
+RUN sed -i 's|deb.debian.org|archive.debian.org|g; s|security.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+
 RUN mkdir -p ${shared_workspace} && \
     apt-get update -y && \
 	apt install -y --no-install-recommends curl gcc zip unzip telnet wget ca-certificates &&\ 
@@ -26,9 +30,14 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 RUN curl -s https://get.sdkman.io | bash
 RUN chmod a+x "$HOME/.sdkman/bin/sdkman-init.sh" && \
     source "$HOME/.sdkman/bin/sdkman-init.sh" && \
-    sdk install maven && \
-    sdk install scala 2.12.20 && \
-    sdk use scala 2.12.20
+    sdk install maven
+
+# scala 2.12.20 is not available via sdkman - install directly from GitHub
+RUN curl -fSL https://github.com/scala/scala/releases/download/v2.12.20/scala-2.12.20.tgz -o /tmp/scala.tgz && \
+    tar -xzf /tmp/scala.tgz -C /usr/local && \
+    ln -sf /usr/local/scala-2.12.20/bin/scala /usr/local/bin/scala && \
+    ln -sf /usr/local/scala-2.12.20/bin/scalac /usr/local/bin/scalac && \
+    rm /tmp/scala.tgz
 
 # almond.sh for scala jupyter kernel
 RUN curl -Lo coursier https://git.io/coursier-cli && \

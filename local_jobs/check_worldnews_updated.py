@@ -14,14 +14,14 @@ conn = psycopg2.connect(
 cursor = conn.cursor()
 
 # Check total count
-cursor.execute("SELECT COUNT(*) FROM worldnews")
+cursor.execute("SELECT COUNT(*) FROM reddit_schema.worldnews")
 total = cursor.fetchone()[0]
 print(f'Total worldnews records: {total}')
 
 # Get latest records by created_utc
 cursor.execute("""
     SELECT post_id, title, created_utc, score, num_comments, retrieved_at
-    FROM worldnews
+    FROM reddit_schema.worldnews
     ORDER BY created_utc DESC
     LIMIT 15
 """)
@@ -30,7 +30,7 @@ print('\nLatest 15 worldnews posts by created_utc:')
 print('-' * 120)
 for row in cursor.fetchall():
     post_id, title, created_utc, score, num_comments, retrieved_at = row
-    created_dt = datetime.fromtimestamp(int(created_utc)) if created_utc else None
+    created_dt = datetime.fromtimestamp(created_utc) if created_utc else None
     print(f'{created_dt} | {post_id[:10]}... | Score: {score:4} | Comments: {num_comments:3} | {title[:50]}')
     if retrieved_at:
         print(f'  Retrieved at: {retrieved_at}')
@@ -41,7 +41,7 @@ cursor.execute("""
         MIN(created_utc) as oldest,
         MAX(created_utc) as newest,
         COUNT(*) as count
-    FROM worldnews
+    FROM reddit_schema.worldnews
 """)
 stats = cursor.fetchone()
 oldest_dt = datetime.fromtimestamp(int(stats[0])) if stats[0] else None
@@ -54,7 +54,7 @@ print(f'Total count: {stats[2]}')
 # Check if there's a retrieved_at column
 cursor.execute("""
     SELECT post_id, retrieved_at
-    FROM worldnews
+    FROM reddit_schema.worldnews
     ORDER BY retrieved_at DESC
     LIMIT 10
 """)
