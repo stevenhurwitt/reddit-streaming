@@ -10,7 +10,7 @@ import requests
 # import boto3
 import yaml
 from kafka import KafkaProducer
-from kafka.errors import KafkaTimeoutError, NoBrokersAvailable, NotLeaderForPartitionError
+from kafka.errors import KafkaTimeoutError, NotLeaderForPartitionError
 
 pp = pprint.PrettyPrinter(indent=1)
 

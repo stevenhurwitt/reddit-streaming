@@ -11,6 +11,7 @@ export default function App() {
     search: '',
     sort: 'created_utc',
     order: 'desc',
+    source: 'postgres',
   })
   const [page, setPage] = useState(0)
   const LIMIT = 25

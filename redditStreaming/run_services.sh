@@ -20,7 +20,7 @@ attempt=0
 kafka_ready=false
 
 while [ $attempt -lt $max_attempts ]; do
-    if timeout 3 python -c "from kafka import KafkaProducer; KafkaProducer(bootstrap_servers=['kafka:9092'], api_version_auto_timeout_ms=3000, connections_max_idle_ms=3000)" 2>/dev/null; then
+    if timeout 3 python -c "from kafka import KafkaProducer; KafkaProducer(bootstrap_servers=['kafka:9092'], connections_max_idle_ms=3000)" 2>/dev/null; then
         echo "Kafka is ready!"
         kafka_ready=true
         break

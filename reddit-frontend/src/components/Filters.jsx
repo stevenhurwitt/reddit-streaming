@@ -9,6 +9,13 @@ export default function Filters({ subreddits, filters, onChange }) {
     background: '#fff',
   }
 
+  const sourceStyle = {
+    ...inputStyle,
+    fontWeight: 600,
+    background: filters.source === 'trino' ? '#fff3cd' : '#d1ecf1',
+    borderColor: filters.source === 'trino' ? '#ffc107' : '#0dcaf0',
+  }
+
   return (
     <div
       style={{
@@ -22,6 +29,16 @@ export default function Filters({ subreddits, filters, onChange }) {
         border: '1px solid #ccc',
       }}
     >
+      <select
+        style={sourceStyle}
+        value={filters.source}
+        onChange={(e) => update('source', e.target.value)}
+        title={filters.source === 'postgres' ? 'Clean data from Postgres' : 'Raw deduplicated data from Trino'}
+      >
+        <option value="postgres">📊 Postgres (Clean)</option>
+        <option value="trino">🗄️ Trino (Raw)</option>
+      </select>
+
       <input
         style={{ ...inputStyle, flex: '1 1 180px' }}
         placeholder="Search title or author…"
