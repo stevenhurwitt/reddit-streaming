@@ -61,7 +61,7 @@ nbformat
 nest-asyncio
 notebook
 notebook_shim
-numpy<2
+numpy
 packaging
 pandas
 pandocfilters
@@ -74,11 +74,11 @@ polars
 prometheus-client
 prompt-toolkit
 psutil
-psycopg2
+psycopg2-binary
 ptyprocess
 pure-eval
 py4j
-pyarrow==14.0.2
+pyarrow
 pyasn1
 pycparser
 Pygments
